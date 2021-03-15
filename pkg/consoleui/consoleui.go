@@ -1,0 +1,137 @@
+package consoleui
+
+import (
+	"fmt"
+	"time"
+
+	ui "github.com/gizak/termui/v3"
+	"github.com/gizak/termui/v3/widgets"
+	"github.com/phelix-/psostats/v2/pkg/pso"
+)
+
+type Data struct {
+	Version   string
+	Connected bool
+	Status    string
+}
+
+func (data *Data) Clear() {
+	data.Status = "Cleared"
+	data.Connected = false
+}
+
+type ConsoleUI struct {
+	data *Data
+}
+
+func New(data *Data) (*ConsoleUI, error) {
+	err := ui.Init()
+	if err != nil {
+		return nil, fmt.Errorf("New: unable to initialize termui: %w", err)
+	}
+
+	return &ConsoleUI{
+		data,
+	}, nil
+}
+
+func (cui *ConsoleUI) Close() {
+	ui.Close()
+}
+
+func (cui *ConsoleUI) ClearScreen() {
+	ui.Clear()
+}
+func (cui *ConsoleUI) DrawScreen(playerData *pso.PlayerData, gameState *pso.GameState) error {
+	cui.drawLogo()
+	cui.drawConnection()
+	cui.drawRecording(gameState)
+	cui.DrawHP(playerData)
+	cui.DrawLocation(playerData, gameState)
+	return nil
+}
+
+func (cui *ConsoleUI) drawLogo() {
+	logo := widgets.NewParagraph()
+	logo.Text = fmt.Sprintf("PSOStats %v", cui.data.Version)
+	logo.Border = false
+	logo.SetRect(0, 0, 50, 1)
+	logo.TextStyle.Fg = ui.ColorCyan
+	ui.Render(logo)
+}
+
+func (cui *ConsoleUI) drawConnection() {
+	connection := widgets.NewParagraph()
+	connection.Text = fmt.Sprintf("[[ %v ]] ", cui.data.Status)
+	if cui.data.Connected {
+		connection.TextStyle.Fg = ui.ColorGreen
+	} else {
+		connection.TextStyle.Fg = ui.ColorRed
+	}
+	connection.Border = false
+	connection.SetRect(0, 1, 80, 2)
+	ui.Render(connection)
+}
+
+func (cui *ConsoleUI) drawRecording(gameState *pso.GameState) {
+	connection := widgets.NewParagraph()
+	if gameState.QuestStarted {
+		connection.TextStyle.Fg = ui.ColorGreen
+		connection.Text = "[[ Recording ]] " + time.Now().Sub(gameState.QuestStartTime).String()
+	} else {
+		connection.TextStyle.Fg = ui.ColorRed
+		connection.Text = "[[ Waiting for Quest Start ]] "
+	}
+	connection.Border = false
+	connection.SetRect(0, 2, 50, 3)
+	ui.Render(connection)
+}
+
+func (cui *ConsoleUI) DrawHP(playerData *pso.PlayerData) {
+	connection := widgets.NewParagraph()
+	connection.Text = fmt.Sprintf("%v - %v (gc: %v)", playerData.Class, playerData.CharacterName, playerData.Guildcard)
+	connection.Border = false
+	connection.SetRect(0, 3, 80, 4)
+	ui.Render(connection)
+	//, playerData.HP, playerData.MaxHP,playerData.Meseta, playerData.ShiftaLvl, playerData.DebandLvl
+
+	hpChart := widgets.NewGauge()
+	hpChart.Title = "HP"
+	// percentHp := float64(playerData.HP) / float64(playerData.MaxHP)
+	// hpChart.Percent = int(percentHp * 100)
+	percentHp := 0
+	if playerData.MaxHP > 0 {
+		percentHp = (100 * int(playerData.HP)) / int(playerData.MaxHP)
+	}
+	hpChart.Percent = percentHp
+	hpChart.Label = fmt.Sprintf("%v/%v", playerData.HP, playerData.MaxHP)
+	hpChart.Border = false
+	hpChart.SetRect(0, 4, 50, 7)
+	ui.Render(hpChart)
+}
+
+func (cui *ConsoleUI) DrawLocation(playerData *pso.PlayerData, gameState *pso.GameState) {
+	floor := widgets.NewParagraph()
+	floor.Text = fmt.Sprintf("%v Episode:%v Floor:%v Room:%v\n[%v]\nMonsters Killed-%v/Alive-%v",
+		RenderDifficulty(playerData.Difficulty),
+		playerData.Episode, playerData.Floor, playerData.Room, playerData.QuestName,
+		playerData.KillCount, gameState.MonsterCount)
+	floor.Border = false
+	floor.SetRect(0, 6, 80, 14)
+	ui.Render(floor)
+}
+
+func RenderDifficulty(difficulty uint16) string {
+	switch difficulty {
+	case 0:
+		return "Normal"
+	case 1:
+		return "Hard"
+	case 2:
+		return "VH"
+	case 3:
+		return "Ult"
+	default:
+		return "unknown"
+	}
+}
