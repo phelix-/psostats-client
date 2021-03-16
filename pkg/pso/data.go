@@ -134,21 +134,54 @@ func (pso *PSO) RefreshData() error {
 			}
 
 			if !pso.GameState.QuestStarted {
-				if pso.questTypes[pso.CurrentPlayerData.QuestName] == 1 {
-					pso.getFloorSwitches(pso.CurrentPlayerData.Floor)
-					if err != nil {
-						return err
+				quests := pso.questTypes[int(pso.CurrentPlayerData.Episode)]
+				questConditions, exists := quests[pso.CurrentPlayerData.QuestName]
+				if !exists {
+					log.Printf("quest '%v' not found", pso.CurrentPlayerData.QuestName)
+				}
+				if exists {
+					if questConditions.StartingSwitchFloor == pso.CurrentPlayerData.Floor {
+						switchSet, err := pso.getFloorSwitch(questConditions.StartingSwitch, pso.CurrentPlayerData.Floor)
+						if err != nil {
+							return err
+						}
+						pso.GameState.QuestStarted = switchSet
 					}
-					pso.GameState.QuestStarted = pso.GameState.FloorSwitches
 				} else {
 					pso.GameState.QuestStarted = pso.CurrentPlayerData.Floor != 0
 				}
 				if pso.GameState.QuestStarted {
 					pso.GameState.QuestStartTime = time.Now()
 				}
+			} else if !pso.GameState.QuestComplete {
+				quests := pso.questTypes[int(pso.CurrentPlayerData.Episode)]
+				questConditions, exists := quests[pso.CurrentPlayerData.QuestName]
+				if exists {
+					if questConditions.EndingQuestRegister > 0 {
+						registerSet, err := pso.isQuestRegisterSet(questConditions.EndingQuestRegister)
+						if err != nil {
+							return err
+						}
+
+						if registerSet {
+							pso.GameState.QuestComplete = true
+							pso.GameState.QuestEndTime = time.Now()
+						}
+					} else if questConditions.EndingSwitchFloor == pso.CurrentPlayerData.Floor {
+						switched, err := pso.getFloorSwitch(questConditions.EndingSwitch, pso.CurrentPlayerData.Floor)
+						if err != nil {
+							return err
+						}
+						if switched {
+							pso.GameState.QuestComplete = true
+							pso.GameState.QuestEndTime = time.Now()
+						}
+					}
+				}
 			}
 		} else {
 			pso.CurrentPlayerData.QuestName = "No Active Quest"
+			pso.GameState.QuestComplete = false
 			pso.GameState.QuestStarted = false
 		}
 	}
@@ -409,6 +442,33 @@ func (pso *PSO) getFloorSwitches(floor uint16) error {
 	}
 	pso.GameState.FloorSwitches = anySet
 	return nil
+}
+
+func (pso *PSO) isQuestRegisterSet(registerId uint16) (bool, error) {
+	questRegisterAddress, err := pso.readU32(uintptr(0x00A954B0))
+	if err != nil {
+		return false, err
+	}
+	buf, _, ok := w32.ReadProcessMemory(w32.HANDLE(pso.handle), uintptr(int(questRegisterAddress)+(4*int(registerId))), 1)
+	if !ok {
+		return false, errors.New("Unable to isQuestRegisterSet")
+	}
+	registerSet := buf[0] > 0
+	// log.Printf("R[%v]@%x = %v", registerId, uintptr(0x00A954B0+(4*int(registerId))), registerSet)
+	// log.Print("\n")
+	return registerSet, nil
+}
+
+func (pso *PSO) getFloorSwitch(switchId uint16, floor uint16) (bool, error) {
+	buf, _, ok := w32.ReadProcessMemory(w32.HANDLE(pso.handle), uintptr(0xAC9FA0+(32*int(floor))), 32)
+	if !ok {
+		return false, errors.New("Unable to getFloorSwitches")
+	}
+	mask := uint16(0x80) >> (switchId % 16)
+	switchSet := (buf[switchId/16] & mask) > 0
+	// log.Printf("switch[%v] = %v", switchId, switchSet)
+	// log.Print("\n")
+	return switchSet, nil
 }
 
 func (pso *PSO) getRoom(playerAddress int) error {

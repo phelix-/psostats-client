@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	// windowName                   = "PHANTASY STAR ONLINE Blue Burst"
-	windowName                   = "Ephinea: Phantasy Star Online Blue Burst"
+	windowName = "PHANTASY STAR ONLINE Blue Burst"
+	// windowName                   = "Ephinea: Phantasy Star Online Blue Burst"
 	persistentConnectionTickRate = time.Second / 30
 	windowsCodeStillActive       = 259
 	WarpIn                       = 0
@@ -24,7 +24,7 @@ type (
 )
 
 type PSO struct {
-	questTypes      map[string]int
+	questTypes      map[int]map[string]Quest
 	connected       bool
 	connectedStatus string
 	handle          handle
@@ -41,7 +41,9 @@ type GameState struct {
 	MonsterCount   uint32
 	FloorSwitches  bool
 	QuestStarted   bool
+	QuestComplete  bool
 	QuestStartTime time.Time
+	QuestEndTime   time.Time
 }
 
 type PlayerData struct {
@@ -66,10 +68,16 @@ type PlayerData struct {
 }
 
 func New() *PSO {
-	questTypes := map[string]int{
-		"Sweep-Up Operation 3":  WarpIn,
-		"Maximum Attack 4 -1C-": Switch,
-	}
+	// questTypes := map[string]int{
+	// 	"Sweep-Up Operation 3":  WarpIn,
+	// 	"Maximum Attack 4 -1B-": Switch,
+	// 	"Maximum Attack 4 -1C-": Switch,
+	// 	"Maximum Attack 4 -4C-": Switch,
+	// }
+	questTypes := make(map[int]map[string]Quest)
+	questTypes[1] = Ep1Quests()
+	questTypes[2] = Ep2Quests()
+	questTypes[4] = Ep4Quests()
 	return &PSO{
 		questTypes: questTypes,
 	}

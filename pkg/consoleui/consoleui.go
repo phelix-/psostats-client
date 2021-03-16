@@ -75,7 +75,10 @@ func (cui *ConsoleUI) drawConnection() {
 
 func (cui *ConsoleUI) drawRecording(gameState *pso.GameState) {
 	connection := widgets.NewParagraph()
-	if gameState.QuestStarted {
+	if gameState.QuestComplete {
+		connection.TextStyle.Fg = ui.ColorGreen
+		connection.Text = "[[ Quest Complete ]] " + gameState.QuestEndTime.Sub(gameState.QuestStartTime).String()
+	} else if gameState.QuestStarted {
 		connection.TextStyle.Fg = ui.ColorGreen
 		connection.Text = "[[ Recording ]] " + time.Now().Sub(gameState.QuestStartTime).String()
 	} else {
