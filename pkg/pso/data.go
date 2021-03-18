@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"fmt"
 	"log"
 	"math"
 	"time"
@@ -18,13 +17,52 @@ const (
 	myPlayerIndexAddress   = 0x00A9C4F4
 )
 
+func (pso *PSO) ConsolidateFrame() {
+	pso.State.QuestName = pso.CurrentPlayerData.QuestName
+	pso.State.QuestStarted = pso.GameState.QuestStarted
+	pso.State.QuestStartTime = pso.GameState.QuestStartTime
+	pso.State.QuestEndTime = pso.GameState.QuestEndTime
+
+	if pso.State.QuestStarted && !pso.State.QuestComplete {
+		currentSecond := int(time.Now().Sub(pso.State.QuestStartTime).Seconds())
+		if _, exists := pso.Frames[currentSecond]; !exists {
+			mesetaCharged := uint32(0)
+			if previousFrame, previousFrameExists := pso.Frames[currentSecond-1]; previousFrameExists {
+				mesetaCharged = (previousFrame.Meseta - pso.CurrentPlayerData.Meseta) + previousFrame.MesetaCharged
+			}
+			frame := StatsFrame{
+				HP:            pso.CurrentPlayerData.HP,
+				TP:            pso.CurrentPlayerData.TP,
+				Floor:         pso.CurrentPlayerData.Floor,
+				Room:          pso.CurrentPlayerData.Room,
+				ShiftaLvl:     pso.CurrentPlayerData.ShiftaLvl,
+				DebandLvl:     pso.CurrentPlayerData.DebandLvl,
+				Invincible:    pso.CurrentPlayerData.InvincibilityFrames > 0,
+				MonsterCount:  pso.GameState.MonsterCount,
+				Meseta:        pso.CurrentPlayerData.Meseta,
+				MesetaCharged: mesetaCharged,
+				Time:          currentSecond,
+			}
+			pso.Frames[currentSecond] = frame
+		}
+	}
+
+	pso.State.QuestComplete = pso.GameState.QuestComplete
+	if pso.State.QuestComplete {
+		pso.State.QuestDuration = pso.State.QuestEndTime.Sub(pso.State.QuestStartTime)
+	} else if pso.State.QuestStarted {
+		pso.State.QuestDuration = time.Now().Sub(pso.State.QuestStartTime)
+	} else {
+		pso.State.QuestDuration = time.Duration(0)
+	}
+
+}
+
 func (pso *PSO) RefreshData() error {
 	if !pso.connected {
 		log.Fatal("RefreshData: connection to window lost")
 		return errors.New("RefreshData: connection to window lost")
 	}
-
-	// w32.ReadProcessMemory(w32.HANDLE(pso.handle), uintptr(pso.baseAddress+0x0AA1F1314), 4)
 
 	index, err := pso.getMyPlayerIndex()
 	if err != nil {
@@ -36,12 +74,7 @@ func (pso *PSO) RefreshData() error {
 	if err != nil {
 		return err
 	}
-
-	err = pso.getEpisode()
-	if err != nil {
-		return err
-	}
-	err = pso.getDifficulty()
+	_, err = pso.getBaseGameInfo()
 	if err != nil {
 		return err
 	}
@@ -52,32 +85,12 @@ func (pso *PSO) RefreshData() error {
 	}
 
 	if address != 0 {
-		hp, err := pso.getHP(address)
+		err := pso.getPlayerData(address)
 		if err != nil {
 			return err
 		}
 
-		maxHp, err := pso.getMaxHP(address)
-		if err != nil {
-			return err
-		}
-		err = pso.getTP(address)
-		if err != nil {
-			return err
-		}
-		err = pso.getMaxTP(address)
-		if err != nil {
-			return err
-		}
-		err = pso.getMeseta(address)
-		if err != nil {
-			return err
-		}
 		err = pso.getCharacterName(address)
-		if err != nil {
-			return err
-		}
-		err = pso.getClass(address)
 		if err != nil {
 			return err
 		}
@@ -86,37 +99,6 @@ func (pso *PSO) RefreshData() error {
 		if err != nil {
 			return err
 		}
-
-		err = pso.getFloor(address)
-		if err != nil {
-			return err
-		}
-
-		err = pso.getRoom(address)
-		if err != nil {
-			return err
-		}
-		err = pso.getInvincibilityFrames(address)
-		if err != nil {
-			return err
-		}
-		err = pso.getKillCount(address)
-		if err != nil {
-			return err
-		}
-
-		err = pso.getShiftaLvl(address)
-		if err != nil {
-			return err
-		}
-
-		err = pso.getDebandLvl(address)
-		if err != nil {
-			return err
-		}
-
-		pso.CurrentPlayerData.HP = hp
-		pso.CurrentPlayerData.MaxHP = maxHp
 
 		questPtr, err := pso.getQuestPointer()
 		if err != nil {
@@ -136,9 +118,6 @@ func (pso *PSO) RefreshData() error {
 			if !pso.GameState.QuestStarted {
 				quests := pso.questTypes[int(pso.CurrentPlayerData.Episode)]
 				questConditions, exists := quests[pso.CurrentPlayerData.QuestName]
-				if !exists {
-					log.Printf("quest '%v' not found", pso.CurrentPlayerData.QuestName)
-				}
 				if exists {
 					if questConditions.StartingSwitchFloor == pso.CurrentPlayerData.Floor {
 						switchSet, err := pso.getFloorSwitch(questConditions.StartingSwitch, pso.CurrentPlayerData.Floor)
@@ -231,16 +210,6 @@ func (pso *PSO) getBaseCharacterAddress(index uint8) (int, error) {
 	return baseAddress, nil
 }
 
-func (pso *PSO) getMeseta(playerAddress int) error {
-	buf, _, ok := w32.ReadProcessMemory(w32.HANDLE(pso.handle), uintptr(playerAddress+0xE4C), 4)
-	if !ok {
-		return errors.New("Unable to getInventoryPointer")
-	}
-	meseta := uint32(buf[1])<<16 + uint32(buf[0])
-	pso.CurrentPlayerData.Meseta = meseta
-	return nil
-}
-
 func (pso *PSO) getCharacterName(playerAddress int) error {
 	buf, _, ok := w32.ReadProcessMemory(w32.HANDLE(pso.handle), uintptr(playerAddress+0x428), 24)
 	if !ok {
@@ -286,6 +255,7 @@ func (pso *PSO) getGuildCard(playerAddress int) error {
 		if b == 0x00 {
 			break
 		}
+
 		split := make([]byte, 2)
 		binary.LittleEndian.PutUint16(split, b)
 		byteBuf.Write(split)
@@ -313,14 +283,9 @@ func (pso *PSO) getGuildCard(playerAddress int) error {
 // 	return hp, nil
 // }
 
-func (pso *PSO) getClass(playerAddress int) error {
-	buf, _, ok := w32.ReadProcessMemory(w32.HANDLE(pso.handle), uintptr(playerAddress+0x961), 1)
-	if !ok {
-		return errors.New("Unable to getClass")
-	}
-
+func (pso *PSO) getClass(classBits uint16) string {
 	class := "Unknown class"
-	switch buf[0] {
+	switch classBits {
 	case 0x00:
 		class = "HUmar"
 		break
@@ -358,74 +323,85 @@ func (pso *PSO) getClass(playerAddress int) error {
 		class = "FOnewearl"
 		break
 	}
-	pso.CurrentPlayerData.Class = class
+	return class
+}
+
+func (pso *PSO) getPlayerData(playerAddress int) error {
+	base := 0x028
+	max := 0xE4E
+	buf, _, ok := w32.ReadProcessMemory(w32.HANDLE(pso.handle), uintptr(playerAddress+base), uintptr((max-base)+4))
+	if !ok {
+		return errors.New("Unable to getPlayerData")
+	}
+	pso.CurrentPlayerData.Room = buf[(0x028-base)/2]
+	pso.CurrentPlayerData.KillCount = buf[(0x11A-base)/2]
+	shiftaMultiplier := float32FromU16(buf[(0x278-base)/2], buf[(0x27a-base)/2])
+	pso.CurrentPlayerData.ShiftaLvl = getShiftaLvlFromMultiplier(shiftaMultiplier)
+	debandMultiplier := float32FromU16(buf[(0x278+12-base)/2], buf[(0x278+14-base)/2])
+	pso.CurrentPlayerData.DebandLvl = getShiftaLvlFromMultiplier(debandMultiplier)
+	pso.CurrentPlayerData.MaxHP = buf[(0x2BC-base)/2]
+	pso.CurrentPlayerData.MaxTP = buf[(0x2BE-base)/2]
+	pso.CurrentPlayerData.HP = buf[(0x334-base)/2]
+	pso.CurrentPlayerData.TP = buf[(0x336-base)/2]
+	pso.CurrentPlayerData.Floor = buf[(0x3F0-base)/2]
+	pso.CurrentPlayerData.InvincibilityFrames = uint32FromU16(buf[(0x720-base)/2], buf[(0x722-base)/2])
+	class := buf[(0x961-base)/2] & 0xF
+	pso.CurrentPlayerData.Class = pso.getClass(class)
+	pso.CurrentPlayerData.Meseta = uint32FromU16(buf[(0xE4C-base)/2], buf[(0xE4E-base)/2])
+	// log.Printf("%v/%v", read, uintptr(10+(0x3f0-base)/2))
+	// for i := 0; i <= len(buf)-8; i += 8 {
+	// 	log.Printf("0x%x | 0x%x - %x %x %x %x %x %x %x %x", playerAddress+base+(2*i), base+(2*i), buf[i], buf[i+1], buf[i+2], buf[i+3], buf[i+4], buf[i+5], buf[i+6], buf[i+7])
+	// }
+
+	// log.Printf("%v - %v/%v - %v/%v", len(buf), pso.CurrentPlayerData.HP, pso.CurrentPlayerData.MaxHP,
+	// 	pso.CurrentPlayerData.TP, pso.CurrentPlayerData.MaxTP)
 	return nil
 }
 
-func (pso *PSO) getHP(playerAddress int) (uint16, error) {
-	buf, _, ok := w32.ReadProcessMemory(w32.HANDLE(pso.handle), uintptr(playerAddress+0x334), 2)
-	if !ok {
-		return 0, errors.New("Unable to getHP")
-	}
-	hp := buf[0]
-	return hp, nil
+func uint32FromU16(lsb uint16, msb uint16) uint32 {
+	return uint32(msb)<<16 + uint32(lsb)
 }
 
-func (pso *PSO) getMaxHP(playerAddress int) (uint16, error) {
-	buf, _, ok := w32.ReadProcessMemory(w32.HANDLE(pso.handle), uintptr(playerAddress+0x2BC), 2)
-	if !ok {
-		return 0, errors.New("Unable to getMaxHP")
-	}
-	hp := buf[0]
-	return hp, nil
-}
-func (pso *PSO) getTP(playerAddress int) error {
-	buf, _, ok := w32.ReadProcessMemory(w32.HANDLE(pso.handle), uintptr(playerAddress+0x336), 2)
-	if !ok {
-		return errors.New("Unable to getTP")
-	}
-	pso.CurrentPlayerData.TP = buf[0]
-	return nil
-}
-func (pso *PSO) getMaxTP(playerAddress int) error {
-	buf, _, ok := w32.ReadProcessMemory(w32.HANDLE(pso.handle), uintptr(playerAddress+0x2BE), 2)
-	if !ok {
-		return errors.New("Unable to getMaxTP")
-	}
-	pso.CurrentPlayerData.MaxTP = buf[0]
-	return nil
-}
-func (pso *PSO) getDifficulty() error {
-	buf, _, ok := w32.ReadProcessMemory(w32.HANDLE(pso.handle), uintptr(0xA9CD68), 2)
-	if !ok {
-		return errors.New("Unable to getEpisode")
-	}
-	difficulty := buf[0]
-	pso.CurrentPlayerData.Difficulty = difficulty
-	return nil
+func float32FromU16(lsb uint16, msb uint16) float32 {
+	combinedValue := uint32FromU16(lsb, msb)
+	return math.Float32frombits(combinedValue)
 }
 
-func (pso *PSO) getEpisode() error {
-	buf, _, ok := w32.ReadProcessMemory(w32.HANDLE(pso.handle), uintptr(0x00A9B1C8), 2)
-	if !ok {
-		return errors.New("Unable to getEpisode")
+func getShiftaLvlFromMultiplier(multiplier float32) int16 {
+	level := int16(0)
+	if multiplier != 0 {
+		level = int16(1 + math.Round(((math.Abs(float64(multiplier))*100)-10)/1.3))
+		if multiplier < 0 {
+			level = -level
+		}
 	}
-	episode := buf[0] + 1
+	return level
+}
+
+type BaseGameInfo struct {
+	episode    uint16
+	difficulty uint16
+}
+
+func (pso *PSO) getBaseGameInfo() (BaseGameInfo, error) {
+	base := 0x00A9B1C8
+	max := 0x00A9CD68
+	buf, _, ok := w32.ReadProcessMemory(w32.HANDLE(pso.handle), uintptr(base), uintptr((max-base)+2))
+	if !ok {
+		return BaseGameInfo{}, errors.New("Unable to getDifficulty")
+	}
+
+	difficulty := buf[(0x00A9CD68-base)/2]
+	episode := buf[(0x00A9B1C8-base)/2] + 1
 	if episode == 3 {
 		episode = 4
 	}
 	pso.CurrentPlayerData.Episode = episode
-	return nil
-}
-
-func (pso *PSO) getFloor(playerAddress int) error {
-	buf, _, ok := w32.ReadProcessMemory(w32.HANDLE(pso.handle), uintptr(playerAddress+0x3F0), 2)
-	if !ok {
-		return errors.New("Unable to getFloor")
-	}
-	floor := buf[0]
-	pso.CurrentPlayerData.Floor = floor
-	return nil
+	pso.CurrentPlayerData.Difficulty = difficulty
+	return BaseGameInfo{
+		episode:    episode,
+		difficulty: difficulty,
+	}, nil
 }
 
 func (pso *PSO) getFloorSwitches(floor uint16) error {
@@ -471,74 +447,6 @@ func (pso *PSO) getFloorSwitch(switchId uint16, floor uint16) (bool, error) {
 	return switchSet, nil
 }
 
-func (pso *PSO) getRoom(playerAddress int) error {
-	buf, _, ok := w32.ReadProcessMemory(w32.HANDLE(pso.handle), uintptr(playerAddress+0x28), 2)
-	if !ok {
-		return errors.New("Unable to getRoom")
-	}
-	room := buf[0]
-	pso.CurrentPlayerData.Room = room
-	return nil
-}
-
-func (pso *PSO) getKillCount(playerAddress int) error {
-	buf, _, ok := w32.ReadProcessMemory(w32.HANDLE(pso.handle), uintptr(playerAddress+0x11A), 2)
-	if !ok {
-		return errors.New("Unable to killCount")
-	}
-	killCount := buf[0]
-	pso.CurrentPlayerData.KillCount = killCount
-	return nil
-}
-
-func (pso *PSO) getShiftaLvl(playerAddress int) error {
-	buf, _, ok := w32.ReadProcessMemory(w32.HANDLE(pso.handle), uintptr(playerAddress+0x278), 4)
-	if !ok {
-		return errors.New("Unable to getShiftaLvl")
-	}
-	totalValue := uint32(buf[1])<<16 + uint32(buf[0])
-
-	multiplier := math.Float32frombits(totalValue)
-	if multiplier != 0 {
-		pso.CurrentPlayerData.ShiftaLvl = int16(1 + math.Round(((math.Abs(float64(multiplier))*100)-10)/1.3))
-		if multiplier < 0 {
-			pso.CurrentPlayerData.ShiftaLvl = -pso.CurrentPlayerData.ShiftaLvl
-		}
-	} else {
-		pso.CurrentPlayerData.ShiftaLvl = 0
-	}
-	return nil
-}
-
-func (pso *PSO) getDebandLvl(playerAddress int) error {
-	buf, _, ok := w32.ReadProcessMemory(w32.HANDLE(pso.handle), uintptr(playerAddress+0x278+12), 4)
-	if !ok {
-		return errors.New("Unable to getDebandLvl")
-	}
-	totalValue := uint32(buf[1])<<16 + uint32(buf[0])
-
-	multiplier := math.Float32frombits(totalValue)
-	if multiplier != 0 {
-		pso.CurrentPlayerData.DebandLvl = int16(1 + math.Round(((math.Abs(float64(multiplier))*100)-10)/1.3))
-		if multiplier < 0 {
-			pso.CurrentPlayerData.DebandLvl = -pso.CurrentPlayerData.DebandLvl
-		}
-	} else {
-		pso.CurrentPlayerData.DebandLvl = 0
-	}
-	return nil
-}
-
-func (pso *PSO) getInvincibilityFrames(playerAddress int) error {
-	buf, _, ok := w32.ReadProcessMemory(w32.HANDLE(pso.handle), uintptr(playerAddress+0x720), 4)
-	if !ok {
-		return errors.New("Unable to iFrames")
-	}
-	iFrames := uint32(buf[1])<<16 + uint32(buf[0])
-	pso.CurrentPlayerData.InvincibilityFrames = iFrames
-	return nil
-}
-
 func (pso *PSO) getQuestPointer() (uint32, error) {
 	buf, _, ok := w32.ReadProcessMemory(w32.HANDLE(pso.handle), uintptr(0xA95AA8), 4)
 	if !ok {
@@ -578,14 +486,6 @@ func (pso *PSO) getQuestName(questDataPtr uint32) error {
 
 func (pso *PSO) GetPlayerData() PlayerData {
 	return pso.CurrentPlayerData
-}
-
-func (pso *PSO) GetHP() string {
-	return fmt.Sprintf("%v", pso.CurrentPlayerData.HP)
-}
-
-func (pso *PSO) GetMaxHP() string {
-	return fmt.Sprintf("%v", pso.CurrentPlayerData.MaxHP)
 }
 
 func (pso *PSO) GetMonsterList() error {

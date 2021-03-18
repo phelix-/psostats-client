@@ -90,6 +90,14 @@ func New(version string) (*Client, error) {
 	}, nil
 }
 
+func (c *Client) GetGameInfo() pso.StatsState {
+	return c.pso.State
+}
+
+func (c *Client) GetFrames() map[int]pso.StatsFrame {
+	return c.pso.Frames
+}
+
 func (c *Client) Run() error {
 	c.ui.DrawScreen(&c.pso.CurrentPlayerData, &c.pso.GameState)
 	defer c.ui.Close()

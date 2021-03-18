@@ -32,9 +32,33 @@ type PSO struct {
 	// ddstatsBlockAddress address
 	CurrentPlayerData PlayerData
 	GameState         GameState
-	// statsFrame          []StatsFrame
-	errors chan error
-	done   chan struct{}
+	State             StatsState
+	Frames            map[int]StatsFrame
+	errors            chan error
+	done              chan struct{}
+}
+
+type StatsState struct {
+	QuestName      string
+	QuestStarted   bool
+	QuestComplete  bool
+	QuestStartTime time.Time
+	QuestEndTime   time.Time
+	QuestDuration  time.Duration
+}
+
+type StatsFrame struct {
+	HP            uint16
+	TP            uint16
+	Floor         uint16
+	Room          uint16
+	ShiftaLvl     int16
+	DebandLvl     int16
+	Invincible    bool
+	MonsterCount  uint32
+	Meseta        uint32
+	MesetaCharged uint32
+	Time          int
 }
 
 type GameState struct {
@@ -80,6 +104,8 @@ func New() *PSO {
 	questTypes[4] = Ep4Quests()
 	return &PSO{
 		questTypes: questTypes,
+		State:      StatsState{},
+		Frames:     make(map[int]StatsFrame),
 	}
 }
 
@@ -112,6 +138,7 @@ func (pso *PSO) StartPersistentConnection(errors chan error) {
 						errors <- fmt.Errorf("StartPersistentConnection: could not refresh data: %w", err)
 						continue
 					}
+					pso.ConsolidateFrame()
 				}
 			case <-pso.done:
 				pso.Close()
