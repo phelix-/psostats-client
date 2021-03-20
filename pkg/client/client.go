@@ -96,10 +96,6 @@ func (c *Client) GetGameInfo() pso.QuestRun {
 	return c.pso.Quests[c.pso.CurrentQuest]
 }
 
-func (c *Client) GetFrames() map[int]pso.StatsFrame {
-	return c.pso.Frames
-}
-
 func (c *Client) Run() error {
 	c.ui.DrawScreen(&c.pso.CurrentPlayerData, &c.pso.GameState)
 	defer c.ui.Close()
@@ -161,54 +157,6 @@ func (c *Client) runDD() {
 				continue
 			}
 
-			// newStatus := c.pso.GetStatus()
-
-			// when a new quest has started
-			// if oldStatus != pso.StatusPlaying && newStatus == pso.StatusPlaying ||
-			// 	oldStatus != pso.StatusOtherReplay && newStatus == pso.StatusOtherReplay ||
-			// 	oldStatus != pso.StatusOwnReplayFromLeaderboard && newStatus == pso.StatusOwnReplayFromLeaderboard {
-			// 	c.statsSent = false
-			// }
-
-			// if !c.cfg.OfflineMode {
-			// 	if c.dd.GetStatsFinishedLoading() && !c.statsSent {
-			// 		if newStatus == devildaggers.StatusDead || newStatus == devildaggers.StatusOtherReplay || newStatus == devildaggers.StatusOwnReplayFromLeaderboard {
-			// 			// send stats
-			// 			submitGameRequest, err := c.compileGameRequest()
-			// 			if err != nil {
-			// 				c.errChan <- fmt.Errorf("runGameCapture: could not compile game recording: %w", err)
-			// 				return
-			// 			}
-			// 			gameID, err := c.grpcClient.SubmitGame(submitGameRequest)
-			// 			if err != nil {
-			// 				c.errChan <- fmt.Errorf("runGameCapture: error submitting game to server: %w", err)
-			// 				return
-			// 			}
-			// 			c.lastSubmittedGameID = gameID
-			// 			c.statsSent = true
-
-			// 			if c.cfg.AutoClipboardGame {
-			// 				c.copyGameURLToClipboard()
-			// 			}
-
-			// 			if (c.cfg.Submit.Stats && !c.dd.GetIsReplay()) ||
-			// 				(c.cfg.Submit.ReplayStats && c.dd.GetIsReplay()) {
-			// 				if (c.dd.GetLevelHashMD5() == c.v3SurvivalHash) ||
-			// 					(!c.cfg.Submit.NonDefaultSpawnsets && c.dd.GetLevelHashMD5() != c.v3SurvivalHash) {
-			// 					if c.sioClient.GetStatus() == socketio.StatusLoggedIn {
-			// 						err = c.sioClient.SubmitGame(gameID, c.cfg.Discord.NotifyPlayerBest, c.cfg.Discord.NotifyAbove1100)
-			// 						if err != nil {
-			// 							c.errChan <- fmt.Errorf("runGameCapture: error submitting game to sio: %w", err)
-			// 							return
-			// 						}
-			// 					}
-			// 				}
-			// 			}
-			// 		}
-			// 	}
-			// }
-
-			// oldStatus = newStatus
 		case <-c.done:
 			return
 		}

@@ -34,24 +34,9 @@ type PSO struct {
 	GameState         GameState
 	CurrentQuest      int
 	Quests            map[int]QuestRun
-	Frames            map[int]StatsFrame
 	errors            chan error
 	done              chan struct{}
 	MonsterNames      map[uint32]string
-}
-
-type StatsFrame struct {
-	HP            uint16
-	TP            uint16
-	Floor         uint16
-	Room          uint16
-	ShiftaLvl     int16
-	DebandLvl     int16
-	Invincible    bool
-	MonsterCount  int
-	Meseta        uint32
-	MesetaCharged uint32
-	Time          int
 }
 
 type GameState struct {
@@ -89,7 +74,6 @@ func New() *PSO {
 	return &PSO{
 		questTypes:   NewQuests(),
 		Quests:       make(map[int]QuestRun),
-		Frames:       make(map[int]StatsFrame),
 		MonsterNames: make(map[uint32]string),
 	}
 }
@@ -162,14 +146,6 @@ func (pso *PSO) Connect() (bool, string, error) {
 
 	pso.handle = handle(hndl)
 	pso.baseAddress = baseAddress
-
-	// ddstatsBlockAddress, err := pso.getDevilDaggersBlockBaseAddress()
-	// if err != nil {
-	// 	pso.connected = false
-	// 	return false, fmt.Errorf("Connect: could get ddstats block address: %w", err)
-	// }
-
-	// pso.ddstatsBlockAddress = ddstatsBlockAddress
 
 	return true, fmt.Sprintf("Connected to pid %v", pid), nil
 }
