@@ -5,7 +5,6 @@ import (
 	"log"
 	"syscall"
 	"time"
-	"unsafe"
 
 	"github.com/TheTitanrain/w32"
 )
@@ -24,12 +23,10 @@ type (
 )
 
 type PSO struct {
-	questTypes      Quests
-	connected       bool
-	connectedStatus string
-	handle          handle
-	baseAddress     uintptr
-	// ddstatsBlockAddress address
+	questTypes        Quests
+	connected         bool
+	connectedStatus   string
+	handle            handle
 	CurrentPlayerData PlayerData
 	GameState         GameState
 	CurrentQuest      int
@@ -139,13 +136,11 @@ func (pso *PSO) Connect() (bool, string, error) {
 		return false, "Could not open process", fmt.Errorf("Connect: could not open process with pid %v: %w", pid, err)
 	}
 
-	baseAddress, err := getBaseAddress(pid)
 	if err != nil {
 		return false, "Could not find base address", fmt.Errorf("Connect: could get base address: %w", err)
 	}
 
 	pso.handle = handle(hndl)
-	pso.baseAddress = baseAddress
 
 	return true, fmt.Sprintf("Connected to pid %v", pid), nil
 }
@@ -161,24 +156,4 @@ func (pso *PSO) CheckConnection() (bool, string) {
 func (pso *PSO) checkConnection() bool {
 	code, err := w32.GetExitCodeProcess(w32.HANDLE(pso.handle))
 	return err == nil && code == windowsCodeStillActive
-}
-
-func getBaseAddress(pid int) (uintptr, error) {
-	var baseAddress uintptr
-
-	snapshot := w32.CreateToolhelp32Snapshot(w32.TH32CS_SNAPMODULE|w32.TH32CS_SNAPMODULE32, uint32(pid))
-	if snapshot != w32.ERROR_INVALID_HANDLE {
-		var me w32.MODULEENTRY32
-		me.Size = uint32(unsafe.Sizeof(me))
-		if w32.Module32First(snapshot, &me) {
-			baseAddress = uintptr(unsafe.Pointer(me.ModBaseAddr))
-		}
-	}
-	defer w32.CloseHandle(snapshot)
-
-	if baseAddress == 0 {
-		return 0, fmt.Errorf("getBaseAddress: could not find base address for PID %d", pid)
-	}
-
-	return baseAddress, nil
 }
