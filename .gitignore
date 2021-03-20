@@ -3,3 +3,6 @@ game.json
 info.log
 quest.json
 static
+game-*.json
+*.exe
+*.7z

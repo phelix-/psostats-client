@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	windowName = "PHANTASY STAR ONLINE Blue Burst"
-	// windowName                   = "Ephinea: Phantasy Star Online Blue Burst"
+	unseenWindowName             = "PHANTASY STAR ONLINE Blue Burst"
+	ephineaWindowName            = "Ephinea: Phantasy Star Online Blue Burst"
 	persistentConnectionTickRate = time.Second / 30
 	windowsCodeStillActive       = 259
 	WarpIn                       = 0
@@ -24,7 +24,7 @@ type (
 )
 
 type PSO struct {
-	questTypes      map[int]map[string]Quest
+	questTypes      Quests
 	connected       bool
 	connectedStatus string
 	handle          handle
@@ -32,19 +32,12 @@ type PSO struct {
 	// ddstatsBlockAddress address
 	CurrentPlayerData PlayerData
 	GameState         GameState
-	State             StatsState
+	CurrentQuest      int
+	Quests            map[int]QuestRun
 	Frames            map[int]StatsFrame
 	errors            chan error
 	done              chan struct{}
-}
-
-type StatsState struct {
-	QuestName      string
-	QuestStarted   bool
-	QuestComplete  bool
-	QuestStartTime time.Time
-	QuestEndTime   time.Time
-	QuestDuration  time.Duration
+	MonsterNames      map[uint32]string
 }
 
 type StatsFrame struct {
@@ -55,19 +48,20 @@ type StatsFrame struct {
 	ShiftaLvl     int16
 	DebandLvl     int16
 	Invincible    bool
-	MonsterCount  uint32
+	MonsterCount  int
 	Meseta        uint32
 	MesetaCharged uint32
 	Time          int
 }
 
 type GameState struct {
-	MonsterCount   uint32
-	FloorSwitches  bool
-	QuestStarted   bool
-	QuestComplete  bool
-	QuestStartTime time.Time
-	QuestEndTime   time.Time
+	MonsterCount      int
+	FloorSwitches     bool
+	QuestStarted      bool
+	QuestComplete     bool
+	QuestStartTime    time.Time
+	QuestEndTime      time.Time
+	monsterUnitxtAddr uint32
 }
 
 type PlayerData struct {
@@ -78,7 +72,7 @@ type PlayerData struct {
 	MaxHP               uint16
 	TP                  uint16
 	MaxTP               uint16
-	Difficulty          uint16
+	Difficulty          string
 	Episode             uint16
 	Floor               uint16
 	Room                uint16
@@ -92,20 +86,11 @@ type PlayerData struct {
 }
 
 func New() *PSO {
-	// questTypes := map[string]int{
-	// 	"Sweep-Up Operation 3":  WarpIn,
-	// 	"Maximum Attack 4 -1B-": Switch,
-	// 	"Maximum Attack 4 -1C-": Switch,
-	// 	"Maximum Attack 4 -4C-": Switch,
-	// }
-	questTypes := make(map[int]map[string]Quest)
-	questTypes[1] = Ep1Quests()
-	questTypes[2] = Ep2Quests()
-	questTypes[4] = Ep4Quests()
 	return &PSO{
-		questTypes: questTypes,
-		State:      StatsState{},
-		Frames:     make(map[int]StatsFrame),
+		questTypes:   NewQuests(),
+		Quests:       make(map[int]QuestRun),
+		Frames:       make(map[int]StatsFrame),
+		MonsterNames: make(map[uint32]string),
 	}
 }
 
@@ -138,7 +123,6 @@ func (pso *PSO) StartPersistentConnection(errors chan error) {
 						errors <- fmt.Errorf("StartPersistentConnection: could not refresh data: %w", err)
 						continue
 					}
-					pso.ConsolidateFrame()
 				}
 			case <-pso.done:
 				pso.Close()
@@ -156,15 +140,19 @@ func (pso *PSO) StopPersistentConnection() {
 }
 
 func (pso *PSO) Connect() (bool, string, error) {
-	hwnd := w32.FindWindowW(nil, syscall.StringToUTF16Ptr(windowName))
+	hwnd := w32.FindWindowW(nil, syscall.StringToUTF16Ptr(unseenWindowName))
 	if hwnd == 0 {
-		return false, "Window not found", nil
+		// unseen not found
+		hwnd = w32.FindWindowW(nil, syscall.StringToUTF16Ptr(ephineaWindowName))
+		if hwnd == 0 {
+			return false, "Window not found", nil
+		}
 	}
 
 	_, pid := w32.GetWindowThreadProcessId(hwnd)
 	hndl, err := w32.OpenProcess(w32.PROCESS_ALL_ACCESS, false, uintptr(pid))
 	if err != nil {
-		return false, "Could not open process", fmt.Errorf("Connect: could not open process with name %q: %w", windowName, err)
+		return false, "Could not open process", fmt.Errorf("Connect: could not open process with pid %v: %w", pid, err)
 	}
 
 	baseAddress, err := getBaseAddress(pid)

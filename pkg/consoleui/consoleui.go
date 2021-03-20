@@ -115,26 +115,12 @@ func (cui *ConsoleUI) DrawHP(playerData *pso.PlayerData) {
 
 func (cui *ConsoleUI) DrawLocation(playerData *pso.PlayerData, gameState *pso.GameState) {
 	floor := widgets.NewParagraph()
-	floor.Text = fmt.Sprintf("%v Episode:%v Floor:%v Room:%v\n[%v]\nMonsters Killed-%v/Alive-%v",
-		RenderDifficulty(playerData.Difficulty),
-		playerData.Episode, playerData.Floor, playerData.Room, playerData.QuestName,
+	floorName := pso.GetFloorName(int(playerData.Episode), int(playerData.Floor))
+	floor.Text = fmt.Sprintf("%v Episode:%v %v Room:%v\n[%v]\nMonsters Killed-%v/Alive-%v",
+		playerData.Difficulty,
+		playerData.Episode, floorName, playerData.Room, playerData.QuestName,
 		playerData.KillCount, gameState.MonsterCount)
 	floor.Border = false
 	floor.SetRect(0, 6, 80, 14)
 	ui.Render(floor)
-}
-
-func RenderDifficulty(difficulty uint16) string {
-	switch difficulty {
-	case 0:
-		return "Normal"
-	case 1:
-		return "Hard"
-	case 2:
-		return "VH"
-	case 3:
-		return "Ult"
-	default:
-		return "unknown"
-	}
 }

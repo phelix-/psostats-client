@@ -1,64 +1,50 @@
 package pso
 
+import (
+	"fmt"
+	"io/ioutil"
+	"log"
+
+	"gopkg.in/yaml.v2"
+)
+
+type Trigger struct {
+	Register int `yaml:"register"`
+	Floor    int `yaml:"floor"`
+	Switch   int `yaml:"switch"`
+}
+
 type Quest struct {
-	StartingSwitchFloor uint16
-	StartingSwitch      uint16
-	EndingQuestRegister uint16
-	EndingSwitchFloor   uint16
-	EndingSwitch        uint16
+	StartTrigger Trigger `yaml:"start"`
+	EndTrigger   Trigger `yaml:"end"`
 }
 
-func Ep1Quests() map[string]Quest {
-	var quests = map[string]Quest{
-		"Maximum Attack 4 -1A-": {
-			StartingSwitchFloor: 4,
-			StartingSwitch:      99,
-			EndingSwitchFloor:   10,
-			EndingSwitch:        31,
-		},
-	}
-	// "Sweep-Up Operation 3":  WarpIn,
-	// "": Switch,
-	// "Maximum Attack 4 -1C-": Switch,
-	// "Maximum Attack 4 -4C-": Switch,
-
-	// quests[]
-	return quests
+type Quests struct {
+	allQuests map[string]map[string]Quest
 }
 
-func Ep2Quests() map[string]Quest {
-	var quests = map[string]Quest{
-		"Maximum Attack E: GDV": {
-			StartingSwitchFloor: 5,
-			StartingSwitch:      0,
-			EndingQuestRegister: 254,
-			EndingSwitchFloor:   10,
-			EndingSwitch:        31,
-		},
+func NewQuests() Quests {
+	allQuests := make(map[string]map[string]Quest)
+	data, err := ioutil.ReadFile("./quests.yaml")
+	if err != nil {
+		log.Fatalf("Error reading quests file %v", err)
 	}
-	// "Sweep-Up Operation 3":  WarpIn,
-	// "": Switch,
-	// "Maximum Attack 4 -1C-": Switch,
-	// "Maximum Attack 4 -4C-": Switch,
 
-	// quests[]
-	return quests
+	err = yaml.Unmarshal(data, allQuests)
+	if err != nil {
+		log.Fatalf("Error parsing quests file %v", err)
+	}
+
+	return Quests{
+		allQuests: allQuests,
+	}
 }
 
-func Ep4Quests() map[string]Quest {
-	var quests = map[string]Quest{
-		"Maximum Attack 4 -4C-": {
-			StartingSwitchFloor: 5,
-			StartingSwitch:      66,
-			EndingSwitchFloor:   8,
-			EndingSwitch:        192,
-		},
+func (q *Quests) GetQuest(episode int, questName string) (Quest, bool) {
+	questsForEpisode, exists := q.allQuests[fmt.Sprintf("Episode %v", episode)]
+	if !exists {
+		return Quest{}, false
 	}
-	// "Sweep-Up Operation 3":  WarpIn,
-	// "": Switch,
-	// "Maximum Attack 4 -1C-": Switch,
-	// "Maximum Attack 4 -4C-": Switch,
-
-	// quests[]
-	return quests
+	a, b := questsForEpisode[questName]
+	return a, b
 }

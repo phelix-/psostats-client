@@ -84,11 +84,10 @@ func runHttp(client *client.Client) {
 		}
 		ret := make(map[string]interface{})
 		ret["QuestName"] = gameInfo.QuestName
-		ret["QuestStarted"] = gameInfo.QuestStarted
 		ret["QuestComplete"] = gameInfo.QuestComplete
 		ret["QuestStartTime"] = gameInfo.QuestStartTime
 		ret["QuestEndTime"] = gameInfo.QuestEndTime
-		ret["QuestDuration"] = gameInfo.QuestDuration.String()
+		ret["QuestDuration"] = gameInfo.QuestDuration
 
 		ret["hp"] = hp
 		ret["tp"] = tp

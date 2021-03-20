@@ -1,0 +1,127 @@
+Episode 1:
+  "Maximum Attack 4 -1A-":
+    start:
+      floor: 4
+      switch: 99
+    end:
+      floor: 10
+      switch: 31
+  "Maximum Attack 4th Stage -1A-":
+    start:
+      floor: 4
+      switch: 99
+    end:
+      floor: 10
+      switch: 31
+  "Maximum Attack 4 -1B-":
+    start:
+      floor: 4
+      switch: 99
+    end:
+      floor: 10
+      switch: 32
+  "Maximum Attack 4th Stage -1B-":
+    start:
+      floor: 4
+      switch: 99
+    end:
+      floor: 10
+      switch: 32
+  "Maximum Attack 4 -1C-":
+    start:
+      floor: 4
+      switch: 99
+    end:
+      register: 254
+  "Maximum Attack 4th Stage -1C-":
+    start:
+      floor: 4
+      switch: 99
+    end:
+      register: 254
+  "Maximum Attack E: EP 1":
+    start:
+      floor: 2
+      switch: 0
+    end:
+      register: 254
+  "Maximum Attack E: Episode 1":
+    start:
+      floor: 2
+      switch: 0
+    end:
+      register: 254
+  "Mop-up Operation #1": 
+    start:
+      register: 145
+    end:
+      register: 254
+  "Mop-up Operation #2": 
+    start:
+      register: 145
+    end:
+      register: 254
+  "Mop-up Operation #3": 
+    start:
+      register: 145
+    end:
+      register: 254
+  "Mop-up Operation #4": 
+    start:
+      register: 145
+    end:
+      register: 254
+  "Sweep-up Operation #1": 
+    start:
+      register: 60
+    end:
+      register: 254
+  "Sweep-up Operation #2": 
+    start:
+      register: 60
+    end:
+      register: 254
+  "Sweep-up Operation #3": 
+    start:
+      register: 60
+    end:
+      register: 254
+  "Sweep-up Operation #4": 
+    start:
+      register: 60
+    end:
+      register: 254
+  "Towards the Future": 
+    start:
+      register: 12
+    end:
+      register: 254
+Episode 2:
+  "Maximum Attack E: GDV":
+    start:
+      floor: 5
+      switch: 0
+    end:
+      register: 254
+  "Sweep-up Operation #6":
+    start:
+      register: 150
+    end:
+      register: 254
+Episode 4:
+  "Maximum Attack 4 -4C-":
+    start:
+      floor: 5
+      switch: 66
+    end:
+      floor: 8
+      switch: 192
+  "Maximum Attack 4th Stage -4C-":
+    start:
+      floor: 5
+      switch: 66
+    end:
+      floor: 8
+      switch: 192
+
+

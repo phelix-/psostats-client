@@ -1,6 +1,7 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -18,14 +19,15 @@ const (
 )
 
 type Client struct {
-	pso        *pso.PSO
-	version    string
-	tickRate   time.Duration
-	uiTickRate time.Duration
-	ui         *consoleui.ConsoleUI
-	uiData     *consoleui.Data
-	errChan    chan error
-	done       chan struct{}
+	pso           *pso.PSO
+	version       string
+	tickRate      time.Duration
+	uiTickRate    time.Duration
+	ui            *consoleui.ConsoleUI
+	uiData        *consoleui.Data
+	currentGameId int
+	errChan       chan error
+	done          chan struct{}
 }
 
 type DataFrame struct {
@@ -90,8 +92,8 @@ func New(version string) (*Client, error) {
 	}, nil
 }
 
-func (c *Client) GetGameInfo() pso.StatsState {
-	return c.pso.State
+func (c *Client) GetGameInfo() pso.QuestRun {
+	return c.pso.Quests[c.pso.CurrentQuest]
 }
 
 func (c *Client) GetFrames() map[int]pso.StatsFrame {
@@ -112,6 +114,18 @@ func (c *Client) Run() error {
 			case "q", "<C-c>", "<f10>":
 				close(c.done)
 				return nil
+			case "w":
+				filename := fmt.Sprintf("./game-%v.json", time.Now().Format("2006_01_02-1504"))
+				file, err := os.Create(filename)
+				if err != nil {
+					log.Printf("Unable to write to %v, %v", filename, err)
+				}
+				defer file.Close()
+				json, err := json.Marshal(c.pso.Quests[c.pso.CurrentQuest])
+				if err != nil {
+					log.Printf("Unable to generate json")
+				}
+				file.Write(json)
 			}
 		case err := <-c.errChan:
 			close(c.done)
@@ -130,19 +144,12 @@ func (c *Client) run() {
 	// }
 }
 
+func (c *Client) GetNextGameId() string {
+	c.currentGameId++
+	return fmt.Sprint(c.currentGameId)
+}
+
 func (c *Client) runDD() {
-	// gameId := uint32(2)
-	gameWritten := false
-	gameFile, err := os.Create("game.json")
-	if err != nil {
-		log.Panic(err)
-	}
-	defer gameFile.Close()
-	file, err := os.Create("frames.json")
-	if err != nil {
-		log.Panic(err)
-	}
-	defer file.Close()
 	for {
 		select {
 		case <-time.After(c.tickRate):
@@ -152,50 +159,6 @@ func (c *Client) runDD() {
 			if !connected {
 				c.clearUIData()
 				continue
-			}
-
-			c.populateUIData()
-			if c.pso.CurrentPlayerData.QuestName != "No Active Quest" {
-
-				if !gameWritten {
-					// game := Game{
-					// 	Id:         gameId,
-					// 	Timestamp:  time.Now(),
-					// 	Quest:      c.pso.CurrentPlayerData.QuestName,
-					// 	Character:  c.pso.CurrentPlayerData.CharacterName,
-					// 	Episode:    c.pso.CurrentPlayerData.Episode,
-					// 	Difficulty: c.pso.CurrentPlayerData.Difficulty,
-					// 	Gc:         c.pso.CurrentPlayerData.Guildcard,
-					// }
-					// bytes, err := json.Marshal(game)
-					// if err != nil {
-					// 	log.Panic(err)
-					// }
-					// gameFile.Write(bytes)
-					// gameFile.WriteString("\n")
-					// gameWritten = true
-				}
-
-				// frame := DataFrame{
-				// 	Id:         gameId,
-				// 	Timestamp:  time.Now(),
-				// 	Deband:     c.pso.CurrentPlayerData.DebandLvl,
-				// 	Floor:      c.pso.CurrentPlayerData.Floor,
-				// 	Hp:         c.pso.CurrentPlayerData.HP,
-				// 	Invincible: c.pso.CurrentPlayerData.InvincibilityFrames > 0,
-				// 	Killcount:  c.pso.CurrentPlayerData.KillCount,
-				// 	Shifta:     c.pso.CurrentPlayerData.ShiftaLvl,
-				// 	Tp:         c.pso.CurrentPlayerData.TP,
-				// 	Meseta:     c.pso.CurrentPlayerData.Meseta,
-				// 	Monsters:   c.pso.GameState.MonsterCount,
-				// }
-
-				// bytes, err := json.Marshal(frame)
-				// if err != nil {
-				// 	log.Panic(err)
-				// }
-				// file.Write(bytes)
-				// file.WriteString("\n")
 			}
 
 			// newStatus := c.pso.GetStatus()
@@ -271,45 +234,4 @@ func (c *Client) runUI() {
 
 func (c *Client) clearUIData() {
 	c.uiData.Clear()
-}
-
-func (c *Client) populateUIData() {
-
-	// c.uiData.HP = c.pso.CurrentPlayerData.HP
-	// c.uiData.MaxHP = c.pso.CurrentPlayerData.MaxHP
-	// c.uiData.Status = c.pso.GetStatus()
-	// c.uiData.OnlineStatus = c.sioClient.GetStatus()
-	// c.uiData.PlayerName = c.pso.GetPlayerName()
-	// if c.uiData.PlayerName == "" {
-	// 	c.uiData.Status = consoleui.StatusConnecting
-	// 	return
-	// }
-	// c.uiData.LastGameID = c.lastSubmittedGameID
-	// status := c.pso.GetStatus()
-	// if status == devildaggers.StatusPlaying || status == devildaggers.StatusOtherReplay || status == devildaggers.StatusOwnReplayFromLastRun || status == devildaggers.StatusOwnReplayFromLeaderboard {
-	// 	c.uiData.Recording = consoleui.StatusRecording
-	// 	if c.statsSent {
-	// 		c.uiData.Recording = consoleui.StatusGameSubmitted
-	// 	}
-	// 	c.uiData.Timer = c.pso.GetTime()
-	// 	c.uiData.DaggersHit = c.pso.GetDaggersHit()
-	// 	c.uiData.DaggersFired = c.pso.GetDaggersFired()
-	// 	c.uiData.Accuracy = c.pso.GetAccuracy()
-	// 	c.uiData.GemsCollected = c.pso.GetGemsCollected()
-	// 	c.uiData.Homing = c.pso.GetHomingDaggers()
-	// 	c.uiData.EnemiesAlive = c.pso.GetEnemiesAlive()
-	// 	c.uiData.EnemiesKilled = c.pso.GetKills()
-	// 	c.uiData.TotalGems = c.pso.GetTotalGems()
-	// 	c.uiData.GemsDespawned = c.pso.GetGemsDespawned()
-	// 	c.uiData.GemsEaten = c.pso.GetGemsEaten()
-	// 	c.uiData.DaggersEaten = c.pso.GetDaggersEaten()
-	// } else {
-	// 	c.uiData.Recording = consoleui.StatusNotRecording
-	// 	if c.pso.GetStatus() == devildaggers.StatusDead {
-	// 		if c.statsSent {
-	// 			c.uiData.Recording = consoleui.StatusGameSubmitted
-	// 		}
-	// 		c.uiData.DeathType = c.pso.GetDeathType()
-	// 	}
-	// }
 }
