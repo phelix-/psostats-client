@@ -103,6 +103,12 @@ Episode 2:
       switch: 0
     end:
       register: 254
+  "Maximum Attack E: VR":
+    start:
+      floor: 1
+      switch: 0
+    end:
+      register: 254
   "Sweep-up Operation #6":
     start:
       register: 150
@@ -123,5 +129,23 @@ Episode 4:
     end:
       floor: 8
       switch: 192
-
+  "Maximum Attack 4 -4A-":
+    start:
+      floor: 5
+      switch: 66
+    end:
+      floor: 8
+      switch: 50
+  "Maximum Attack 4th Stage -A-":
+    start:
+      floor: 5
+      switch: 66
+    end:
+      floor: 8
+      switch: 50
+  "New Mop-Up Operation #4":
+    start:
+      register: 110
+    end:
+      register: 43
 
