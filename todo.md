@@ -5,3 +5,4 @@
 * equipped weapons/gear
 * separate games
 * detect non-vanilla weapons
+* FT count

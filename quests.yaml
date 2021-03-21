@@ -103,21 +103,31 @@ Episode 2:
       switch: 0
     end:
       register: 254
-<<<<<<< HEAD
   "Maximum Attack E: VR":
     start:
       floor: 1
-=======
+      switch: 0
+    end:
+      register: 254
   "Maximum Attack E: Gal Da Val":
     start:
       floor: 5
->>>>>>> changes
       switch: 0
     end:
       register: 254
   "Sweep-up Operation #6":
     start:
       register: 150
+    end:
+      register: 254
+  "Sweep-up Operation #7":
+    start:
+      register: 150
+    end:
+      register: 254
+  "Lost BIND ASSAULT":
+    start:
+      register: 82
     end:
       register: 254
 Episode 4:

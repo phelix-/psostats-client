@@ -83,7 +83,7 @@ func getCharacterName(handle w32.HANDLE, playerAddress int) (string, error) {
 		}
 	}
 
-	return string(utf16.Decode(buf[2:endIndex])), nil
+	return string(utf16.Decode(buf[0:endIndex])), nil
 }
 
 func getGuildCard(handle w32.HANDLE, playerAddress int) (string, error) {
