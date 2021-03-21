@@ -1,8 +1,6 @@
 package player
 
 import (
-	"bytes"
-	"encoding/binary"
 	"errors"
 	"math"
 	"unicode/utf16"
@@ -24,6 +22,9 @@ type BasePlayerInfo struct {
 	TP                  uint16
 	Floor               uint16
 	InvincibilityFrames uint32
+	DamageTraps         uint16
+	FreezeTraps         uint16
+	ConfuseTraps        uint16
 	Class               string
 	Meseta              uint32
 }
@@ -64,6 +65,9 @@ func GetPlayerData(handle w32.HANDLE, playerAddress int) (BasePlayerInfo, error)
 		TP:                  buf[(0x336-base)/2],
 		Floor:               buf[(0x3F0-base)/2],
 		InvincibilityFrames: numbers.Uint32FromU16(buf[(0x720-base)/2], buf[(0x722-base)/2]),
+		DamageTraps:         buf[(0x89D-base)/2] & 0x00FF,
+		FreezeTraps:         (buf[(0x89D-base)/2] & 0xFF00) >> 8,
+		ConfuseTraps:        (buf[(0x89F-base)/2] & 0xFF00) >> 8,
 		Class:               getClass(class),
 		Meseta:              numbers.Uint32FromU16(buf[(0xE4C-base)/2], buf[(0xE4E-base)/2]),
 	}, nil
@@ -87,19 +91,7 @@ func getCharacterName(handle w32.HANDLE, playerAddress int) (string, error) {
 }
 
 func getGuildCard(handle w32.HANDLE, playerAddress int) (string, error) {
-	buf, _, ok := w32.ReadProcessMemory(handle, uintptr(playerAddress+0x92a), 16)
-	if !ok {
-		return "", errors.New("Unable to getGuildCard")
-	}
-
-	byteBuf := bytes.NewBuffer(make([]byte, 0, len(buf)))
-	for i := 2; i < 8; i++ {
-		b := buf[i]
-		split := make([]byte, 2)
-		binary.LittleEndian.PutUint16(split, b)
-		byteBuf.Write(split)
-	}
-	return byteBuf.String(), nil
+	return numbers.ReadString(handle, uintptr(playerAddress+0x92a), 8)
 }
 
 func getClass(classBits uint16) string {

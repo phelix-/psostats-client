@@ -6,3 +6,4 @@
 * separate games
 * detect non-vanilla weapons
 * FT count
+* boss kill times

@@ -9,6 +9,7 @@ import (
 
 	"github.com/TheTitanrain/w32"
 	"github.com/phelix-/psostats/v2/pkg/numbers"
+	"github.com/phelix-/psostats/v2/pkg/pso/inventory"
 	"github.com/phelix-/psostats/v2/pkg/pso/player"
 )
 
@@ -53,6 +54,7 @@ type QuestRun struct {
 	MonsterCount          []int
 	MonstersKilledCount   []int
 	monstersDead          int
+	WeaponsUsed           map[string]inventory.Weapon
 }
 
 func (pso *PSO) StartNewQuest(questName string) {
@@ -90,6 +92,7 @@ func (pso *PSO) StartNewQuest(questName string) {
 		Monsters:              make(map[int]Monster),
 		MonsterCount:          make([]int, 0),
 		MonstersKilledCount:   make([]int, 0),
+		WeaponsUsed:           make(map[string]inventory.Weapon),
 	}
 }
 
@@ -123,6 +126,9 @@ func (pso *PSO) consolidateFrame() {
 		currentQuestRun.Meseta = append(currentQuestRun.Meseta, pso.CurrentPlayerData.Meseta)
 		currentQuestRun.MesetaCharged = append(currentQuestRun.MesetaCharged, mesetaCharged)
 		currentQuestRun.MonstersKilledCount = append(currentQuestRun.MonstersKilledCount, currentQuestRun.monstersDead)
+		if pso.EquippedWeapon.Id != "" {
+			currentQuestRun.WeaponsUsed[pso.EquippedWeapon.Id] = pso.EquippedWeapon
+		}
 	}
 
 	if currentQuestRun.lastFloor != pso.CurrentPlayerData.Floor {
@@ -319,6 +325,14 @@ func (pso *PSO) RefreshData() error {
 		err = pso.getUnitxtStuff()
 		if err != nil {
 			return err
+		}
+
+		equippedWeapon, err := inventory.ReadInventory(w32.HANDLE(pso.handle), -1)
+		if err != nil {
+			return err
+		}
+		if equippedWeapon.Id != "" {
+			pso.EquippedWeapon = equippedWeapon
 		}
 
 		monsters, err := pso.GetMonsterList()
