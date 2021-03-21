@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/TheTitanrain/w32"
+	"github.com/phelix-/psostats/v2/pkg/pso/player"
 )
 
 const (
@@ -27,7 +28,7 @@ type PSO struct {
 	connected         bool
 	connectedStatus   string
 	handle            handle
-	CurrentPlayerData PlayerData
+	CurrentPlayerData player.BasePlayerInfo
 	GameState         GameState
 	CurrentQuest      int
 	Quests            map[int]QuestRun
@@ -39,11 +40,14 @@ type PSO struct {
 type GameState struct {
 	MonsterCount      int
 	FloorSwitches     bool
+	QuestName         string
 	QuestStarted      bool
 	QuestComplete     bool
 	QuestStartTime    time.Time
 	QuestEndTime      time.Time
 	monsterUnitxtAddr uint32
+	Difficulty        string
+	Episode           uint16
 }
 
 type PlayerData struct {
@@ -54,11 +58,8 @@ type PlayerData struct {
 	MaxHP               uint16
 	TP                  uint16
 	MaxTP               uint16
-	Difficulty          string
-	Episode             uint16
 	Floor               uint16
 	Room                uint16
-	QuestName           string
 	KillCount           uint16
 	Meseta              uint32
 	ShiftaLvl           int16

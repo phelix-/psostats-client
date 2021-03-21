@@ -103,6 +103,12 @@ Episode 2:
       switch: 0
     end:
       register: 254
+  "Maximum Attack E: Gal Da Val":
+    start:
+      floor: 5
+      switch: 0
+    end:
+      register: 254
   "Sweep-up Operation #6":
     start:
       register: 150

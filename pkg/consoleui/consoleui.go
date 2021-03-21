@@ -7,6 +7,7 @@ import (
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 	"github.com/phelix-/psostats/v2/pkg/pso"
+	"github.com/phelix-/psostats/v2/pkg/pso/player"
 )
 
 type Data struct {
@@ -42,7 +43,7 @@ func (cui *ConsoleUI) Close() {
 func (cui *ConsoleUI) ClearScreen() {
 	ui.Clear()
 }
-func (cui *ConsoleUI) DrawScreen(playerData *pso.PlayerData, gameState *pso.GameState) error {
+func (cui *ConsoleUI) DrawScreen(playerData *player.BasePlayerInfo, gameState *pso.GameState) error {
 	cui.drawLogo()
 	cui.drawConnection()
 	cui.drawRecording(gameState)
@@ -90,9 +91,9 @@ func (cui *ConsoleUI) drawRecording(gameState *pso.GameState) {
 	ui.Render(connection)
 }
 
-func (cui *ConsoleUI) DrawHP(playerData *pso.PlayerData) {
+func (cui *ConsoleUI) DrawHP(playerData *player.BasePlayerInfo) {
 	connection := widgets.NewParagraph()
-	connection.Text = fmt.Sprintf("%v - %v (gc: %v)", playerData.Class, playerData.CharacterName, playerData.Guildcard)
+	connection.Text = fmt.Sprintf("%v - %v (gc: %v)", playerData.Class, playerData.Name, playerData.Guildcard)
 	connection.Border = false
 	connection.SetRect(0, 3, 80, 4)
 	ui.Render(connection)
@@ -113,12 +114,12 @@ func (cui *ConsoleUI) DrawHP(playerData *pso.PlayerData) {
 	ui.Render(hpChart)
 }
 
-func (cui *ConsoleUI) DrawLocation(playerData *pso.PlayerData, gameState *pso.GameState) {
+func (cui *ConsoleUI) DrawLocation(playerData *player.BasePlayerInfo, gameState *pso.GameState) {
 	floor := widgets.NewParagraph()
-	floorName := pso.GetFloorName(int(playerData.Episode), int(playerData.Floor))
+	floorName := pso.GetFloorName(int(gameState.Episode), int(playerData.Floor))
 	floor.Text = fmt.Sprintf("%v Episode:%v %v Room:%v\n[%v]\nMonsters Killed-%v/Alive-%v",
-		playerData.Difficulty,
-		playerData.Episode, floorName, playerData.Room, playerData.QuestName,
+		gameState.Difficulty,
+		gameState.Episode, floorName, playerData.Room, gameState.QuestName,
 		playerData.KillCount, gameState.MonsterCount)
 	floor.Border = false
 	floor.SetRect(0, 6, 80, 14)
