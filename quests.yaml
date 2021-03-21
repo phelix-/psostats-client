@@ -103,9 +103,15 @@ Episode 2:
       switch: 0
     end:
       register: 254
+<<<<<<< HEAD
   "Maximum Attack E: VR":
     start:
       floor: 1
+=======
+  "Maximum Attack E: Gal Da Val":
+    start:
+      floor: 5
+>>>>>>> changes
       switch: 0
     end:
       register: 254

@@ -30,30 +30,6 @@ type Client struct {
 	done          chan struct{}
 }
 
-type DataFrame struct {
-	Id         uint32
-	Timestamp  time.Time
-	Deband     int16
-	Floor      uint16
-	Hp         uint16
-	Invincible bool
-	Killcount  uint16
-	Shifta     int16
-	Tp         uint16
-	Meseta     uint32
-	Monsters   uint32
-}
-
-type Game struct {
-	Id         uint32
-	Timestamp  time.Time
-	Quest      string
-	Character  string
-	Episode    uint16
-	Difficulty uint16
-	Gc         string
-}
-
 func New(version string) (*Client, error) {
 	uiData := consoleui.Data{
 		Connected: false,
@@ -65,18 +41,6 @@ func New(version string) (*Client, error) {
 	if err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
-
-	// p := widgets.NewParagraph()
-	// p.Text = "Hello World!"
-	// p.SetRect(0, 0, 25, 5)
-
-	// ui.Render(p)
-
-	// for e := range ui.PollEvents() {
-	// 	if e.Type == ui.KeyboardEvent {
-	// 		break
-	// 	}
-	// }
 
 	pso := pso.New()
 
