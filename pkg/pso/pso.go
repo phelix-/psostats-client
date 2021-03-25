@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/TheTitanrain/w32"
-	"github.com/phelix-/psostats/v2/pkg/pso/inventory"
 	"github.com/phelix-/psostats/v2/pkg/pso/player"
 )
 
@@ -30,7 +29,7 @@ type PSO struct {
 	connectedStatus   string
 	handle            handle
 	CurrentPlayerData player.BasePlayerInfo
-	EquippedWeapon    inventory.Weapon
+	Equipment         map[string]string
 	GameState         GameState
 	CurrentQuest      int
 	Quests            map[int]QuestRun

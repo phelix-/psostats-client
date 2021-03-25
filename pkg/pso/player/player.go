@@ -91,7 +91,8 @@ func getCharacterName(handle w32.HANDLE, playerAddress int) (string, error) {
 }
 
 func getGuildCard(handle w32.HANDLE, playerAddress int) (string, error) {
-	return numbers.ReadString(handle, uintptr(playerAddress+0x92a), 8)
+	// return numbers.ReadString(handle, uintptr(playerAddress+0x92a), 8)
+	return numbers.ReadString(handle, uintptr(playerAddress+0x92b), 8)
 }
 
 func getClass(classBits uint16) string {

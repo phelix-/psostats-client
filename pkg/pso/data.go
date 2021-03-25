@@ -24,37 +24,43 @@ type Event struct {
 }
 
 type QuestRun struct {
-	PlayerName            string
-	PlayerClass           string
-	AllPlayers            []player.BasePlayerInfo
-	Id                    string
-	Difficulty            string
-	Episode               uint16
-	QuestName             string
-	QuestComplete         bool
-	QuestStartTime        time.Time
-	QuestStartDate        string
-	QuestEndTime          time.Time
-	QuestDuration         string
-	lastRecordedSecond    int
-	lastRecordedHp        uint16
-	lastFloor             uint16
-	previousMeseta        int
-	previousMesetaCharged int
-	HP                    []uint16
-	TP                    []uint16
-	Meseta                []uint32
-	MesetaCharged         []int
-	Room                  []uint16
-	ShiftaLvl             []int16
-	DebandLvl             []int16
-	Invincible            []bool
-	Events                []Event
-	Monsters              map[int]Monster
-	MonsterCount          []int
-	MonstersKilledCount   []int
-	monstersDead          int
-	WeaponsUsed           map[string]inventory.Weapon
+	PlayerName               string
+	PlayerClass              string
+	AllPlayers               []player.BasePlayerInfo
+	Id                       string
+	Difficulty               string
+	Episode                  uint16
+	QuestName                string
+	QuestComplete            bool
+	QuestStartTime           time.Time
+	QuestStartDate           string
+	QuestEndTime             time.Time
+	QuestDuration            string
+	lastRecordedSecond       int
+	lastRecordedHp           uint16
+	lastFloor                uint16
+	previousMeseta           int
+	previousMesetaCharged    int
+	DeathCount               int
+	HP                       []uint16
+	TP                       []uint16
+	Meseta                   []uint32
+	MesetaCharged            []int
+	Room                     []uint16
+	maxPartySupplyableShifta int16
+	maxPartyPbShifta         int16
+	IllegalShifta            bool
+	PbShifta                 bool
+	ShiftaLvl                []int16
+	DebandLvl                []int16
+	Invincible               []bool
+	Events                   []Event
+	Monsters                 map[int]Monster
+	MonsterCount             []int
+	MonstersKilledCount      []int
+	monstersDead             int
+	WeaponsUsed              map[string]string
+	FreezeTraps              []uint16
 }
 
 func (pso *PSO) StartNewQuest(questName string) {
@@ -67,32 +73,72 @@ func (pso *PSO) StartNewQuest(questName string) {
 	questStartTime := time.Now()
 	pso.GameState.QuestStartTime = questStartTime
 	pso.CurrentQuest++
+
+	maxPartySupplyableShifta := int16(0)
+	for _, player := range allPlayers {
+		switch player.Class {
+		case "FOmar":
+			fallthrough
+		case "FOmarl":
+			fallthrough
+		case "FOnewm":
+			fallthrough
+		case "FOnewearl":
+			maxPartySupplyableShifta = 30
+		case "HUnewearl":
+			fallthrough
+		case "RAmarl":
+			if maxPartySupplyableShifta < 20 {
+				maxPartySupplyableShifta = 20
+			}
+		case "RAmar":
+			if maxPartySupplyableShifta < 15 {
+				maxPartySupplyableShifta = 15
+			}
+		case "HUmar":
+			fallthrough
+		case "HUcast":
+			fallthrough
+		case "HUcaseal":
+			if maxPartySupplyableShifta < 3 {
+				maxPartySupplyableShifta = 3
+			}
+		}
+	}
+	maxPartyPbShifta := int16(21 + (20 * (len(allPlayers) - 1)))
+
 	pso.Quests[pso.CurrentQuest] = QuestRun{
-		PlayerName:            pso.CurrentPlayerData.Name,
-		PlayerClass:           pso.CurrentPlayerData.Class,
-		AllPlayers:            allPlayers,
-		Difficulty:            pso.GameState.Difficulty,
-		Episode:               pso.GameState.Episode,
-		Id:                    fmt.Sprint(pso.CurrentQuest),
-		QuestStartTime:        questStartTime,
-		QuestStartDate:        questStartTime.Format("15:04 01/02/2006"),
-		QuestName:             questName,
-		lastRecordedSecond:    -1,
-		previousMesetaCharged: 0,
-		previousMeseta:        -1,
-		HP:                    make([]uint16, 0),
-		TP:                    make([]uint16, 0),
-		Meseta:                make([]uint32, 0),
-		MesetaCharged:         make([]int, 0),
-		Room:                  make([]uint16, 0),
-		ShiftaLvl:             make([]int16, 0),
-		DebandLvl:             make([]int16, 0),
-		Invincible:            make([]bool, 0),
-		Events:                make([]Event, 0),
-		Monsters:              make(map[int]Monster),
-		MonsterCount:          make([]int, 0),
-		MonstersKilledCount:   make([]int, 0),
-		WeaponsUsed:           make(map[string]inventory.Weapon),
+		PlayerName:               pso.CurrentPlayerData.Name,
+		PlayerClass:              pso.CurrentPlayerData.Class,
+		AllPlayers:               allPlayers,
+		Difficulty:               pso.GameState.Difficulty,
+		Episode:                  pso.GameState.Episode,
+		Id:                       fmt.Sprint(pso.CurrentQuest),
+		QuestStartTime:           questStartTime,
+		QuestStartDate:           questStartTime.Format("15:04 01/02/2006"),
+		QuestName:                questName,
+		lastRecordedSecond:       -1,
+		previousMesetaCharged:    0,
+		previousMeseta:           -1,
+		DeathCount:               0,
+		HP:                       make([]uint16, 0),
+		TP:                       make([]uint16, 0),
+		Meseta:                   make([]uint32, 0),
+		MesetaCharged:            make([]int, 0),
+		Room:                     make([]uint16, 0),
+		maxPartySupplyableShifta: maxPartySupplyableShifta,
+		maxPartyPbShifta:         maxPartyPbShifta,
+		ShiftaLvl:                make([]int16, 0),
+		DebandLvl:                make([]int16, 0),
+		IllegalShifta:            false,
+		PbShifta:                 false,
+		Invincible:               make([]bool, 0),
+		Events:                   make([]Event, 0),
+		Monsters:                 make(map[int]Monster),
+		MonsterCount:             make([]int, 0),
+		MonstersKilledCount:      make([]int, 0),
+		WeaponsUsed:              make(map[string]string),
+		FreezeTraps:              make([]uint16, 0),
 	}
 }
 
@@ -126,8 +172,16 @@ func (pso *PSO) consolidateFrame() {
 		currentQuestRun.Meseta = append(currentQuestRun.Meseta, pso.CurrentPlayerData.Meseta)
 		currentQuestRun.MesetaCharged = append(currentQuestRun.MesetaCharged, mesetaCharged)
 		currentQuestRun.MonstersKilledCount = append(currentQuestRun.MonstersKilledCount, currentQuestRun.monstersDead)
-		if pso.EquippedWeapon.Id != "" {
-			currentQuestRun.WeaponsUsed[pso.EquippedWeapon.Id] = pso.EquippedWeapon
+		currentQuestRun.FreezeTraps = append(currentQuestRun.FreezeTraps, pso.CurrentPlayerData.FreezeTraps)
+		for id, display := range pso.Equipment {
+			currentQuestRun.WeaponsUsed[id] = display
+		}
+		currentShifta := pso.CurrentPlayerData.ShiftaLvl
+		if currentSecond < 120 && currentShifta > currentQuestRun.maxPartySupplyableShifta {
+			currentQuestRun.PbShifta = true
+		}
+		if currentShifta > currentQuestRun.maxPartyPbShifta {
+			currentQuestRun.IllegalShifta = true
 		}
 	}
 
@@ -140,6 +194,7 @@ func (pso *PSO) consolidateFrame() {
 	}
 
 	if pso.CurrentPlayerData.HP == 0 && currentQuestRun.lastRecordedHp != 0 {
+		currentQuestRun.DeathCount++
 		currentQuestRun.Events = append(currentQuestRun.Events, Event{
 			Second:      currentSecond,
 			Description: "Died",
@@ -327,13 +382,11 @@ func (pso *PSO) RefreshData() error {
 			return err
 		}
 
-		equippedWeapon, err := inventory.ReadInventory(w32.HANDLE(pso.handle), -1)
+		equipment, err := inventory.ReadInventory(w32.HANDLE(pso.handle), index)
 		if err != nil {
 			return err
 		}
-		if equippedWeapon.Id != "" {
-			pso.EquippedWeapon = equippedWeapon
-		}
+		pso.Equipment = equipment
 
 		monsters, err := pso.GetMonsterList()
 		if err != nil {

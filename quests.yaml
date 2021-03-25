@@ -39,6 +39,12 @@ Episode 1:
       switch: 99
     end:
       register: 254
+  "Maximum Attack E: Mines":
+    start:
+      floor: 6
+      switch: 0
+    end:
+      register: 254
   "Maximum Attack E: EP 1":
     start:
       floor: 2
