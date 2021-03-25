@@ -1,9 +1,9 @@
-# RUnning
+# Running
 
-Open powershell or cmd as administrator
-`.\psostats.exe`
+Open powershell or cmd as administrator: `.\psostats.exe`
 
 `w` - write a game log file
+
 `q` - quit
 
 # Features
