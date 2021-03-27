@@ -19,15 +19,11 @@ const (
 	Switch                       = 1
 )
 
-type (
-	handle w32.HANDLE
-)
-
 type PSO struct {
 	questTypes        Quests
 	connected         bool
 	connectedStatus   string
-	handle            handle
+	handle            w32.HANDLE
 	CurrentPlayerData player.BasePlayerInfo
 	Equipment         map[string]string
 	GameState         GameState
@@ -133,7 +129,7 @@ func (pso *PSO) Connect() (bool, string, error) {
 	}
 
 	_, pid := w32.GetWindowThreadProcessId(hwnd)
-	hndl, err := w32.OpenProcess(w32.PROCESS_ALL_ACCESS, false, uintptr(pid))
+	handle, err := w32.OpenProcess(w32.PROCESS_ALL_ACCESS, false, uintptr(pid))
 	if err != nil {
 		return false, "Could not open process", fmt.Errorf("Connect: could not open process with pid %v: %w", pid, err)
 	}
@@ -142,7 +138,7 @@ func (pso *PSO) Connect() (bool, string, error) {
 		return false, "Could not find base address", fmt.Errorf("Connect: could get base address: %w", err)
 	}
 
-	pso.handle = handle(hndl)
+	pso.handle = handle
 
 	return true, fmt.Sprintf("Connected to pid %v", pid), nil
 }

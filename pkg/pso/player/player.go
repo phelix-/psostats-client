@@ -3,6 +3,7 @@ package player
 import (
 	"errors"
 	"math"
+	"strings"
 	"unicode/utf16"
 
 	"github.com/TheTitanrain/w32"
@@ -20,6 +21,7 @@ type BasePlayerInfo struct {
 	MaxTP               uint16
 	HP                  uint16
 	TP                  uint16
+	PB                  float32
 	Floor               uint16
 	InvincibilityFrames uint32
 	DamageTraps         uint16
@@ -64,6 +66,7 @@ func GetPlayerData(handle w32.HANDLE, playerAddress int) (BasePlayerInfo, error)
 		HP:                  buf[(0x334-base)/2],
 		TP:                  buf[(0x336-base)/2],
 		Floor:               buf[(0x3F0-base)/2],
+		PB:                  numbers.Float32FromU16(buf[(0x520-base)/2], buf[(0x522-base)/2]),
 		InvincibilityFrames: numbers.Uint32FromU16(buf[(0x720-base)/2], buf[(0x722-base)/2]),
 		DamageTraps:         buf[(0x89D-base)/2] & 0x00FF,
 		FreezeTraps:         (buf[(0x89D-base)/2] & 0xFF00) >> 8,
@@ -87,12 +90,27 @@ func getCharacterName(handle w32.HANDLE, playerAddress int) (string, error) {
 		}
 	}
 
-	return string(utf16.Decode(buf[0:endIndex])), nil
+	name := string(utf16.Decode(buf[0:endIndex]))
+	name = strings.TrimPrefix(name, "\tE")
+	return name, nil
 }
 
 func getGuildCard(handle w32.HANDLE, playerAddress int) (string, error) {
 	// return numbers.ReadString(handle, uintptr(playerAddress+0x92a), 8)
-	return numbers.ReadString(handle, uintptr(playerAddress+0x92b), 8)
+	guildcard, err := numbers.ReadString(handle, uintptr(playerAddress+0x92c), 7)
+	if err != nil {
+		return "", err
+	}
+	// guildcard = strings.TrimPrefix(guildcard, "A")
+	// guildcard = strings.TrimPrefix(guildcard, "B")
+	// guildcard = strings.TrimPrefix(guildcard, "C")
+	guildcard = strings.Trim(guildcard, "\u0000")
+	guildcard = strings.TrimSpace(guildcard)
+	index := strings.Index(guildcard, "\u0000")
+	if index > 0 {
+		guildcard = strings.Split(guildcard, "\u0000")[0]
+	}
+	return guildcard, nil
 }
 
 func getClass(classBits uint16) string {

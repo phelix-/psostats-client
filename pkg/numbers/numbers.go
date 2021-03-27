@@ -61,3 +61,19 @@ func ReadNullTerminatedString(handle w32.HANDLE, address uintptr) (string, error
 	}
 	return byteBuf.String(), nil
 }
+
+func ReadU16(handle w32.HANDLE, address uintptr) (uint16, error) {
+	buf, _, ok := w32.ReadProcessMemory(handle, address, 2)
+	if !ok {
+		return 0, errors.New(fmt.Sprintf("Unable to readU16 @0x%08x", address))
+	}
+	return buf[0], nil
+}
+
+func ReadU32(handle w32.HANDLE, address uintptr) (uint32, error) {
+	buf, _, ok := w32.ReadProcessMemory(handle, address, 4)
+	if !ok {
+		return 0, errors.New(fmt.Sprintf("Unable to read 0x%08x", address))
+	}
+	return Uint32From16(buf[0:2]), nil
+}
