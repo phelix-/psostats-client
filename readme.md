@@ -2,14 +2,23 @@
 
 Open powershell or cmd as administrator: `.\psostats.exe`
 
+If network access is enabled the ui will be at `http://localhost:8081/` and you can view raw game data at `http://localhost:8081/game/info`
+
 `w` - write a game log file
 
 `q` - quit
 
 # Features
 
-### Shifta
-Tracked over the course of the run. Illegal shifta (greater than PB) will be flagged. Runs with PB levels of shifta within the first two minutes will be marked as PB runs.
+### Run Categorization
+
+Runs will be marked as PB Category if any preparation has been done before starting the quest. Examples include:
+* Mylla & Youlla (Twins PB) has been used before quest start
+* Players have over 5% PB charged
+* In quests without a starting console (eg. Mop-up and Sweep-up series)
+    - Any player is below 95% HP
+    - Shifta/Deband has been cast
+
 
 # To Do
 
@@ -19,3 +28,4 @@ Tracked over the course of the run. Illegal shifta (greater than PB) will be fla
 * detect non-vanilla weapons
 * boss kill times
 * CMode
+* weapon/armor timeline? show unit/shield switches?

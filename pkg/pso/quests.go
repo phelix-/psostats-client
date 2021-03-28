@@ -15,6 +15,7 @@ type Trigger struct {
 }
 
 type Quest struct {
+	Ignore       bool    `yaml:"ignore"`
 	StartTrigger Trigger `yaml:"start"`
 	EndTrigger   Trigger `yaml:"end"`
 }
@@ -47,4 +48,12 @@ func (q *Quests) GetQuest(episode int, questName string) (Quest, bool) {
 	}
 	a, b := questsForEpisode[questName]
 	return a, b
+}
+
+func (q *Quest) StartsAtWarpIn() bool {
+	return q.StartTrigger.Register > 0
+}
+
+func (q *Quest) TerminalQuest() bool {
+	return !q.StartsAtWarpIn()
 }

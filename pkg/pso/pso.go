@@ -57,7 +57,6 @@ type PlayerData struct {
 	MaxTP               uint16
 	Floor               uint16
 	Room                uint16
-	KillCount           uint16
 	Meseta              uint32
 	ShiftaLvl           int16
 	DebandLvl           int16
