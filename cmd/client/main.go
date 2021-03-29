@@ -25,7 +25,7 @@ func main() {
 	log.SetOutput(file)
 	log.Print("Starting Up")
 
-	c, err := client.New("0.0.1")
+	c, err := client.New("0.1.0")
 	if err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
