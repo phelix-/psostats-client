@@ -29,12 +29,17 @@ type BasePlayerInfo struct {
 	ConfuseTraps        uint16
 	Class               string
 	Meseta              uint32
+	Warping             bool
 }
 
 func ParsePlayerMemory(buf []uint16, base int) BasePlayerInfo {
 	shiftaMultiplier := numbers.Float32FromU16(buf[(0x278-base)/2], buf[(0x27A-base)/2])
 	debandMultiplier := numbers.Float32FromU16(buf[(0x278+12-base)/2], buf[(0x278+14-base)/2])
 	class := (buf[(0x961-base)/2] & 0xF00) >> 8
+
+	stateBitfield := buf[(0x33E-base)/2]
+	playerWarping := stateBitfield&0x04 > 0
+	// log.Printf("stateBitfield: 0x%08x, 0x%08x", stateBitfield, buf[(0x33E-base)/2+1])
 
 	return BasePlayerInfo{
 		Room:                buf[(0x028-base)/2],
@@ -45,6 +50,7 @@ func ParsePlayerMemory(buf []uint16, base int) BasePlayerInfo {
 		HP:                  buf[(0x334-base)/2],
 		TP:                  buf[(0x336-base)/2],
 		Floor:               buf[(0x3F0-base)/2],
+		Warping:             playerWarping,
 		PB:                  numbers.Float32FromU16(buf[(0x520-base)/2], buf[(0x522-base)/2]),
 		InvincibilityFrames: numbers.Uint32FromU16(buf[(0x720-base)/2], buf[(0x722-base)/2]),
 		DamageTraps:         buf[(0x89D-base)/2] & 0x00FF,

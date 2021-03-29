@@ -117,9 +117,13 @@ func (cui *ConsoleUI) DrawHP(playerData *player.BasePlayerInfo) {
 func (cui *ConsoleUI) DrawLocation(playerData *player.BasePlayerInfo, gameState *pso.GameState) {
 	floor := widgets.NewParagraph()
 	floorName := pso.GetFloorName(int(gameState.Episode), int(playerData.Floor))
-	floor.Text = fmt.Sprintf("%v Episode:%v %v Room:%v\n[%v]\nMonsters Alive-%v",
+	warpingText := ""
+	if playerData.Warping {
+		warpingText = " (Warping)"
+	}
+	floor.Text = fmt.Sprintf("%v Episode:%v %v%v Room:%v\n[%v]\nMonsters Alive-%v",
 		gameState.Difficulty,
-		gameState.Episode, floorName, playerData.Room, gameState.QuestName,
+		gameState.Episode, floorName, warpingText, playerData.Room, gameState.QuestName,
 		gameState.MonsterCount)
 	floor.Border = false
 	floor.SetRect(0, 6, 80, 14)

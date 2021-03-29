@@ -96,7 +96,7 @@ type QuestRun struct {
 }
 
 func (pso *PSO) StartNewQuest(questName string, terminalQuest bool) {
-	log.Printf("Starting new quest")
+	log.Printf("Starting new quest: %v", questName)
 
 	allPlayers, err := pso.getOtherPlayers()
 	if err != nil {
@@ -174,7 +174,7 @@ func (pso *PSO) consolidateFrame() {
 		if previousMeseta != -1 {
 			mesetaDifference := (previousMeseta - int(pso.CurrentPlayerData.Meseta))
 			if mesetaDifference > 0 {
-				// negative means meseta picked up, ignoring i guess
+				// negative means meseta picked up, ignoring I guess
 				mesetaCharged = mesetaDifference + currentQuestRun.previousMesetaCharged
 			}
 		}
@@ -345,6 +345,8 @@ func (pso *PSO) consolidateMonsterState(monsters []Monster) {
 			currentQuestRun.Monsters[monsterId] = monster
 			existingMonster = monster
 		} else if existingMonster.Alive && monster.hp <= 0 {
+			// We don't allow frame 0 kills because some of the monsters appear to spawn in with 0 hp.
+			// This could be a syncronization issue w/ pso (data is still initializing when we catch it?)
 			existingMonster.Alive = false
 			currentQuestRun.MonstersDead += 1
 			existingMonster.KilledTime = now
@@ -361,10 +363,7 @@ func (pso *PSO) consolidateMonsterState(monsters []Monster) {
 
 func (pso *PSO) RefreshData() error {
 	if !pso.connected {
-		pso.GameState.QuestName = "No Active Quest"
-		pso.GameState.QuestComplete = false
-		pso.GameState.QuestStarted = false
-
+		pso.GameState.Clear()
 		log.Fatal("RefreshData: connection to window lost")
 		return errors.New("RefreshData: connection to window lost")
 	}
@@ -427,18 +426,34 @@ func (pso *PSO) RefreshData() error {
 			if !pso.GameState.QuestStarted {
 				questConditions, exists := pso.questTypes.GetQuest(int(pso.GameState.Episode), pso.GameState.QuestName)
 				if exists && !questConditions.Ignore {
-					if questConditions.StartsAtWarpIn() {
-						registerSet, err := quest.IsRegisterSet(pso.handle, uint16(questConditions.StartTrigger.Register))
+					if questConditions.StartsOnRegister() {
+						registerSet, err := quest.IsRegisterSet(pso.handle, uint16(*questConditions.StartTrigger.Register))
 						if err != nil {
 							return err
 						}
 						pso.GameState.QuestStarted = registerSet
-					} else if uint16(questConditions.StartTrigger.Floor) == pso.CurrentPlayerData.Floor {
-						switchSet, err := pso.getFloorSwitch(uint16(questConditions.StartTrigger.Switch), pso.CurrentPlayerData.Floor)
+					} else if questConditions.TerminalQuest() {
+						switchSet, err := pso.getFloorSwitch(uint16(questConditions.StartTrigger.Switch), questConditions.StartTrigger.Floor)
 						if err != nil {
 							return err
 						}
 						pso.GameState.QuestStarted = switchSet
+					} else if questConditions.StartsAtWarpIn() {
+						allPlayers, err := pso.getOtherPlayers()
+						if err != nil {
+							log.Panicf("unable to get all players %v", err)
+						}
+						for playerIndex, player := range allPlayers {
+							if player.Floor != 0 && !player.Warping {
+								if len(pso.GameState.PlayerArray) > playerIndex {
+									previousPlayerState := pso.GameState.PlayerArray[playerIndex]
+									if previousPlayerState.Guildcard == player.Guildcard && previousPlayerState.Warping {
+										pso.GameState.QuestStarted = true
+									}
+								}
+							}
+						}
+						pso.GameState.PlayerArray = allPlayers
 					}
 				}
 				if pso.GameState.QuestStarted {
@@ -447,8 +462,8 @@ func (pso *PSO) RefreshData() error {
 			} else if !pso.GameState.QuestComplete {
 				questConditions, exists := pso.questTypes.GetQuest(int(pso.GameState.Episode), pso.GameState.QuestName)
 				if exists {
-					if questConditions.EndTrigger.Register > 0 {
-						registerSet, err := quest.IsRegisterSet(pso.handle, uint16(questConditions.EndTrigger.Register))
+					if questConditions.EndsOnRegister() {
+						registerSet, err := quest.IsRegisterSet(pso.handle, uint16(*questConditions.EndTrigger.Register))
 						if err != nil {
 							return err
 						}
@@ -474,14 +489,10 @@ func (pso *PSO) RefreshData() error {
 				pso.consolidateMonsterState(monsters)
 			}
 		} else {
-			pso.GameState.QuestName = "No Active Quest"
-			pso.GameState.QuestComplete = false
-			pso.GameState.QuestStarted = false
+			pso.GameState.Clear()
 		}
 	} else {
-		pso.GameState.QuestName = "No Active Quest"
-		pso.GameState.QuestComplete = false
-		pso.GameState.QuestStarted = false
+		pso.GameState.Clear()
 	}
 	// pso.CurrentPlayerData.Time = time.Now()
 
@@ -603,21 +614,21 @@ func (pso *PSO) getBaseGameInfo() (BaseGameInfo, error) {
 	return game, nil
 }
 
-func (pso *PSO) getFloorSwitches(floor uint16) error {
-	buf, _, ok := w32.ReadProcessMemory(w32.HANDLE(pso.handle), uintptr(0xAC9FA0+(32*int(floor))), 32)
-	if !ok {
-		return errors.New("Unable to getFloorSwitches")
-	}
-	anySet := false
-	for _, byte := range buf {
-		if byte > 0 {
-			anySet = true
-			break
-		}
-	}
-	pso.GameState.FloorSwitches = anySet
-	return nil
-}
+// func (pso *PSO) getFloorSwitches(floor uint16) error {
+// 	buf, _, ok := w32.ReadProcessMemory(w32.HANDLE(pso.handle), uintptr(0xAC9FA0+(32*int(floor))), 32)
+// 	if !ok {
+// 		return errors.New("Unable to getFloorSwitches")
+// 	}
+// 	anySet := false
+// 	for _, byte := range buf {
+// 		if byte > 0 {
+// 			anySet = true
+// 			break
+// 		}
+// 	}
+// 	pso.GameState.FloorSwitches = anySet
+// 	return nil
+// }
 
 func (pso *PSO) getFloorSwitch(switchId uint16, floor uint16) (bool, error) {
 	buf, _, ok := w32.ReadProcessMemory(w32.HANDLE(pso.handle), uintptr(0xAC9FA0+(32*int(floor))), 32)

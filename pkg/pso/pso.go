@@ -36,7 +36,6 @@ type PSO struct {
 
 type GameState struct {
 	MonsterCount      int
-	FloorSwitches     bool
 	QuestName         string
 	QuestStarted      bool
 	QuestComplete     bool
@@ -45,6 +44,17 @@ type GameState struct {
 	monsterUnitxtAddr uint32
 	Difficulty        string
 	Episode           uint16
+	PlayerArray       []player.BasePlayerInfo
+}
+
+func (state *GameState) Clear() {
+	state.MonsterCount = 0
+	state.QuestStarted = false
+	state.QuestComplete = false
+	state.Difficulty = "Normal"
+	state.Episode = 1
+	state.QuestName = "No Active Quest"
+	state.PlayerArray = make([]player.BasePlayerInfo, 0)
 }
 
 type PlayerData struct {

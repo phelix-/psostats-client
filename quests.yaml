@@ -25,7 +25,6 @@ Episode 1:
   # Knight of Coral
 
 # ---- Side Story ----
-
   # Battle Training
   # Magnitude of Metal
   # Claiming a Stake
@@ -54,24 +53,24 @@ Episode 1:
   # Central Dome Fire Swirl
 
 # ---- Extermination ----
-  "Mop-up Operation #1": # Bad start trigger
+  "Mop-up Operation #1":
     start:
-      register: 145
+      register: 0
     end:
       register: 254
-  "Mop-up Operation #2": # Bad start trigger
+  "Mop-up Operation #2":
     start:
-      register: 145
+      register: 0
     end:
       register: 254
-  "Mop-up Operation #3": # Bad start trigger
+  "Mop-up Operation #3":
     start:
-      register: 145
+      register: 0
     end:
       register: 254
-  "Mop-up Operation #4": # Bad start trigger
+  "Mop-up Operation #4":
     start:
-      register: 145
+      register: 0
     end:
       register: 254
   "Sweep-up Operation #1":
@@ -94,18 +93,50 @@ Episode 1:
       register: 210
     end:
       register: 254
-  # EN1
-  # EN2
-  # EN3
-  # EN4
+  "Endless Nightmare #1":
+    start:
+      warpIn: true
+    end:
+      register: 30
+  "Endless Nightmare #2":
+    start:
+      warpIn: true
+    end:
+      register: 30
+  "Endless Nightmare #3":
+    start:
+      warpIn: true
+    end:
+      register: 30
+  "Endless Nightmare #4":
+    start:
+      warpIn: true
+    end:
+      register: 30
   # Today's Rate
 
 # ---- Retrieval ----
   # The Missing Maracas
-  # LHS
-  # LIS
-  # LSB
-  # LHP
+  "Lost HEAT SWORD":
+    start:
+      warpIn: true
+    end:
+      register: 254
+  "Lost ICE SPINNER":
+    start:
+      warpIn: true
+    end:
+      register: 254
+  "Lost SOUL BLADE":
+    start:
+      warpIn: true
+    end:
+      register: 254
+  "Lost HELL PALLASCH":
+    start:
+      warpIn: true
+    end:
+      register: 110
   # FoaM
   # Rappy's Holiday
   # RFR
@@ -115,16 +146,37 @@ Episode 1:
   # TMBTP
 
 # ---- Event ----
-  # CF1
-  # MAE: Forest
-  # MAE: Caves
+  "Christmas Fiasco":
+    start:
+      floor: 4
+      switch: 100
+    end:
+      floor: 10
+      switch: 3
+  "Maximum Attack E: Forest":
+    start:
+      floor: 2
+      switch: 0
+    end:
+      register: 50
+  "Maximum Attack E: Caves":
+    start:
+      floor: 4
+      switch: 0
+    end:
+      register: 50
   "Maximum Attack E: Mines":
     start:
       floor: 6
       switch: 0
     end:
-      register: 254
-  # MAE: Ruins
+      register: 50
+  "Maximum Attack E: Ruins":
+    start:
+      floor: 10
+      switch: 0
+    end:
+      register: 50
 
 # ---- Maximum Attack ----
   # "MAXIMUM ATTACK 1 Ver2"
@@ -191,15 +243,27 @@ Episode 1:
       register: 12
     end:
       register: 254
-  # TE
+  "Tyrell's Ego":
+    start:
+      register: 4
+    end:
+      register: 101
   # Labyrinthine Trial
   # Sugoroku
   # Sim 2.0
   # Mine Offensive
 
 # ---- Halloween ----
-  # Hollow Caves
-  # Hollow Ruins
+  "Hollow Battlefield: Caves":
+    start:
+      warpIn: true
+    end:
+      register: 0
+  "Hollow Battlefield: Ruins":
+    start:
+      warpIn: true
+    end:
+      register: 0
 
 # ---- Shop ----
   "Christmas Event Shop":
@@ -239,11 +303,36 @@ Episode 2:
 # ---- Event ----
   # Festivity On The Beach
   # Christmas Fiasco
-  # Maximum Attack E: Temple
-  # Maximum Attack E: Spaceship
-  # Maximum Attack E: CCA
-  # Maximum Attack E: Seabed
-  # Maximum Attack E: Tower
+  "Maximum Attack E: Temple":
+    start:
+      floor: 1
+      switch: 0
+    end:
+      register: 50
+  "Maximum Attack E: Spaceship":
+    start:
+      floor: 3
+      switch: 0
+    end:
+      register: 50
+  "Maximum Attack E: CCA":
+    start:
+      floor: 5
+      switch: 0
+    end:
+      register: 50
+  "Maximum Attack E: Seabed":
+    start:
+      floor: 10
+      switch: 0
+    end:
+      register: 50
+  "Maximum Attack E: Tower":
+    start:
+      floor: 17
+      switch: 0
+    end:
+      register: 50
 
 # ---- Extermination ----
   # Phantasmal World #1
@@ -282,10 +371,14 @@ Episode 2:
   # Lost SHOCK RIFLE
   "Lost BIND ASSAULT":
     start:
-      register: 82
+      warpIn: true
     end:
       register: 254
-  # Lost FILL CANNON
+  "Lost FILL CANNON":
+    start:
+      warpIn: true
+    end:
+      register: 254
   # Lost CHARGE VULCAN
   # Dream Messenger
   # Revisiting Darkness
@@ -399,8 +492,18 @@ Episode 4:
 
 # ---- Event ----
   # Christmas Fiasco
-  # Maximum Attack E: Crater
-  # Maximum Attack E: Desert
+  "Maximum Attack E: Crater":
+    start:
+      floor: 2
+      switch: 0
+    end:
+      register: 50
+  "Maximum Attack E: Desert":
+    start:
+      floor: 8
+      switch: 0
+    end:
+      register: 50
 
 # ---- Maximum Attack ----
   # MAXIMUM ATTACK 3 Ver2

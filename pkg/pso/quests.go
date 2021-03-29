@@ -9,9 +9,10 @@ import (
 )
 
 type Trigger struct {
-	Register int `yaml:"register"`
-	Floor    int `yaml:"floor"`
-	Switch   int `yaml:"switch"`
+	Register *int   `yaml:"register"`
+	Floor    uint16 `yaml:"floor"`
+	Switch   int    `yaml:"switch"`
+	WarpIn   bool   `yaml:"warpIn"`
 }
 
 type Quest struct {
@@ -50,10 +51,18 @@ func (q *Quests) GetQuest(episode int, questName string) (Quest, bool) {
 	return a, b
 }
 
+func (q *Quest) StartsOnRegister() bool {
+	return q.StartTrigger.Register != nil
+}
+
 func (q *Quest) StartsAtWarpIn() bool {
-	return q.StartTrigger.Register > 0
+	return q.StartTrigger.WarpIn
 }
 
 func (q *Quest) TerminalQuest() bool {
-	return !q.StartsAtWarpIn()
+	return !q.StartsAtWarpIn() && !q.StartsOnRegister()
+}
+
+func (q *Quest) EndsOnRegister() bool {
+	return q.EndTrigger.Register != nil
 }

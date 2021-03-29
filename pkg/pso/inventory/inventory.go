@@ -48,45 +48,53 @@ func ReadInventory(handle w32.HANDLE, playerIndex uint8) (map[string]string, err
 	}
 	count := numbers.Uint32From16(buf[0:2])
 	buf, _, ok = w32.ReadProcessMemory(handle, uintptr(itemArray), 4)
+	if !ok {
+		return equipment, errors.New("Could not read item array")
+	}
 	address := numbers.Uint32From16(buf[0:2])
-	buf, _, ok = w32.ReadProcessMemory(handle, uintptr(address), uintptr(4*count))
+	if count != 0 && address != 0 {
+		buf, _, ok = w32.ReadProcessMemory(handle, uintptr(address), uintptr(4*count))
+		if !ok {
+			return equipment, errors.New("Could not read item array")
+		}
 
-	for i := 0; i < int(count); i++ {
-		itemAddr := numbers.Uint32From16(buf[i*2 : (i*2)+2])
-		if itemAddr != 0 {
-			itemBuffer, _, ok := w32.ReadProcessMemory(handle, uintptr(itemAddr+0xD8), 4)
-			if !ok {
-				return equipment, errors.New("Could not read item")
-			}
-			itemId := fmt.Sprintf("%04x%04x", itemBuffer[1], itemBuffer[0])
-			// itemDataBuffer, _, ok := w32.ReadProcessMemory(handle, uintptr(itemAddr+0xF2), 8)
-			// itemType := itemDataBuffer[0] & 0xFF00
-			itemType := readU8(handle, uintptr(itemAddr+itemTypeOffset))
-			itemGroup := readU8(handle, uintptr(itemAddr+itemGroupOffset))
-			equipped := readU8(handle, uintptr(itemAddr+itemEquippedOffset))&0x01 == 1
-			itemOwner := readU8(handle, uintptr(itemAddr+itemOwnerOffset))
-			if itemOwner == playerIndex && equipped {
-				switch itemType {
-				case 0:
-					weapon := readWeapon(handle, int(itemAddr), itemId, itemGroup)
-					equipment[weapon.Id] = weapon.String()
-				case 1:
-					switch itemGroup {
+		for i := 0; i < int(count); i++ {
+			itemAddr := numbers.Uint32From16(buf[i*2 : (i*2)+2])
+			if itemAddr != 0 {
+				itemBuffer, _, ok := w32.ReadProcessMemory(handle, uintptr(itemAddr+0xD8), 4)
+				if !ok {
+					return equipment, errors.New("Could not read item")
+				}
+				itemId := fmt.Sprintf("%04x%04x", itemBuffer[1], itemBuffer[0])
+				// itemDataBuffer, _, ok := w32.ReadProcessMemory(handle, uintptr(itemAddr+0xF2), 8)
+				// itemType := itemDataBuffer[0] & 0xFF00
+				itemType := readU8(handle, uintptr(itemAddr+itemTypeOffset))
+				itemGroup := readU8(handle, uintptr(itemAddr+itemGroupOffset))
+				equipped := readU8(handle, uintptr(itemAddr+itemEquippedOffset))&0x01 == 1
+				itemOwner := readU8(handle, uintptr(itemAddr+itemOwnerOffset))
+				if itemOwner == playerIndex && equipped {
+					switch itemType {
+					case 0:
+						weapon := readWeapon(handle, int(itemAddr), itemId, itemGroup)
+						equipment[weapon.Id] = weapon.String()
 					case 1:
-						frame := readFrame(handle, int(itemAddr), itemId, itemGroup)
-						equipment[frame.Id] = frame.Name
-					case 2:
-						barrier := readBarrier(handle, int(itemAddr), itemId, itemGroup)
-						equipment[barrier.Id] = barrier.Name
-					case 3:
-						unit := readUnit(handle, int(itemAddr), itemId)
-						equipment[unit.Id] = unit.Name
+						switch itemGroup {
+						case 1:
+							frame := readFrame(handle, int(itemAddr), itemId, itemGroup)
+							equipment[frame.Id] = frame.Name
+						case 2:
+							barrier := readBarrier(handle, int(itemAddr), itemId, itemGroup)
+							equipment[barrier.Id] = barrier.Name
+						case 3:
+							unit := readUnit(handle, int(itemAddr), itemId)
+							equipment[unit.Id] = unit.Name
+						}
 					}
 				}
-			}
-			// log.Printf("%v equipped=%v", itemId, equipped)
-			// log.Printf("%04x%04x %04x%04x", itemDataBuffer[1], itemDataBuffer[0], itemDataBuffer[3], itemDataBuffer[2])
+				// log.Printf("%v equipped=%v", itemId, equipped)
+				// log.Printf("%04x%04x %04x%04x", itemDataBuffer[1], itemDataBuffer[0], itemDataBuffer[3], itemDataBuffer[2])
 
+			}
 		}
 	}
 
