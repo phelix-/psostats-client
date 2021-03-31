@@ -37,6 +37,7 @@ type PSO struct {
 type GameState struct {
 	MonsterCount      int
 	QuestName         string
+	AllowQuestStart   bool // Guards against starting the client mid-quest
 	QuestStarted      bool
 	QuestComplete     bool
 	QuestStartTime    time.Time

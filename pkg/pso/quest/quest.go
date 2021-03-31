@@ -21,11 +21,14 @@ func IsRegisterSet(handle w32.HANDLE, registerId uint16) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	buf, _, ok := w32.ReadProcessMemory(handle, uintptr(int(questRegisterAddress)+(4*int(registerId))), 2)
-	if !ok {
-		return false, errors.New("Unable to isQuestRegisterSet")
+	registerSet := false
+	if questRegisterAddress != 0 {
+		buf, _, ok := w32.ReadProcessMemory(handle, uintptr(int(questRegisterAddress)+(4*int(registerId))), 2)
+		if !ok {
+			return false, errors.New("Unable to isQuestRegisterSet")
+		}
+		registerSet = buf[0] > 0
 	}
-	registerSet := buf[0] > 0
 	// log.Printf("R[%v]@%x = %v", registerId, uintptr(0x00A954B0+(4*int(registerId))), registerSet)
 	// log.Print("\n")
 	return registerSet, nil

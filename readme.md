@@ -1,8 +1,6 @@
 # Running
 
-Open powershell or cmd as administrator: `.\psostats.exe`
-
-If network access is enabled the ui will be at `http://localhost:8081/` and you can view raw game data at `http://localhost:8081/game/info`
+Configure `config.yaml` if desired. If localUi is enabled and given network access the ui will be at `http://localhost:8081/` and you can view raw game data at `http://localhost:8081/game/info`
 
 `w` - write a game log file
 
@@ -27,5 +25,6 @@ Runs will be marked as PB Category if any preparation has been done before start
 * separate games
 * detect non-vanilla weapons
 * boss kill times
-* CMode
+* CMode QoL
+    - Floor names are wrong I think
 * weapon/armor timeline? show unit/shield switches?

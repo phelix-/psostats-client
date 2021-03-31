@@ -456,7 +456,7 @@ func (pso *PSO) RefreshData() error {
 						pso.GameState.PlayerArray = allPlayers
 					}
 				}
-				if pso.GameState.QuestStarted {
+				if pso.GameState.QuestStarted && pso.GameState.AllowQuestStart {
 					pso.StartNewQuest(pso.GameState.QuestName, exists && questConditions.TerminalQuest())
 				}
 			} else if !pso.GameState.QuestComplete {
@@ -485,8 +485,12 @@ func (pso *PSO) RefreshData() error {
 				}
 			}
 			if pso.GameState.QuestStarted {
-				pso.consolidateFrame()
-				pso.consolidateMonsterState(monsters)
+				if pso.GameState.AllowQuestStart {
+					pso.consolidateFrame()
+					pso.consolidateMonsterState(monsters)
+				}
+			} else {
+				pso.GameState.AllowQuestStart = true
 			}
 		} else {
 			pso.GameState.Clear()
@@ -635,9 +639,15 @@ func (pso *PSO) getFloorSwitch(switchId uint16, floor uint16) (bool, error) {
 	if !ok {
 		return false, errors.New("Unable to getFloorSwitches")
 	}
-	mask := uint16(0x80) >> (switchId % 16)
+	mask := uint16(0x00)
+	if switchId%16 > 8 {
+		mask = uint16(0x8000) >> (switchId % 8)
+	} else {
+		mask = uint16(0x80) >> (switchId % 8)
+	}
+	// log.Printf("%v | 0x%04x", switchId%16, mask)
 	switchSet := (buf[switchId/16] & mask) > 0
-	// log.Printf("switch[%v] = %v", switchId, switchSet)
+	// log.Printf("switch[%v] = %v | 0x%04x 0x%04x", switchId, switchSet, buf[switchId/16], mask)
 	// log.Print("\n")
 	return switchSet, nil
 }

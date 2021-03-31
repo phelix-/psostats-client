@@ -1,3 +1,4 @@
+// Draws to the console
 package consoleui
 
 import (
@@ -16,19 +17,20 @@ type Data struct {
 	Status    string
 }
 
-func (data *Data) Clear() {
-	data.Status = "Cleared"
-	data.Connected = false
-}
-
 type ConsoleUI struct {
-	data *Data
+	data Data
 }
 
-func New(data *Data) (*ConsoleUI, error) {
+func New(version string) (*ConsoleUI, error) {
 	err := ui.Init()
 	if err != nil {
 		return nil, fmt.Errorf("New: unable to initialize termui: %w", err)
+	}
+
+	data := Data{
+		Connected: false,
+		Status:    "Initializing",
+		Version:   version,
 	}
 
 	return &ConsoleUI{
@@ -50,6 +52,11 @@ func (cui *ConsoleUI) DrawScreen(playerData *player.BasePlayerInfo, gameState *p
 	cui.DrawHP(playerData)
 	cui.DrawLocation(playerData, gameState)
 	return nil
+}
+
+func (cui *ConsoleUI) SetConnectionStatus(connected bool, statusString string) {
+	cui.data.Connected = connected
+	cui.data.Status = statusString
 }
 
 func (cui *ConsoleUI) drawLogo() {
@@ -79,7 +86,7 @@ func (cui *ConsoleUI) drawRecording(gameState *pso.GameState) {
 	if gameState.QuestComplete {
 		connection.TextStyle.Fg = ui.ColorGreen
 		connection.Text = "[[ Quest Complete ]] " + gameState.QuestEndTime.Sub(gameState.QuestStartTime).String()
-	} else if gameState.QuestStarted {
+	} else if gameState.QuestStarted && gameState.AllowQuestStart {
 		connection.TextStyle.Fg = ui.ColorGreen
 		connection.Text = "[[ Recording ]] " + time.Now().Sub(gameState.QuestStartTime).String()
 	} else {

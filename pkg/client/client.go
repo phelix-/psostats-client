@@ -1,58 +1,48 @@
+// Foundation of the psostats client
 package client
 
 import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"time"
 
 	ui "github.com/gizak/termui/v3"
+	"github.com/phelix-/psostats/v2/pkg/client/config"
 	"github.com/phelix-/psostats/v2/pkg/consoleui"
 	"github.com/phelix-/psostats/v2/pkg/pso"
-)
-
-const (
-	defaultTickRate    = time.Second / 5
-	defaultUITickRate  = time.Second / 5
-	defaultSIOTickRate = time.Second / 5
 )
 
 type Client struct {
 	pso           *pso.PSO
 	version       string
-	tickRate      time.Duration
-	uiTickRate    time.Duration
+	config        *config.Config
+	uiRefreshRate time.Duration
 	ui            *consoleui.ConsoleUI
-	uiData        *consoleui.Data
 	currentGameId int
 	errChan       chan error
 	done          chan struct{}
 }
 
 func New(version string) (*Client, error) {
-	uiData := consoleui.Data{
-		Connected: false,
-		Status:    "Initializing",
-		Version:   version,
-	}
-
-	ui, err := consoleui.New(&uiData)
+	ui, err := consoleui.New(version)
 	if err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
 
 	pso := pso.New()
+	clientConfig := config.ReadFromFile("./config.yaml")
 
 	return &Client{
-		pso:        pso,
-		version:    version,
-		tickRate:   defaultTickRate,
-		uiTickRate: defaultUITickRate,
-		ui:         ui,
-		uiData:     &uiData,
-		errChan:    make(chan error),
-		done:       make(chan struct{}),
+		pso:           pso,
+		version:       version,
+		config:        clientConfig,
+		uiRefreshRate: clientConfig.GetUiRefreshRate(),
+		ui:            ui,
+		errChan:       make(chan error),
+		done:          make(chan struct{}),
 	}, nil
 }
 
@@ -61,10 +51,17 @@ func (c *Client) GetGameInfo() pso.QuestRun {
 }
 
 func (c *Client) Run() error {
-	c.ui.DrawScreen(&c.pso.CurrentPlayerData, &c.pso.GameState)
+	// c.ui.DrawScreen(&c.pso.CurrentPlayerData, &c.pso.GameState)
 	defer c.ui.Close()
 
-	go c.run()
+	c.pso.StartPersistentConnection(c.errChan)
+	go c.runUI()
+	if c.config.HostLocalUi != nil && *c.config.HostLocalUi {
+		// if c.config.HostLocalUi {
+		go c.runHttp()
+	} else {
+		log.Printf("Local UI disabled")
+	}
 
 	uiEvents := ui.PollEvents()
 	for {
@@ -75,17 +72,7 @@ func (c *Client) Run() error {
 				close(c.done)
 				return nil
 			case "w":
-				filename := fmt.Sprintf("./game-%v.json", time.Now().Format("2006_01_02-1504"))
-				file, err := os.Create(filename)
-				if err != nil {
-					log.Printf("Unable to write to %v, %v", filename, err)
-				}
-				defer file.Close()
-				json, err := json.Marshal(c.pso.Quests[c.pso.CurrentQuest])
-				if err != nil {
-					log.Printf("Unable to generate json")
-				}
-				file.Write(json)
+				c.writeGameJson()
 			}
 		case err := <-c.errChan:
 			close(c.done)
@@ -94,44 +81,33 @@ func (c *Client) Run() error {
 	}
 }
 
-func (c *Client) run() {
-
-	c.pso.StartPersistentConnection(c.errChan)
-	go c.runDD()
-	go c.runUI()
-	// if !c.cfg.OfflineMode {
-	// 	go c.runSIO()
-	// }
-}
-
 func (c *Client) GetNextGameId() string {
 	c.currentGameId++
 	return fmt.Sprint(c.currentGameId)
 }
 
-func (c *Client) runDD() {
-	for {
-		select {
-		case <-time.After(c.tickRate):
-			connected, statusString := c.pso.CheckConnection()
-			c.uiData.Connected = connected
-			c.uiData.Status = statusString
-			if !connected {
-				c.clearUIData()
-				continue
-			}
-
-		case <-c.done:
-			return
-		}
+func (c *Client) writeGameJson() {
+	filename := fmt.Sprintf("./game-%v.json", time.Now().Format("2006_01_02-1504"))
+	file, err := os.Create(filename)
+	if err != nil {
+		log.Printf("Unable to write to %v, %v", filename, err)
 	}
+	defer file.Close()
+	json, err := json.Marshal(c.pso.Quests[c.pso.CurrentQuest])
+	if err != nil {
+		log.Printf("Unable to generate json")
+	}
+	file.Write(json)
 }
 
 func (c *Client) runUI() {
 	c.ui.ClearScreen()
 	for {
 		select {
-		case <-time.After(c.tickRate):
+		case <-time.After(c.uiRefreshRate):
+			connected, statusString := c.pso.CheckConnection()
+			c.ui.SetConnectionStatus(connected, statusString)
+
 			err := c.ui.DrawScreen(&c.pso.CurrentPlayerData, &c.pso.GameState)
 			if err != nil {
 				c.errChan <- fmt.Errorf("runUI: error drawing screen in ui: %w", err)
@@ -144,6 +120,22 @@ func (c *Client) runUI() {
 	}
 }
 
-func (c *Client) clearUIData() {
-	c.uiData.Clear()
+func (c *Client) runHttp() {
+	fileServer := http.FileServer(http.Dir("./static"))
+	http.Handle("/", fileServer)
+	http.HandleFunc("/game/info", func(w http.ResponseWriter, r *http.Request) {
+		bytes, err := json.Marshal(c.GetGameInfo())
+		if err != nil {
+			r.Response.StatusCode = 500
+			fmt.Fprintf(w, "Error!")
+			return
+		}
+		w.Header().Add("Content-Type", "application/json")
+		w.Write(bytes)
+	})
+	addr := fmt.Sprintf(":%v", c.config.GetUiPort())
+	log.Printf("Hosting local ui at localhost%v", addr)
+	if err := http.ListenAndServe(addr, nil); err != nil {
+		log.Fatal(err)
+	}
 }

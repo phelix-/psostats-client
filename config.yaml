@@ -1,0 +1,9 @@
+# PSOStats Client Config
+# Commented values are default settings
+
+# Settings for local ui, if enabled (and allowed network access) navigate to localhost:8081/ to view game stats
+hostLocalUi: true
+# localUiPort: 8081
+
+# Console UI frames per second, must be between 1 and 30
+# uiFps: 5

@@ -17,6 +17,7 @@ type BasePlayerInfo struct {
 	Room                uint16
 	ShiftaLvl           int16
 	DebandLvl           int16
+	Level               uint16
 	MaxHP               uint16
 	MaxTP               uint16
 	HP                  uint16
@@ -45,6 +46,7 @@ func ParsePlayerMemory(buf []uint16, base int) BasePlayerInfo {
 		Room:                buf[(0x028-base)/2],
 		ShiftaLvl:           getSDLvlFromMultiplier(shiftaMultiplier),
 		DebandLvl:           getSDLvlFromMultiplier(debandMultiplier),
+		Level:               buf[(0xE44-base)/2] + 1,
 		MaxHP:               buf[(0x2BC-base)/2],
 		MaxTP:               buf[(0x2BE-base)/2],
 		HP:                  buf[(0x334-base)/2],

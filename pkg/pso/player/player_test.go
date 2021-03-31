@@ -26,6 +26,11 @@ func TestParsePlayerMemory_DebandLvl(t *testing.T) {
 	assertI16(0, playerInfo.DebandLvl, t)
 }
 
+func TestParsePlayerMemory_Level(t *testing.T) {
+	playerInfo := getExamplePlayerData()
+	assertU16(200, playerInfo.Level, t)
+}
+
 func TestParsePlayerMemory_MaxHP(t *testing.T) {
 	playerInfo := getExamplePlayerData()
 	assertU16(2012, playerInfo.MaxHP, t)

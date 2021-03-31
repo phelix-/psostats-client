@@ -233,8 +233,17 @@ Episode 1:
       switch: 0
     end:
       register: 254
-  # MAS
-  # Xrd
+  "Maximum Attack S":
+    start:
+      floor: 5
+      switch: 10
+    end:
+      register: 41
+  "Random Attack Xrd Stage":
+    start:
+      warpIn: true
+    end:
+      register: 254
   # Xrd REV1
 
 # ---- VR ----
@@ -264,6 +273,53 @@ Episode 1:
       warpIn: true
     end:
       register: 0
+
+# ---- Challenge Mode ----
+  "Stage1":
+    start:
+      register: 111
+    end:
+      register: 240
+  "Stage2":
+    start:
+      register: 111
+    end:
+      register: 240
+  "Stage3":
+    start:
+      register: 111
+    end:
+      register: 240
+  "Stage4":
+    start:
+      register: 111
+    end:
+      register: 240
+  "Stage5":
+    start:
+      register: 111
+    end:
+      register: 240
+  "Stage6":
+    start:
+      register: 111
+    end:
+      register: 240
+  "Stage7":
+    start:
+      register: 111
+    end:
+      register: 240
+  "Stage8":
+    start:
+      register: 111
+    end:
+      register: 240
+  "Stage9":
+    start:
+      register: 111
+    end:
+      register: 240
 
 # ---- Shop ----
   "Christmas Event Shop":
@@ -335,10 +391,26 @@ Episode 2:
       register: 50
 
 # ---- Extermination ----
-  # Phantasmal World #1
-  # Phantasmal World #2
-  # Phantasmal World #3
-  # Phantasmal World #4
+  "Phantasmal World #1":
+    start:
+      warpIn: true
+    end:
+      register: 254
+  "Phantasmal World #2":
+    start:
+      warpIn: true
+    end:
+      register: 254
+  "Phantasmal World #3":
+    start:
+      warpIn: true
+    end:
+      register: 254
+  "Phantasmal World #4":
+    start:
+      warpIn: true
+    end:
+      register: 254
   "Sweep-up Operation #5":
     start:
       register: 210
@@ -364,7 +436,12 @@ Episode 2:
       register: 210
     end:
       register: 254
-  # Gal Da Val's Darkness
+  "Gal Da Val's Darkness":
+    start:
+      floor: 3
+      switch: 20
+    end:
+      register: 89
   # CAL's Clock Challenge
 
 # ---- Retrieval ----
@@ -385,10 +462,44 @@ Episode 2:
   # Dolmolm Research
 
 # ---- Maximum Attack ----
-  # MAXIMUM ATTACK 2 Ver2
-  # Maximum Attack 4th Stage -2A-
-  # Maximum Attack 4th Stage -2B-
+  "MAXIMUM ATTACK 2 Ver2":
+    start:
+      floor: 2
+      switch: 12
+    end:
+      register: 123
+  "Maximum Attack 4th Stage -2A-":
+    start:
+      register: 110
+    end:
+      floor: 11
+      switch: 29
+  "Maximum Attack 4 -2A-":
+    start:
+      register: 110
+    end:
+      floor: 11
+      switch: 29
+  "Maximum Attack 4th Stage -2B-":
+    start:
+      register: 110
+    end:
+      floor: 11
+      switch: 29
+  "Maximum Attack 4 -2B-":
+    start:
+      register: 110
+    end:
+      floor: 11
+      switch: 29
   # Maximum Attack 4th Stage -2C-
+  "Maximum Attack 4 -2C-":
+    start:
+      # register: 110
+      floor: 5
+      switch: 99
+    end:
+      register: 249
   # Maximum Attack 4th Stage -2R-
   "Maximum Attack E: VR":
     start:
@@ -414,8 +525,14 @@ Episode 2:
 # ---- Tower ----
   # The East Tower
   # The West Tower
-  # Raid on Central Tower
-  # The Military Strikes Back
+  "Raid on Central Tower":
+    # Quest crashes if you're too quick to kill Olga :)
+    ignore: true
+  "The Military Strikes Back":
+    start:
+      warpIn: true
+    end:
+      register: 121
   # Twilight Sanctuary
 
 # ---- Shop ----
@@ -436,13 +553,48 @@ Episode 2:
 
 # ---- VR ----
   # Reach for the Dream
-  # Respective Tomorrow
+  "Respective Tomorrow":
+    start:
+      register: 84
+    end:
+      register: 98
 
 # ---- Halloween ----
   # Hollow Reality: Temple
   # Hollow Reality: Spaceship
   # Hollow Phantasm: Jungle
-  # Hollow Phantasm: Seabed
+  "Hollow Phantasm: Seabed": 
+    start:
+      warpIn: true
+    end:
+      register: 0
+
+# ---- Challenge Mode ----
+  "Stage1":
+    start:
+      register: 111
+    end:
+      register: 240
+  "Stage2":
+    start:
+      register: 111
+    end:
+      register: 240
+  "Stage3":
+    start:
+      register: 111
+    end:
+      register: 240
+  "Stage4":
+    start:
+      register: 111
+    end:
+      register: 240
+  "Stage5":
+    start:
+      register: 111
+    end:
+      register: 240
 
 Episode 4:
 # ---- Government ----
@@ -464,22 +616,42 @@ Episode 4:
   # Black Paper's Dangerous Deal 2
 
 # ---- Extermination ----
-  # Point of Disaster
+  "Point of Disaster":
+    start:
+      warpIn: true
+    end:
+      register: 233
   # The Robots' Reckoning
   # War of Limits 1
   # War of Limits 2
   # War of Limits 3
   # War of Limits 4
   # War of Limits 5
-  # New Mop-Up Operation #1
-  # New Mop-Up Operation #2
-  # New Mop-Up Operation #3
+  "New Mop-Up Operation #1":
+    start:
+      register: 205
+    end:
+      register: 157
+  "New Mop-Up Operation #2":
+    start:
+      register: 86
+    end:
+      register: 43
+  "New Mop-Up Operation #3":
+    start:
+      register: 205
+    end:
+      register: 254
   "New Mop-Up Operation #4":
     start:
       register: 110
     end:
       register: 43
-  # New Mop-Up Operation #5
+  "New Mop-Up Operation #5":
+    start:
+      register: 86
+    end:
+      register: 43
   # Sweep-up Operation #10
   # Sweep-up Operation #11
   # Sweep-up Operation #12
@@ -491,7 +663,13 @@ Episode 4:
   # Lost SPIRIT STRIKER
 
 # ---- Event ----
-  # Christmas Fiasco
+  "Christmas Fiasco":
+    start:
+      floor: 1
+      switch: 100
+    end:
+      floor: 8
+      switch: 3
   "Maximum Attack E: Crater":
     start:
       floor: 2
@@ -537,7 +715,12 @@ Episode 4:
       floor: 8
       switch: 192
   # Maximum Attack 4th Stage -4R-
-  # Maximum Attack E: Episode 4
+  "Maximum Attack E: Episode 4":
+    start:
+      floor: 2
+      switch: 0
+    end:
+      register: 254
   # Maximum Attack S
   # Random Attack Xrd REV 4
 
@@ -546,8 +729,17 @@ Episode 4:
   # The Beak's Cafe Ver.2
 
 # ---- VR ----
-  # Beyond the Horizon
+  "Beyond the Horizon":
+    start:
+      floor: 1
+      switch: 20
+    end:
+      register: 254
   # LOGiN presents 勇場のマッチレース
 
 # ---- Halloween ----
-  # Hollow Wasteland: Wilderness
+  "Hollow Wasteland: Wilderness":
+    start:
+      warpIn: true
+    end:
+      register: 0
