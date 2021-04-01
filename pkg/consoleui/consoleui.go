@@ -24,7 +24,7 @@ type ConsoleUI struct {
 func New(version string) (*ConsoleUI, error) {
 	err := ui.Init()
 	if err != nil {
-		return nil, fmt.Errorf("New: unable to initialize termui: %w", err)
+		return nil, fmt.Errorf("unable to initialize termui: %w", err)
 	}
 
 	data := Data{
@@ -45,12 +45,15 @@ func (cui *ConsoleUI) Close() {
 func (cui *ConsoleUI) ClearScreen() {
 	ui.Clear()
 }
-func (cui *ConsoleUI) DrawScreen(playerData *player.BasePlayerInfo, gameState *pso.GameState) error {
+func (cui *ConsoleUI) DrawScreen(playerData *player.BasePlayerInfo, gameState *pso.GameState, currentQuest *pso.QuestRun) error {
 	cui.drawLogo()
 	cui.drawConnection()
 	cui.drawRecording(gameState)
 	cui.DrawHP(playerData)
 	cui.DrawLocation(playerData, gameState)
+	if gameState.QuestStarted && gameState.AllowQuestStart {
+		cui.drawQuestInfo(currentQuest, playerData)
+	}
 	return nil
 }
 
@@ -82,34 +85,31 @@ func (cui *ConsoleUI) drawConnection() {
 }
 
 func (cui *ConsoleUI) drawRecording(gameState *pso.GameState) {
-	connection := widgets.NewParagraph()
+	recording := widgets.NewParagraph()
 	if gameState.QuestComplete {
-		connection.TextStyle.Fg = ui.ColorGreen
-		connection.Text = "[[ Quest Complete ]] " + gameState.QuestEndTime.Sub(gameState.QuestStartTime).String()
+		recording.TextStyle.Fg = ui.ColorGreen
+		recording.Text = "[[ Quest Complete ]] "
 	} else if gameState.QuestStarted && gameState.AllowQuestStart {
-		connection.TextStyle.Fg = ui.ColorGreen
-		connection.Text = "[[ Recording ]] " + time.Now().Sub(gameState.QuestStartTime).String()
+		recording.TextStyle.Fg = ui.ColorGreen
+		recording.Text = "[[ Recording ]] "
 	} else {
-		connection.TextStyle.Fg = ui.ColorRed
-		connection.Text = "[[ Waiting for Quest Start ]] "
+		recording.TextStyle.Fg = ui.ColorRed
+		recording.Text = "[[ Waiting for Quest Start ]] "
 	}
-	connection.Border = false
-	connection.SetRect(0, 2, 50, 3)
-	ui.Render(connection)
+	recording.Border = false
+	recording.SetRect(0, 2, 50, 3)
+	ui.Render(recording)
 }
 
 func (cui *ConsoleUI) DrawHP(playerData *player.BasePlayerInfo) {
-	connection := widgets.NewParagraph()
-	connection.Text = fmt.Sprintf("%v - %v (gc: %v)", playerData.Class, playerData.Name, playerData.Guildcard)
-	connection.Border = false
-	connection.SetRect(0, 3, 80, 4)
-	ui.Render(connection)
-	//, playerData.HP, playerData.MaxHP,playerData.Meseta, playerData.ShiftaLvl, playerData.DebandLvl
+	playerInfo := widgets.NewParagraph()
+	playerInfo.Text = fmt.Sprintf("%v - %v (gc: %v)", playerData.Class, playerData.Name, playerData.GuildCard)
+	playerInfo.Border = false
+	playerInfo.SetRect(0, 3, 80, 4)
+	ui.Render(playerInfo)
 
 	hpChart := widgets.NewGauge()
 	hpChart.Title = "HP"
-	// percentHp := float64(playerData.HP) / float64(playerData.MaxHP)
-	// hpChart.Percent = int(percentHp * 100)
 	percentHp := 0
 	if playerData.MaxHP > 0 {
 		percentHp = (100 * int(playerData.HP)) / int(playerData.MaxHP)
@@ -128,11 +128,95 @@ func (cui *ConsoleUI) DrawLocation(playerData *player.BasePlayerInfo, gameState 
 	if playerData.Warping {
 		warpingText = " (Warping)"
 	}
-	floor.Text = fmt.Sprintf("%v Episode:%v %v%v Room:%v\n[%v]\nMonsters Alive-%v",
+	floor.Text = fmt.Sprintf("%v Episode:%v %v%v Room:%v",
 		gameState.Difficulty,
-		gameState.Episode, floorName, warpingText, playerData.Room, gameState.QuestName,
-		gameState.MonsterCount)
+		gameState.Episode, floorName, warpingText, playerData.Room)
 	floor.Border = false
-	floor.SetRect(0, 6, 80, 14)
+	floor.SetRect(0, 6, 80, 9)
 	ui.Render(floor)
+}
+
+func (cui *ConsoleUI) drawQuestInfo(quest *pso.QuestRun, playerData *player.BasePlayerInfo) {
+	list := widgets.NewList()
+	list.Title = "[[ " + quest.QuestName + " ]]"
+	list.Rows = []string{
+		formatQuestComplete(quest),
+		formatCategory(quest),
+		formatQuestTime(quest),
+		formatMesetaCharged(quest),
+		formatDeaths(quest),
+		formatMonstersAlive(quest),
+		formatMonstersKilled(quest),
+	}
+	if playerData.MaxTP > 0 {
+		list.Rows = append(list.Rows, formatTpUsed(quest))
+	} else {
+		list.Rows = append(list.Rows, formatTrapsUsed(quest))
+	}
+	list.SetRect(0, 9, 80, 22)
+	list.Border = false
+	ui.Render(list)
+}
+
+func formatCategory(quest *pso.QuestRun) string {
+	playerCount := len(quest.AllPlayers)
+	category := fmt.Sprintf("Category:        %vp ", playerCount)
+	if quest.PbCategory {
+		category += "PB"
+	} else {
+		category += "No-PB"
+	}
+	return category
+}
+
+func formatMesetaCharged(quest *pso.QuestRun) string {
+	lastFrame := len(quest.MesetaCharged)
+	mesetaCharged := 0
+	if lastFrame > 0 {
+		mesetaCharged = quest.MesetaCharged[lastFrame -1]
+	}
+	return fmt.Sprintf("Meseta Charged:  %v", mesetaCharged)
+}
+
+func formatDeaths(quest *pso.QuestRun) string {
+	return fmt.Sprintf("Deaths:          %v", quest.DeathCount)
+}
+
+func formatMonstersAlive(quest *pso.QuestRun) string {
+	lastFrame := len(quest.MonsterCount)
+	monstersAlive := 0
+	if lastFrame > 0 {
+		monstersAlive = quest.MonsterCount[lastFrame -1]
+	}
+	return fmt.Sprintf("Enemies Alive:   %v", monstersAlive)
+}
+
+func formatMonstersKilled(quest *pso.QuestRun) string {
+	return fmt.Sprintf("Enemies Killed:  %v", quest.MonstersDead)
+}
+
+func formatTrapsUsed(quest *pso.QuestRun) string {
+	return fmt.Sprintf("Traps Used:      %v/%v/%v", quest.FTUsed, quest.DTUsed, quest.CTUsed)
+}
+
+func formatTpUsed(quest *pso.QuestRun) string {
+	return fmt.Sprintf("TP Used:         %v", quest.TPUsed)
+}
+
+func formatQuestTime(quest *pso.QuestRun) string {
+	questDuration := time.Duration(0)
+	if quest.QuestComplete {
+			questDuration = quest.QuestEndTime.Sub(quest.QuestStartTime)
+	} else {
+		questDuration = time.Now().Sub(quest.QuestStartTime)
+	}
+	return fmt.Sprintf("Quest Duration:  %v", questDuration.Truncate(time.Millisecond * 100))
+}
+
+func formatQuestComplete(quest *pso.QuestRun) string {
+	if quest.QuestComplete {
+		return "Status:          Complete"
+	} else {
+		return "Status:          Incomplete"
+	}
 }

@@ -13,7 +13,7 @@ import (
 
 type BasePlayerInfo struct {
 	Name                string
-	Guildcard           string
+	GuildCard           string
 	Room                uint16
 	ShiftaLvl           int16
 	DebandLvl           int16
@@ -68,7 +68,7 @@ func GetPlayerData(handle w32.HANDLE, playerAddress int) (BasePlayerInfo, error)
 	max := 0xE4E
 	buf, _, ok := w32.ReadProcessMemory(handle, uintptr(playerAddress+base), uintptr((max-base)+4))
 	if !ok {
-		return BasePlayerInfo{}, errors.New("Unable to getPlayerData")
+		return BasePlayerInfo{}, errors.New("unable to getPlayerData")
 	}
 	// log.Printf("%v/%v", read, uintptr(10+(0x3f0-base)/2))
 	// log.Printf("------------")
@@ -86,7 +86,7 @@ func GetPlayerData(handle w32.HANDLE, playerAddress int) (BasePlayerInfo, error)
 	if err != nil {
 		return BasePlayerInfo{}, err
 	}
-	basePlayerInfo.Guildcard = guildcard
+	basePlayerInfo.GuildCard = guildcard
 	return basePlayerInfo, nil
 
 	// log.Printf("%v - %v/%v - %v/%v", len(buf), pso.CurrentPlayerData.HP, pso.CurrentPlayerData.MaxHP,
@@ -96,7 +96,7 @@ func GetPlayerData(handle w32.HANDLE, playerAddress int) (BasePlayerInfo, error)
 func getCharacterName(handle w32.HANDLE, playerAddress int) (string, error) {
 	buf, _, ok := w32.ReadProcessMemory(handle, uintptr(playerAddress+0x428), 24)
 	if !ok {
-		return "", errors.New("Unable to getCharacterName")
+		return "", errors.New("unable to getCharacterName")
 	}
 
 	endIndex := len(buf)
@@ -113,21 +113,17 @@ func getCharacterName(handle w32.HANDLE, playerAddress int) (string, error) {
 }
 
 func getGuildCard(handle w32.HANDLE, playerAddress int) (string, error) {
-	// return numbers.ReadString(handle, uintptr(playerAddress+0x92a), 8)
-	guildcard, err := numbers.ReadString(handle, uintptr(playerAddress+0x92c), 7)
+	guildCard, err := numbers.ReadString(handle, uintptr(playerAddress+0x92c), 7)
 	if err != nil {
 		return "", err
 	}
-	// guildcard = strings.TrimPrefix(guildcard, "A")
-	// guildcard = strings.TrimPrefix(guildcard, "B")
-	// guildcard = strings.TrimPrefix(guildcard, "C")
-	guildcard = strings.Trim(guildcard, "\u0000")
-	guildcard = strings.TrimSpace(guildcard)
-	index := strings.Index(guildcard, "\u0000")
+	guildCard = strings.Trim(guildCard, "\u0000")
+	guildCard = strings.TrimSpace(guildCard)
+	index := strings.Index(guildCard, "\u0000")
 	if index > 0 {
-		guildcard = strings.Split(guildcard, "\u0000")[0]
+		guildCard = strings.Split(guildCard, "\u0000")[0]
 	}
-	return guildcard, nil
+	return guildCard, nil
 }
 
 func getClass(classBits uint16) string {

@@ -15,8 +15,6 @@ const (
 	ephineaWindowName            = "Ephinea: Phantasy Star Online Blue Burst"
 	persistentConnectionTickRate = time.Second / 30
 	windowsCodeStillActive       = 259
-	WarpIn                       = 0
-	Switch                       = 1
 )
 
 type PSO struct {
@@ -48,14 +46,18 @@ type GameState struct {
 	PlayerArray       []player.BasePlayerInfo
 }
 
-func (state *GameState) Clear() {
+func (state *GameState) ClearQuest() {
 	state.MonsterCount = 0
 	state.QuestStarted = false
 	state.QuestComplete = false
-	state.Difficulty = "Normal"
-	state.Episode = 1
 	state.QuestName = "No Active Quest"
 	state.PlayerArray = make([]player.BasePlayerInfo, 0)
+}
+
+func (state *GameState) Clear() {
+	state.Difficulty = "Normal"
+	state.Episode = 1
+	state.ClearQuest()
 }
 
 type PlayerData struct {
@@ -144,17 +146,13 @@ func (pso *PSO) Connect() (bool, string, error) {
 		return false, "Could not open process", fmt.Errorf("Connect: could not open process with pid %v: %w", pid, err)
 	}
 
-	if err != nil {
-		return false, "Could not find base address", fmt.Errorf("Connect: could get base address: %w", err)
-	}
-
 	pso.handle = handle
 
 	return true, fmt.Sprintf("Connected to pid %v", pid), nil
 }
 
 func (pso *PSO) Close() {
-	w32.CloseHandle(w32.HANDLE(pso.handle))
+	w32.CloseHandle(pso.handle)
 }
 
 func (pso *PSO) CheckConnection() (bool, string) {
@@ -162,6 +160,6 @@ func (pso *PSO) CheckConnection() (bool, string) {
 }
 
 func (pso *PSO) checkConnection() bool {
-	code, err := w32.GetExitCodeProcess(w32.HANDLE(pso.handle))
+	code, err := w32.GetExitCodeProcess(pso.handle)
 	return err == nil && code == windowsCodeStillActive
 }

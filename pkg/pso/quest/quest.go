@@ -10,7 +10,7 @@ import (
 func GetQuestPointer(handle w32.HANDLE) (uint32, error) {
 	buf, _, ok := w32.ReadProcessMemory(handle, uintptr(0x00A95AA8), 4)
 	if !ok {
-		return 0, errors.New("Unable to getQuestPointer")
+		return 0, errors.New("unable to getQuestPointer")
 	}
 	questPointer := numbers.Uint32From16(buf[0:2])
 	return questPointer, nil
@@ -23,13 +23,11 @@ func IsRegisterSet(handle w32.HANDLE, registerId uint16) (bool, error) {
 	}
 	registerSet := false
 	if questRegisterAddress != 0 {
-		buf, _, ok := w32.ReadProcessMemory(handle, uintptr(int(questRegisterAddress)+(4*int(registerId))), 2)
+		buf, _, ok := w32.ReadProcessMemory(handle, uintptr(questRegisterAddress)+(4*uintptr(registerId)), 2)
 		if !ok {
-			return false, errors.New("Unable to isQuestRegisterSet")
+			return false, errors.New("unable to isQuestRegisterSet")
 		}
 		registerSet = buf[0] > 0
 	}
-	// log.Printf("R[%v]@%x = %v", registerId, uintptr(0x00A954B0+(4*int(registerId))), registerSet)
-	// log.Print("\n")
 	return registerSet, nil
 }

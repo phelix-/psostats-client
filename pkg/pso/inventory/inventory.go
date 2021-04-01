@@ -9,6 +9,7 @@ import (
 	"github.com/phelix-/psostats/v2/pkg/numbers"
 )
 
+//goland:noinspection GoUnusedConst
 const (
 	itemArray          = 0x00A8D81C
 	itemArrayCount     = 0x00A8D820
@@ -44,18 +45,18 @@ func ReadInventory(handle w32.HANDLE, playerIndex uint8) (map[string]string, err
 	equipment := make(map[string]string)
 	buf, _, ok := w32.ReadProcessMemory(handle, uintptr(itemArrayCount), 2)
 	if !ok {
-		return equipment, errors.New("Could not read item count")
+		return equipment, errors.New("could not read item count")
 	}
 	count := numbers.Uint32From16(buf[0:2])
 	buf, _, ok = w32.ReadProcessMemory(handle, uintptr(itemArray), 4)
 	if !ok {
-		return equipment, errors.New("Could not read item array")
+		return equipment, errors.New("could not read item array")
 	}
 	address := numbers.Uint32From16(buf[0:2])
 	if count != 0 && address != 0 {
 		buf, _, ok = w32.ReadProcessMemory(handle, uintptr(address), uintptr(4*count))
 		if !ok {
-			return equipment, errors.New("Could not read item array")
+			return equipment, errors.New("could not read item array")
 		}
 
 		for i := 0; i < int(count); i++ {
@@ -63,7 +64,7 @@ func ReadInventory(handle w32.HANDLE, playerIndex uint8) (map[string]string, err
 			if itemAddr != 0 {
 				itemBuffer, _, ok := w32.ReadProcessMemory(handle, uintptr(itemAddr+0xD8), 4)
 				if !ok {
-					return equipment, errors.New("Could not read item")
+					return equipment, errors.New("could not read item")
 				}
 				itemId := fmt.Sprintf("%04x%04x", itemBuffer[1], itemBuffer[0])
 				// itemDataBuffer, _, ok := w32.ReadProcessMemory(handle, uintptr(itemAddr+0xF2), 8)

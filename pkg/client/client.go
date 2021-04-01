@@ -9,7 +9,7 @@ import (
 	"os"
 	"time"
 
-	ui "github.com/gizak/termui/v3"
+	termui "github.com/gizak/termui/v3"
 	"github.com/phelix-/psostats/v2/pkg/client/config"
 	"github.com/phelix-/psostats/v2/pkg/consoleui"
 	"github.com/phelix-/psostats/v2/pkg/pso"
@@ -51,19 +51,17 @@ func (c *Client) GetGameInfo() pso.QuestRun {
 }
 
 func (c *Client) Run() error {
-	// c.ui.DrawScreen(&c.pso.CurrentPlayerData, &c.pso.GameState)
 	defer c.ui.Close()
 
 	c.pso.StartPersistentConnection(c.errChan)
 	go c.runUI()
 	if c.config.HostLocalUi != nil && *c.config.HostLocalUi {
-		// if c.config.HostLocalUi {
 		go c.runHttp()
 	} else {
 		log.Printf("Local UI disabled")
 	}
 
-	uiEvents := ui.PollEvents()
+	uiEvents := termui.PollEvents()
 	for {
 		select {
 		case e := <-uiEvents:
@@ -76,7 +74,7 @@ func (c *Client) Run() error {
 			}
 		case err := <-c.errChan:
 			close(c.done)
-			return fmt.Errorf("Run: error returned on error channel: %w", err)
+			return fmt.Errorf("run: error returned on error channel %w", err)
 		}
 	}
 }
@@ -93,11 +91,11 @@ func (c *Client) writeGameJson() {
 		log.Printf("Unable to write to %v, %v", filename, err)
 	}
 	defer file.Close()
-	json, err := json.Marshal(c.pso.Quests[c.pso.CurrentQuest])
+	jsonBytes, err := json.Marshal(c.pso.Quests[c.pso.CurrentQuest])
 	if err != nil {
 		log.Printf("Unable to generate json")
 	}
-	file.Write(json)
+	file.Write(jsonBytes)
 }
 
 func (c *Client) runUI() {
@@ -108,7 +106,8 @@ func (c *Client) runUI() {
 			connected, statusString := c.pso.CheckConnection()
 			c.ui.SetConnectionStatus(connected, statusString)
 
-			err := c.ui.DrawScreen(&c.pso.CurrentPlayerData, &c.pso.GameState)
+			currentQuest := c.pso.Quests[c.pso.CurrentQuest]
+			err := c.ui.DrawScreen(&c.pso.CurrentPlayerData, &c.pso.GameState, &currentQuest)
 			if err != nil {
 				c.errChan <- fmt.Errorf("runUI: error drawing screen in ui: %w", err)
 				return

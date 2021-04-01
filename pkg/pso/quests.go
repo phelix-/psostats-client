@@ -23,6 +23,7 @@ type Quest struct {
 
 type Quests struct {
 	allQuests map[string]map[string]Quest
+	warnedQuests map[string]bool
 }
 
 func NewQuests() Quests {
@@ -39,16 +40,24 @@ func NewQuests() Quests {
 
 	return Quests{
 		allQuests: allQuests,
+		warnedQuests: make(map[string]bool),
 	}
 }
 
 func (q *Quests) GetQuest(episode int, questName string) (Quest, bool) {
 	questsForEpisode, exists := q.allQuests[fmt.Sprintf("Episode %v", episode)]
 	if !exists {
+		log.Printf("Episode %v not found?", episode)
 		return Quest{}, false
 	}
-	a, b := questsForEpisode[questName]
-	return a, b
+	quest, questFound := questsForEpisode[questName]
+	if !questFound {
+		if warned := q.warnedQuests[questName]; !warned {
+			q.warnedQuests[questName] = true
+			log.Printf("Episode %v Quest '%v' not configured", episode, questName)
+		}
+	}
+	return quest, questFound
 }
 
 func (q *Quest) StartsOnRegister() bool {
