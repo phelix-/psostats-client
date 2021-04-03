@@ -132,10 +132,10 @@ func (pso *PSO) StopPersistentConnection() {
 }
 
 func (pso *PSO) Connect() (bool, string, error) {
-	server := "ephinea"
+	server := "unseen"
 	hwnd := w32.FindWindowW(nil, syscall.StringToUTF16Ptr(unseenWindowName))
 	if hwnd == 0 {
-		server = "unseen"
+		server = "ephinea"
 		// unseen not found
 		hwnd = w32.FindWindowW(nil, syscall.StringToUTF16Ptr(ephineaWindowName))
 		if hwnd == 0 {
