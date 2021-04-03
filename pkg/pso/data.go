@@ -56,6 +56,7 @@ type Event struct {
 }
 
 type QuestRun struct {
+	Server                   string
 	PlayerName               string
 	PlayerClass              string
 	AllPlayers               []player.BasePlayerInfo
@@ -133,6 +134,7 @@ func (pso *PSO) StartNewQuest(questName string, terminalQuest bool) {
 	}
 
 	pso.Quests[pso.CurrentQuest] = QuestRun{
+		Server:                   pso.server,
 		PlayerName:               pso.CurrentPlayerData.Name,
 		PlayerClass:              pso.CurrentPlayerData.Class,
 		AllPlayers:               allPlayers,

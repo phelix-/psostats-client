@@ -21,6 +21,7 @@ type PSO struct {
 	questTypes        Quests
 	connected         bool
 	connectedStatus   string
+	server            string
 	handle            w32.HANDLE
 	CurrentPlayerData player.BasePlayerInfo
 	Equipment         map[string]string
@@ -131,8 +132,10 @@ func (pso *PSO) StopPersistentConnection() {
 }
 
 func (pso *PSO) Connect() (bool, string, error) {
+	server := "ephinea"
 	hwnd := w32.FindWindowW(nil, syscall.StringToUTF16Ptr(unseenWindowName))
 	if hwnd == 0 {
+		server = "unseen"
 		// unseen not found
 		hwnd = w32.FindWindowW(nil, syscall.StringToUTF16Ptr(ephineaWindowName))
 		if hwnd == 0 {
@@ -147,6 +150,7 @@ func (pso *PSO) Connect() (bool, string, error) {
 	}
 
 	pso.handle = handle
+	pso.server = server
 
 	return true, fmt.Sprintf("Connected to pid %v", pid), nil
 }
