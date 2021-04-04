@@ -24,13 +24,11 @@ func main() {
 	//if err != nil {
 	//	log.Fatal(err)
 	//}
-
 	//writeGame(dynamoClient)
-	s := server.Server{
-		//DynamoClient: dynamoClient,
-	}
+	s := server.New(nil /*dynamoClient*/)
 	s.Run()
 }
+
 //
 //func listTables(dynamoClient *dynamodb.DynamoDB) error {
 //	listTablesInput := &dynamodb.ListTablesInput{}
@@ -46,12 +44,12 @@ func main() {
 
 func writeGame(dynamoClient *dynamodb.DynamoDB) error {
 	tableName := "games_by_id"
-	game := Game {
-		Id: "0",
-		Player: "unseen+42",
-		Category: "2n",
-		Quest: "Sweep-up Operation #4",
-		Time: time.Minute *7 + time.Second * 33 + time.Millisecond * 300,
+	game := Game{
+		Id:        "0",
+		Player:    "unseen+42",
+		Category:  "2n",
+		Quest:     "Sweep-up Operation #4",
+		Time:      time.Minute*7 + time.Second*33 + time.Millisecond*300,
 		Timestamp: time.Date(2021, 4, 1, 23, 15, 0, 0, time.Local),
 	}
 	marshalled, err := dynamodbattribute.MarshalMap(game)
@@ -59,7 +57,7 @@ func writeGame(dynamoClient *dynamodb.DynamoDB) error {
 		return err
 	}
 	input := &dynamodb.PutItemInput{
-		Item: marshalled,
+		Item:      marshalled,
 		TableName: aws.String(tableName),
 	}
 	_, err = dynamoClient.PutItem(input)
@@ -70,10 +68,10 @@ func writeGame(dynamoClient *dynamodb.DynamoDB) error {
 }
 
 type Game struct {
-	Id    string
+	Id        string
 	Player    string
 	Category  string
-	Episode int
+	Episode   int
 	Quest     string
 	Time      time.Duration
 	Timestamp time.Time
