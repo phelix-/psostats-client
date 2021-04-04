@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/TheTitanrain/w32"
-	"github.com/phelix-/psostats/v2/pkg/numbers"
+	"github.com/phelix-/psostats/v2/client/internal/numbers"
 )
 
 func GetQuestPointer(handle w32.HANDLE) (uint32, error) {

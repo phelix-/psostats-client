@@ -7,8 +7,8 @@ import (
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
-	"github.com/phelix-/psostats/v2/pkg/pso"
-	"github.com/phelix-/psostats/v2/pkg/pso/player"
+	"github.com/phelix-/psostats/v2/client/internal/pso"
+	"github.com/phelix-/psostats/v2/client/internal/pso/player"
 )
 
 type Data struct {
@@ -173,7 +173,7 @@ func formatMesetaCharged(quest *pso.QuestRun) string {
 	lastFrame := len(quest.MesetaCharged)
 	mesetaCharged := 0
 	if lastFrame > 0 {
-		mesetaCharged = quest.MesetaCharged[lastFrame -1]
+		mesetaCharged = quest.MesetaCharged[lastFrame-1]
 	}
 	return fmt.Sprintf("Meseta Charged:  %v", mesetaCharged)
 }
@@ -186,7 +186,7 @@ func formatMonstersAlive(quest *pso.QuestRun) string {
 	lastFrame := len(quest.MonsterCount)
 	monstersAlive := 0
 	if lastFrame > 0 {
-		monstersAlive = quest.MonsterCount[lastFrame -1]
+		monstersAlive = quest.MonsterCount[lastFrame-1]
 	}
 	return fmt.Sprintf("Enemies Alive:   %v", monstersAlive)
 }
@@ -206,11 +206,11 @@ func formatTpUsed(quest *pso.QuestRun) string {
 func formatQuestTime(quest *pso.QuestRun) string {
 	questDuration := time.Duration(0)
 	if quest.QuestComplete {
-			questDuration = quest.QuestEndTime.Sub(quest.QuestStartTime)
+		questDuration = quest.QuestEndTime.Sub(quest.QuestStartTime)
 	} else {
 		questDuration = time.Now().Sub(quest.QuestStartTime)
 	}
-	return fmt.Sprintf("Quest Duration:  %v", questDuration.Truncate(time.Millisecond * 100))
+	return fmt.Sprintf("Quest Duration:  %v", questDuration.Truncate(time.Millisecond*100))
 }
 
 func formatQuestComplete(quest *pso.QuestRun) string {

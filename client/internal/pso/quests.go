@@ -22,7 +22,7 @@ type Quest struct {
 }
 
 type Quests struct {
-	allQuests map[string]map[string]Quest
+	allQuests    map[string]map[string]Quest
 	warnedQuests map[string]bool
 }
 
@@ -39,7 +39,7 @@ func NewQuests() Quests {
 	}
 
 	return Quests{
-		allQuests: allQuests,
+		allQuests:    allQuests,
 		warnedQuests: make(map[string]bool),
 	}
 }

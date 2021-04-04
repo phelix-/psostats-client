@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/phelix-/psostats/v2/pkg/client"
+	"github.com/phelix-/psostats/v2/client/internal/client"
 )
 
 func main() {

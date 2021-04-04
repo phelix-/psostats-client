@@ -10,9 +10,9 @@ import (
 	"time"
 
 	termui "github.com/gizak/termui/v3"
-	"github.com/phelix-/psostats/v2/pkg/client/config"
-	"github.com/phelix-/psostats/v2/pkg/consoleui"
-	"github.com/phelix-/psostats/v2/pkg/pso"
+	"github.com/phelix-/psostats/v2/client/internal/client/config"
+	"github.com/phelix-/psostats/v2/client/internal/consoleui"
+	"github.com/phelix-/psostats/v2/client/internal/pso"
 )
 
 type Client struct {

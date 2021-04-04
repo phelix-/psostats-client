@@ -43,7 +43,7 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 	return nil
 }
 
-//func (c *Client) runHttp() {
+// func (c *Client) runHttp() {
 //	fileServer := http.FileServer(http.Dir("./static"))
 //	http.Handle("/", fileServer)
 //	http.HandleFunc("/game/info", func(w http.ResponseWriter, r *http.Request) {
@@ -58,4 +58,4 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 //	})
 //	addr := fmt.Sprintf(":%v", c.config.GetUiPort())
 //	log.Printf("Hosting local ui at localhost%v", addr)
-//}
+// }

@@ -8,10 +8,10 @@ import (
 	"unicode/utf16"
 
 	"github.com/TheTitanrain/w32"
-	"github.com/phelix-/psostats/v2/pkg/numbers"
-	"github.com/phelix-/psostats/v2/pkg/pso/inventory"
-	"github.com/phelix-/psostats/v2/pkg/pso/player"
-	"github.com/phelix-/psostats/v2/pkg/pso/quest"
+	"github.com/phelix-/psostats/v2/client/internal/numbers"
+	"github.com/phelix-/psostats/v2/client/internal/pso/inventory"
+	"github.com/phelix-/psostats/v2/client/internal/pso/player"
+	"github.com/phelix-/psostats/v2/client/internal/pso/quest"
 )
 
 const (

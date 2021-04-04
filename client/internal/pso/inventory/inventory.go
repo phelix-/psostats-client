@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/TheTitanrain/w32"
-	"github.com/phelix-/psostats/v2/pkg/numbers"
+	"github.com/phelix-/psostats/v2/client/internal/numbers"
 )
 
 //goland:noinspection GoUnusedConst
