@@ -1,46 +1,46 @@
 package server
 
 import (
-	"encoding/json"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/phelix-/psostats/v2/pkg/model"
-	"io/ioutil"
 	"log"
-	"net/http"
+
+	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/gofiber/fiber/v2"
+	"github.com/phelix-/psostats/v2/pkg/model"
 )
 
 type Server struct {
-	DynamoClient *dynamodb.DynamoDB
+	app          *fiber.App
+	dynamoClient *dynamodb.DynamoDB
+}
+
+func New(dynamo *dynamodb.DynamoDB) *Server {
+	f := fiber.New(fiber.Config{
+		// modify config
+	})
+	return &Server{
+		app:          f,
+		dynamoClient: dynamo,
+	}
 }
 
 func (s *Server) Run() {
-	ui := http.FileServer(http.Dir("./static"))
-	http.Handle("/", ui)
-	http.HandleFunc("/game", s.PostGame)
-	if err := http.ListenAndServe(":8000", nil); err != nil {
+	s.app.Static("/", "./static", fiber.Static{
+		// modify config
+	})
+	s.app.Post("quests", s.PostGame)
+	if err := s.app.Listen(":8080"); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func (s *Server) PostGame(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost || r.Header.Get("Content-Type") != "application/json" {
-		r.Response.StatusCode = 400
-	} else {
-		questRun := model.QuestRun{}
-
-		allBytes, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			log.Printf("Read error %v", err)
-		}
-
-		log.Printf("%v", len(allBytes))
-		err = json.Unmarshal(allBytes, &questRun)
-		if err != nil {
-			log.Printf("got error %v", err)
-		} else {
-			log.Printf("Got quest: %v", questRun)
-		}
+func (s *Server) PostGame(c *fiber.Ctx) error {
+	var questRun model.QuestRun
+	if err := c.BodyParser(&questRun); err != nil {
+		log.Printf("body parser")
+		return err
 	}
+	log.Printf("got quest: %v", questRun)
+	return nil
 }
 
 //func (c *Client) runHttp() {
