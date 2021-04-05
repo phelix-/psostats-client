@@ -26,5 +26,23 @@ Runs will be marked as PB Category if any preparation has been done before start
 * detect non-vanilla weapons
 * boss kill times
 * CMode QoL
-    - Floor names are wrong I think
+  - Floor names are wrong I think
 * weapon/armor timeline? show unit/shield switches?
+
+# Package Structure
+
+    .
+    ├── client                  # The PSO Stats Client
+    │   ├── cmd                 # The main function for the client 
+    │   └── internal            # Private packages for the client only 
+    │       ├── client          # TODO: ???
+    │       ├── consoleui       # TODO: ???
+    │       ├── numbers         # TODO: ???
+    │       └── pso             # TODO: ???
+    ├── pkg                     # Public go packages used by the client and server
+    │   └── model               # Golang models representing public client and server data
+    ├── server                  # The PSO Stats Server
+    │   ├── cmd                 # The main function for the server 
+    │   └── internal            # Private packages for the server only 
+    │       └── server          # TODO: ???
+    └── winres                  # TODO: fill

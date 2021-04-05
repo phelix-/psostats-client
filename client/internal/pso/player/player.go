@@ -8,7 +8,7 @@ import (
 	"unicode/utf16"
 
 	"github.com/TheTitanrain/w32"
-	"github.com/phelix-/psostats/v2/pkg/numbers"
+	"github.com/phelix-/psostats/v2/client/internal/numbers"
 )
 
 type BasePlayerInfo struct {

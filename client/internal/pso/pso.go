@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/TheTitanrain/w32"
-	"github.com/phelix-/psostats/v2/pkg/pso/player"
+	"github.com/phelix-/psostats/v2/client/internal/pso/player"
 )
 
 const (

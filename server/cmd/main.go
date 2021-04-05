@@ -1,12 +1,13 @@
 package main
 
 import (
+	"log"
+	"time"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	"github.com/phelix-/psostats/v2/pkg/server"
-	"log"
-	"time"
+	"github.com/phelix-/psostats/v2/server/internal/server"
 )
 
 func main() {
@@ -14,23 +15,23 @@ func main() {
 
 	log.Printf("Starting Up PSOStats Server %v", version)
 
-	//awsSession := session.Must(session.NewSessionWithOptions(session.Options{
+	// awsSession := session.Must(session.NewSessionWithOptions(session.Options{
 	//	SharedConfigState: session.SharedConfigEnable,
-	//}))
+	// }))
 	//
-	//dynamoClient := dynamodb.New(awsSession)
+	// dynamoClient := dynamodb.New(awsSession)
 
-	//err := listTables(dynamoClient)
-	//if err != nil {
+	// err := listTables(dynamoClient)
+	// if err != nil {
 	//	log.Fatal(err)
-	//}
-	//writeGame(dynamoClient)
+	// }
+	// writeGame(dynamoClient)
 	s := server.New(nil /*dynamoClient*/)
 	s.Run()
 }
 
 //
-//func listTables(dynamoClient *dynamodb.DynamoDB) error {
+// func listTables(dynamoClient *dynamodb.DynamoDB) error {
 //	listTablesInput := &dynamodb.ListTablesInput{}
 //	result, err := dynamoClient.ListTables(listTablesInput)
 //	if err != nil {
@@ -40,7 +41,7 @@ func main() {
 //		log.Print(*tableName)
 //	}
 //	return nil
-//}
+// }
 
 func writeGame(dynamoClient *dynamodb.DynamoDB) error {
 	tableName := "games_by_id"
