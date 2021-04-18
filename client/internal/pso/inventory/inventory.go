@@ -174,7 +174,6 @@ func readWeapon(handle w32.HANDLE, itemAddr int, itemId string, itemGroup uint8)
 			weapon.Hit = percent
 		}
 	}
-	// log.Printf("%v", weapon.String())
 	return weapon
 }
 
@@ -192,7 +191,15 @@ type Weapon struct {
 }
 
 func (w *Weapon) String() string {
-	return fmt.Sprintf("%v +%v [%v] [%v/%v/%v/%v|%v]", w.Name, w.Grind, w.SpecialName, w.Native, w.ABeast, w.Machine, w.Dark, w.Hit)
+	grindString := ""
+	if w.Grind > 0 {
+		grindString = fmt.Sprintf(" +%v", w.Grind)
+	}
+	specialString := ""
+	if len(w.SpecialName) > 0 {
+		specialString = fmt.Sprintf(" [%v]", w.SpecialName)
+	}
+	return fmt.Sprintf("%v%v%v [%v/%v/%v/%v|%v]", w.Name, grindString, specialString, w.Native, w.ABeast, w.Machine, w.Dark, w.Hit)
 }
 
 func readFrame(handle w32.HANDLE, itemAddr int, itemId string, itemGroup uint8) Frame {

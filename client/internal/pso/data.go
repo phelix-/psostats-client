@@ -59,6 +59,7 @@ type QuestRun struct {
 	Server                   string
 	PlayerName               string
 	PlayerClass              string
+	GuildCard                string
 	AllPlayers               []player.BasePlayerInfo
 	Id                       string
 	Difficulty               string
@@ -137,6 +138,7 @@ func (pso *PSO) StartNewQuest(questName string, terminalQuest bool) {
 		Server:                   pso.server,
 		PlayerName:               pso.CurrentPlayerData.Name,
 		PlayerClass:              pso.CurrentPlayerData.Class,
+		GuildCard:                pso.CurrentPlayerData.GuildCard,
 		AllPlayers:               allPlayers,
 		Difficulty:               pso.GameState.Difficulty,
 		Episode:                  pso.GameState.Episode,

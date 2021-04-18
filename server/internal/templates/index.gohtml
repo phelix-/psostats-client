@@ -1,0 +1,40 @@
+{{define "index"}}
+    <html>
+    <head>
+        <title>Recent - PSOStats</title>
+        {{/*    <link href="//cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css" rel="stylesheet" type="text/css">*/}}
+        <link href='http://fonts.googleapis.com/css?family=Oswald' rel='stylesheet' type='text/css'>
+        <link href="/main.css" rel="stylesheet" type="text/css">
+    </head>
+    <body>
+    <div class="outer-container">
+        <header>
+            <h1>PSOStats</h1>
+        </header>
+        <div class="body">
+            <h2>Recent Games</h2>
+            <table>
+                <tr>
+                    <th>Player</th>
+                    <th>Quest Time</th>
+                    <th>Episode</th>
+                    <th>Quest</th>
+                    <th>Category</th>
+                    <th>Time</th>
+                </tr>
+                {{ range .Games }}
+                    <tr>
+                        <td>{{ .Player }}</td>
+                        <td>{{ .Time }}</td>
+                        <td>{{ .Episode }}</td>
+                        <td><a href="/game/{{ .Id }}">{{ .Quest }}</a></td>
+                        <td>{{ .Category }}</td>
+                        <td>{{ .Timestamp }}</td>
+                    </tr>
+                {{ end }}
+            </table>
+        </div>
+    </div>
+    </body>
+    </html>
+{{end}}

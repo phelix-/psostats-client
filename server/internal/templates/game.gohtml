@@ -1,0 +1,143 @@
+{{define "game"}}
+    <html>
+    <head>
+        <title>PSOStats</title>
+        <link href="/main.css" rel="stylesheet" type="text/css">
+        <script src='https://code.jquery.com/jquery-1.11.3.min.js'></script>
+        <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    </head>
+    <body>
+    <div class="outer-container">
+        <header>
+            <h1>PSOStats</h1>
+        </header>
+        <div class="body">
+            <table>
+                <tr><td>Quest Name:</td><td>{{ .QuestName }}</td></tr>
+                <tr><td>Episode:</td><td>{{ .Episode }}</td></tr>
+                <tr><td>Difficulty:</td><td>{{ .Difficulty }}</td></tr>
+                <tr><td>Quest Duration:</td><td>{{ .QuestDuration }}</td></tr>
+                <tr><td>Category:</td><td>{{ len .AllPlayers }}p {{ if .PbCategory}}PB{{else}}No-PB{{end}}</td></tr>
+                <tr><td>Deaths:</td><td>{{ .DeathCount }}</td></tr>
+                <tr><td>Enemies Killed:</td><td>{{ .MonstersDead }}</td></tr>
+                <tr><td>Submitted By:</td><td><a href="/players/{{ .Server }}+{{ .GuildCard }}">{{ .PlayerName }}</a></td></tr>
+            </table>
+            <table>
+                <tr><th>Players</th></tr>
+                {{$outer := .}}
+                {{ range .AllPlayers }} <tr><td>{{ .Class }} (Lv.{{ .Level }}) <a href="/players/{{ $outer.Server }}+{{ .GuildCard }}">{{ .Name }}</a></td></tr> {{ end }}
+                <tr><td></td></tr>
+            </table>
+            <table>
+                <tr><th>Weapons Used</th></tr>
+                {{ range .WeaponsUsed }} <tr><td>{{ . }}</td></tr> {{ end}}
+            </table>
+
+            <div id="hp-chart" style="width: 500px; margin: 0 35px auto"></div>
+            <div id="monsters-alive-chart" style="width: 500px; margin: 0 35px auto"></div>
+            <div id="monsters-killed-chart" style="width: 500px; margin: 0 35px auto"></div>
+            <div id="sd-chart" style="width: 500px; margin: 0 35px auto"></div>
+            {{ if gt .FTUsed 0 }}<div id="trap-chart" style="width: 500px; margin: 35px auto"></div>{{end}}
+        </div>
+    </div>
+    </body>
+    </html>
+        <script>
+            const options = {
+                chart: {
+                    id: 'hptp',
+                    type: 'line',
+                    group: "group1",
+                },
+                series: [{
+                    name: 'HP',
+                    data: [{{ range .HP }} {{ . }} , {{ end }}],
+                    color: '#a43a3a'
+                }{{if gt .TPUsed 0}},{
+                    name: 'TP',
+                    data: [{{ range .TP }} {{ . }} , {{ end }}],
+                    color: '#64bcf2'
+                } {{end}}],
+                xaxis: { tickAmount: 10 },
+                yaxis: {
+                    labels: {
+                        minWidth: 40
+                    }
+                },
+            }
+            const monstersAliveOptions = {
+                chart: {
+                    id: 'monstersAlive',
+                    type: 'line',
+                    group: "group1",
+                },
+                series: [{
+                    name: 'Monsters Alive',
+                    data: [{{ range .MonsterCount }} {{ . }} , {{ end }}],
+                    color: '#333333'
+                }],
+                xaxis: { tickAmount: 10 },
+                yaxis: {
+                    labels: {
+                        minWidth: 40
+                    }
+                },
+            }
+            const monstersKilledOptions = {
+                chart: {
+                    id: 'monstersKilled',
+                    type: 'line',
+                    group: "group1",
+                },
+                series: [{
+                    name: 'Monsters Alive',
+                    data: [{{ range .MonstersKilledCount }} {{ . }} , {{ end }}],
+                    color: '#333333'
+                }],
+                xaxis: { tickAmount: 10 },
+            }
+            const sdOptions = {
+                chart: {
+                    id: 'sd',
+                    type: 'line',
+                    group: "group1",
+                },
+                series: [{
+                    name: 'Shifta',
+                    data: [{{ range .ShiftaLvl }} {{ . }} , {{ end }}],
+                    color: '#a43a3a'
+                },{
+                    name: 'Deband',
+                    data: [{{ range .DebandLvl }} {{ . }} , {{ end }}],
+                    color: '#64bcf2'
+                }],
+                xaxis: { tickAmount: 10 },
+            }
+            const hpChart = new ApexCharts(document.querySelector("#hp-chart"), options);
+            hpChart.render();
+            const monstersAliveChart = new ApexCharts(document.querySelector("#monsters-alive-chart"), monstersAliveOptions);
+            monstersAliveChart.render();
+            const monstersKilledChart = new ApexCharts(document.querySelector("#monsters-killed-chart"), monstersKilledOptions);
+            monstersKilledChart.render();
+            const sdChart = new ApexCharts(document.querySelector("#sd-chart"), sdOptions);
+            sdChart.render();
+            {{ if gt .FTUsed 0 }}
+            const ftOptions = {
+                chart: {
+                    id: 'ft',
+                    type: 'line',
+                    group: "group1",
+                },
+                series: [{
+                    name: 'FT',
+                    data: [{{ range .FreezeTraps }} {{ . }} , {{ end }}],
+                    color: '#64bcf2'
+                }],
+                xaxis: { tickAmount: 10 },
+            }
+            const ftChart = new ApexCharts(document.querySelector("#ft-chart"), ftOptions);
+            ftChart.render();
+            {{ end }}
+
+        </script>
+{{end}}

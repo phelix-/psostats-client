@@ -8,12 +8,7 @@ import (
 )
 
 func GetQuestPointer(handle w32.HANDLE) (uint32, error) {
-	buf, _, ok := w32.ReadProcessMemory(handle, uintptr(0x00A95AA8), 4)
-	if !ok {
-		return 0, errors.New("unable to getQuestPointer")
-	}
-	questPointer := numbers.Uint32From16(buf[0:2])
-	return questPointer, nil
+	return numbers.ReadU32(handle, uintptr(0x00A95AA8))
 }
 
 func IsRegisterSet(handle w32.HANDLE, registerId uint16) (bool, error) {

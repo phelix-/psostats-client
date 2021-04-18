@@ -1,7 +1,10 @@
 package server
 
 import (
+	"encoding/json"
+	"github.com/phelix-/psostats/v2/server/internal/db"
 	"log"
+	"text/template"
 
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/gofiber/fiber/v2"
@@ -24,22 +27,86 @@ func New(dynamo *dynamodb.DynamoDB) *Server {
 }
 
 func (s *Server) Run() {
-	s.app.Static("/", "./static", fiber.Static{
+	s.app.Static("/main.css", "./static/main.css", fiber.Static{
 		// modify config
 	})
+	s.app.Get("/", s.Index)
+	s.app.Get("/game/:gameId", s.GamePage)
 	s.app.Post("quests", s.PostGame)
+	s.app.Get("recent", s.GetRecentGames)
 	if err := s.app.Listen(":8080"); err != nil {
 		log.Fatal(err)
 	}
 }
 
+func (s *Server) Index(c *fiber.Ctx) error {
+	t, err := template.ParseFiles("./server/internal/templates/index.gohtml")
+	if err != nil {
+		c.Status(500)
+		return err
+	}
+	games, err := db.GetRecentGames(s.dynamoClient)
+	if err != nil {
+		log.Print("get recent games")
+		c.Status(500)
+		return err
+	}
+	model := struct {
+		Games []model.Game
+	}{
+		Games: games,
+	}
+	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
+	err = t.ExecuteTemplate(c.Response().BodyWriter(), "index", model)
+	return err
+}
+func (s *Server) GamePage(c *fiber.Ctx) error {
+	gameId := c.Params("gameId")
+	game, err := db.GetGame(gameId, s.dynamoClient)
+	if err != nil {
+		return err
+	}
+	t, err := template.ParseFiles("./server/internal/templates/game.gohtml")
+	if err != nil {
+		return err
+	}
+	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
+	err = t.ExecuteTemplate(c.Response().BodyWriter(), "game", game)
+	return err
+}
+
+
 func (s *Server) PostGame(c *fiber.Ctx) error {
 	var questRun model.QuestRun
 	if err := c.BodyParser(&questRun); err != nil {
 		log.Printf("body parser")
+		c.Status(400)
+		return err
+	}
+	if err := db.WriteGame(&questRun, s.dynamoClient); err != nil {
+		log.Printf("write game")
+		c.Status(500)
 		return err
 	}
 	log.Printf("got quest: %v", questRun)
+	return nil
+}
+
+func(s *Server) GetRecentGames(c *fiber.Ctx) error {
+	games, err := db.GetRecentGames(s.dynamoClient)
+	if err != nil {
+		log.Print("get recent games")
+		c.Status(500)
+		return err
+	}
+	bytes, err := json.Marshal(games)
+	if err != nil {
+		return err
+	}
+	_, err = c.Write(bytes)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

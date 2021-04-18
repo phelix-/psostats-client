@@ -15,6 +15,7 @@ type QuestRun struct {
 	Server              string
 	PlayerName          string
 	PlayerClass         string
+	GuildCard           string
 	AllPlayers          []BasePlayerInfo
 	Id                  string
 	Difficulty          string
@@ -62,4 +63,15 @@ type Monster struct {
 type Event struct {
 	Second      int
 	Description string
+}
+
+type Game struct {
+	Id        string
+	Player    string
+	Category  string
+	Episode   int
+	Quest     string
+	Time      time.Duration
+	Timestamp time.Time
+	GameGzip  []byte
 }
