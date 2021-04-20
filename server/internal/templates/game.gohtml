@@ -71,7 +71,14 @@
                         minWidth: 40
                     }
                 },
-            }
+                annotations: {
+                    xaxis: [
+                        {{ range .Events }}
+                        {x: {{ .Second }}, label: { text: '{{ .Description }}' }},
+                        {{ end }}
+                    ]
+                }
+            };
             const monstersAliveOptions = {
                 title: {
                     text: 'Monsters Alive'
@@ -89,6 +96,13 @@
                 xaxis: { tickAmount: 10 },
                 dataLabels: {
                     enabled: false
+                },
+                annotations: {
+                    xaxis: [
+                        {{ range .Events }}
+                        {x: {{ .Second }}, label: { text: '{{ .Description }}' }},
+                        {{ end }}
+                    ]
                 }
             }
             const monstersKilledOptions = {
@@ -108,6 +122,13 @@
                 xaxis: { tickAmount: 10 },
                 dataLabels: {
                     enabled: false
+                },
+                annotations: {
+                    xaxis: [
+                        {{ range .Events }}
+                        {x: {{ .Second }}, label: { text: '{{ .Description }}' }},
+                        {{ end }}
+                    ]
                 }
             }
             const sdOptions = {
@@ -131,6 +152,13 @@
                 xaxis: { tickAmount: 10 },
                 dataLabels: {
                     enabled: false
+                },
+                annotations: {
+                    xaxis: [
+                        {{ range .Events }}
+                        {x: {{ .Second }}, label: { text: '{{ .Description }}' }},
+                        {{ end }}
+                    ]
                 }
             }
             const hpChart = new ApexCharts(document.querySelector("#hp-chart"), options);
@@ -156,7 +184,14 @@
                     data: [{{ range .FreezeTraps }} {{ . }} , {{ end }}],
                     color: '#64bcf2'
                 }],
-                xaxis: { tickAmount: 10 }
+                xaxis: { tickAmount: 10 },
+                annotations: {
+                    xaxis: [
+                        {{ range .Events }}
+                        {x: {{ .Second }}, label: { text: '{{ .Description }}' }},
+                        {{ end }}
+                    ]
+                }
             }
             const ftChart = new ApexCharts(document.querySelector("#ft-chart"), ftOptions);
             ftChart.render();
