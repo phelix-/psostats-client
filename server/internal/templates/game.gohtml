@@ -41,13 +41,16 @@
             <div id="monsters-alive-chart" style="width: 500px; margin: 0 35px auto"></div>
             <div id="monsters-killed-chart" style="width: 500px; margin: 0 35px auto"></div>
             <div id="sd-chart" style="width: 500px; margin: 0 35px auto"></div>
-            {{ if gt .FTUsed 0 }}<div id="ft-chart" style="width: 500px; margin: 35px auto"></div>{{end}}
+            {{ if gt .FTUsed 0 }}<div id="ft-chart" style="width: 500px; margin: 0 35px auto"></div>{{end}}
         </div>
     </div>
     </body>
     </html>
         <script>
             const options = {
+                title: {
+                    text: 'HP'
+                },
                 chart: {
                     id: 'hptp',
                     type: 'line',
@@ -70,6 +73,9 @@
                 },
             }
             const monstersAliveOptions = {
+                title: {
+                    text: 'Monsters Alive'
+                },
                 chart: {
                     id: 'monstersAlive',
                     type: 'area',
@@ -86,13 +92,16 @@
                 }
             }
             const monstersKilledOptions = {
+                title: {
+                    text: 'Monsters Killed'
+                },
                 chart: {
                     id: 'monstersKilled',
                     type: 'area',
                     group: "group1",
                 },
                 series: [{
-                    name: 'Monsters Alive',
+                    name: 'Monsters Killed',
                     data: [{{ range .MonstersKilledCount }} {{ . }} , {{ end }}],
                     color: '#333333'
                 }],
@@ -102,6 +111,9 @@
                 }
             }
             const sdOptions = {
+                title: {
+                    text: 'Shifta/Deband'
+                },
                 chart: {
                     id: 'sd',
                     type: 'area',
@@ -131,6 +143,9 @@
             sdChart.render();
             {{ if gt .FTUsed 0 }}
             const ftOptions = {
+                title: {
+                    text: 'Freeze Traps'
+                },
                 chart: {
                     id: 'ft',
                     type: 'line',

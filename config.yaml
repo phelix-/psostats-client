@@ -3,3 +3,4 @@
 
 # Console UI frames per second, must be between 1 and 30
 # uiFps: 5
+serverBaseUrl: http://ec2-18-221-32-14.us-east-2.compute.amazonaws.com

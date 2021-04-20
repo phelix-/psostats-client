@@ -2,9 +2,11 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/phelix-/psostats/v2/server/internal/db"
 	"log"
 	"text/template"
+	"time"
 
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/gofiber/fiber/v2"
@@ -51,6 +53,21 @@ func (s *Server) Index(c *fiber.Ctx) error {
 		c.Status(500)
 		return err
 	}
+	for i, game := range games {
+		minutes := game.Time / time.Minute
+		seconds := (game.Time % time.Minute) / time.Second
+		game.FormattedTime = fmt.Sprintf("%01d:%02d", minutes, seconds)
+		shortCategory := game.Category
+		numPlayers := string(shortCategory[0])
+		pbRun := string(shortCategory[1])
+		pbText := ""
+		if pbRun == "p" {
+			pbText = " PB"
+		}
+		game.Category = numPlayers + " Player" + pbText
+		game.FormattedDate = game.Timestamp.In(time.Local).Format("15:04 01/02/2006")
+		games[i] = game
+	}
 	model := struct {
 		Games []model.Game
 	}{
@@ -84,7 +101,6 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 	return err
 }
 
-
 func (s *Server) PostGame(c *fiber.Ctx) error {
 	var questRun model.QuestRun
 	if err := c.BodyParser(&questRun); err != nil {
@@ -104,7 +120,7 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 	return nil
 }
 
-func(s *Server) GetRecentGames(c *fiber.Ctx) error {
+func (s *Server) GetRecentGames(c *fiber.Ctx) error {
 	games, err := db.GetRecentGames(s.dynamoClient)
 	if err != nil {
 		log.Print("get recent games")

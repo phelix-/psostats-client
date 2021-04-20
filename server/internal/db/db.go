@@ -11,6 +11,7 @@ import (
 	"github.com/phelix-/psostats/v2/pkg/model"
 	"io"
 	"log"
+	"sort"
 	"strconv"
 	"time"
 )
@@ -119,6 +120,7 @@ func GetRecentGames(dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
 	}
 	games := make([]model.Game, 0)
 	err = dynamodbattribute.UnmarshalListOfMaps(scan.Items, &games)
+	sort.Slice(games, func(i, j int) bool { return games[i].Timestamp.After(games[j].Timestamp) })
 	return games, err
 }
 

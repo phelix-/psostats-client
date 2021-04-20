@@ -24,11 +24,11 @@
                 {{ range .Games }}
                     <tr>
                         <td>{{ .Player }}</td>
-                        <td>{{ .Time }}</td>
+                        <td><span title="{{ .Time }}">{{ .FormattedTime }}</span></td>
                         <td>{{ .Episode }}</td>
                         <td><a href="/game/{{ .Id }}">{{ .Quest }}</a></td>
                         <td>{{ .Category }}</td>
-                        <td>{{ .Timestamp }}</td>
+                        <td><span title="{{ .Timestamp }}">{{ .FormattedDate }}</span></td>
                     </tr>
                 {{ end }}
             </table>
