@@ -20,7 +20,10 @@
                 <tr><td>Category:</td><td>{{ len .AllPlayers }}p {{ if .PbCategory}}PB{{else}}No-PB{{end}}</td></tr>
                 <tr><td>Deaths:</td><td>{{ .DeathCount }}</td></tr>
                 <tr><td>Enemies Killed:</td><td>{{ .MonstersDead }}</td></tr>
-                {{ if gt .FTUsed 0 }}
+                {{ if gt .FTUsed 0 }}<tr><td>FT Used:</td><td>{{ .FTUsed }}</td></tr> {{ end }}
+                {{ if gt .DTUsed 0 }}<tr><td>DT Used:</td><td>{{ .DTUsed }}</td></tr> {{ end }}
+                {{ if gt .CTUsed 0 }}<tr><td>CT Used:</td><td>{{ .CTUsed }}</td></tr> {{ end }}
+                {{ if gt .TPUsed 0 }}<tr><td>TP Used:</td><td>{{ .TPUsed }}</td></tr> {{ end }}
                 <tr><td>Submitted By:</td><td><a href="/players/{{ .Server }}+{{ .GuildCard }}">{{ .PlayerName }}</a></td></tr>
             </table>
             <table>
