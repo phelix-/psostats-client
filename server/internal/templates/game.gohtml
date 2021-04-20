@@ -20,6 +20,7 @@
                 <tr><td>Category:</td><td>{{ len .AllPlayers }}p {{ if .PbCategory}}PB{{else}}No-PB{{end}}</td></tr>
                 <tr><td>Deaths:</td><td>{{ .DeathCount }}</td></tr>
                 <tr><td>Enemies Killed:</td><td>{{ .MonstersDead }}</td></tr>
+                {{ if gt .FTUsed 0 }}
                 <tr><td>Submitted By:</td><td><a href="/players/{{ .Server }}+{{ .GuildCard }}">{{ .PlayerName }}</a></td></tr>
             </table>
             <table>
@@ -68,7 +69,7 @@
             const monstersAliveOptions = {
                 chart: {
                     id: 'monstersAlive',
-                    type: 'line',
+                    type: 'area',
                     group: "group1",
                 },
                 series: [{
@@ -77,16 +78,14 @@
                     color: '#333333'
                 }],
                 xaxis: { tickAmount: 10 },
-                yaxis: {
-                    labels: {
-                        minWidth: 40
-                    }
-                },
+                dataLabels: {
+                    enabled: false
+                }
             }
             const monstersKilledOptions = {
                 chart: {
                     id: 'monstersKilled',
-                    type: 'line',
+                    type: 'area',
                     group: "group1",
                 },
                 series: [{
@@ -95,11 +94,14 @@
                     color: '#333333'
                 }],
                 xaxis: { tickAmount: 10 },
+                dataLabels: {
+                    enabled: false
+                }
             }
             const sdOptions = {
                 chart: {
                     id: 'sd',
-                    type: 'line',
+                    type: 'area',
                     group: "group1",
                 },
                 series: [{
@@ -112,6 +114,9 @@
                     color: '#64bcf2'
                 }],
                 xaxis: { tickAmount: 10 },
+                dataLabels: {
+                    enabled: false
+                }
             }
             const hpChart = new ApexCharts(document.querySelector("#hp-chart"), options);
             hpChart.render();
@@ -133,7 +138,7 @@
                     data: [{{ range .FreezeTraps }} {{ . }} , {{ end }}],
                     color: '#64bcf2'
                 }],
-                xaxis: { tickAmount: 10 },
+                xaxis: { tickAmount: 10 }
             }
             const ftChart = new ApexCharts(document.querySelector("#ft-chart"), ftOptions);
             ftChart.render();

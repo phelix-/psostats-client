@@ -14,9 +14,8 @@ const (
 )
 
 type Config struct {
-	HostLocalUi *bool `yaml:"hostLocalUi"`
-	LocalUiPort *int  `yaml:"localUiPort"`
-	UiFps       *int  `yaml:"uiFps"`
+	ServerBaseUrl *string `yaml:"serverBaseUrl"`
+	UiFps         *int    `yaml:"uiFps"`
 }
 
 func (config *Config) GetUiRefreshRate() time.Duration {
@@ -31,11 +30,11 @@ func (config *Config) GetUiRefreshRate() time.Duration {
 	return uiRefreshRate
 }
 
-func (config *Config) GetUiPort() int {
-	if config.LocalUiPort != nil {
-		return *config.LocalUiPort
+func (config *Config) GetServerBaseUrl() string {
+	if config.ServerBaseUrl != nil {
+		return *config.ServerBaseUrl
 	} else {
-		return 8081
+		return "http://localhost:8080"
 	}
 }
 

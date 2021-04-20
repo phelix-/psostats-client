@@ -2,6 +2,7 @@
 package client
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -55,22 +56,19 @@ func (c *Client) Run() error {
 
 	c.pso.StartPersistentConnection(c.errChan)
 	go c.runUI()
-	if c.config.HostLocalUi != nil && *c.config.HostLocalUi {
-		go c.runHttp()
-	} else {
-		log.Printf("Local UI disabled")
-	}
 
 	uiEvents := termui.PollEvents()
 	for {
 		select {
 		case e := <-uiEvents:
 			switch e.ID {
-			case "q", "<C-c>", "<f10>":
+			case "q":
 				close(c.done)
 				return nil
 			case "w":
 				c.writeGameJson()
+			case "u":
+				c.uploadGame()
 			}
 		case err := <-c.errChan:
 			close(c.done)
@@ -98,6 +96,21 @@ func (c *Client) writeGameJson() {
 	file.Write(jsonBytes)
 }
 
+func (c *Client) uploadGame() {
+	jsonBytes, err := json.Marshal(c.pso.Quests[c.pso.CurrentQuest])
+	if err != nil {
+		log.Printf("Unable to generate json")
+	}
+	buf := bytes.NewBuffer(jsonBytes)
+	response, err := http.Post(c.config.GetServerBaseUrl()+"/api/game", "application/json", buf)
+	if err != nil {
+		log.Printf("Unable to upload game %v", err)
+	}
+	if response.StatusCode != 200 {
+		log.Printf("Got response status %v: %v", response.StatusCode, response.Body)
+	}
+}
+
 func (c *Client) runUI() {
 	c.ui.ClearScreen()
 	for {
@@ -116,25 +129,5 @@ func (c *Client) runUI() {
 			c.ui.ClearScreen()
 			return
 		}
-	}
-}
-
-func (c *Client) runHttp() {
-	fileServer := http.FileServer(http.Dir("./static"))
-	http.Handle("/", fileServer)
-	http.HandleFunc("/game/info", func(w http.ResponseWriter, r *http.Request) {
-		bytes, err := json.Marshal(c.GetGameInfo())
-		if err != nil {
-			r.Response.StatusCode = 500
-			fmt.Fprintf(w, "Error!")
-			return
-		}
-		w.Header().Add("Content-Type", "application/json")
-		w.Write(bytes)
-	})
-	addr := fmt.Sprintf(":%v", c.config.GetUiPort())
-	log.Printf("Hosting local ui at localhost%v", addr)
-	if err := http.ListenAndServe(addr, nil); err != nil {
-		log.Fatal(err)
 	}
 }

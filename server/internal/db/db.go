@@ -21,27 +21,26 @@ const (
 	gameCountPrimaryKey = "game_count"
 )
 
-func WriteGame(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) error {
+func WriteGame(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) (string, error) {
 	gameId, err := incrementAndGetGameId(dynamoClient)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	buffer := new(bytes.Buffer)
 	writer := gzip.NewWriter(buffer)
 	jsonQuestBytes, err := json.Marshal(questRun)
 	if err != nil {
-		return err
+		return "", err
 	}
 	_, err = writer.Write(jsonQuestBytes)
 	if err != nil {
-		return err
+		return "", err
 	}
 	err = writer.Flush()
 	if err != nil {
-		return err
+		return "", err
 	}
-	//tableName := "games_by_id"
 	category := fmt.Sprintf("%d", len(questRun.AllPlayers))
 	if questRun.PbCategory {
 		category += "p"
@@ -50,7 +49,7 @@ func WriteGame(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) error 
 	}
 	duration, err := time.ParseDuration(questRun.QuestDuration)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	game := model.Game{
@@ -65,7 +64,7 @@ func WriteGame(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) error 
 	}
 	marshalled, err := dynamodbattribute.MarshalMap(game)
 	if err != nil {
-		return err
+		return "", err
 	}
 	input2 := &dynamodb.PutItemInput{
 		Item:      marshalled,
@@ -73,9 +72,9 @@ func WriteGame(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) error 
 	}
 	_, err = dynamoClient.PutItem(input2)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	return game.Id, nil
 }
 
 func incrementAndGetGameId(dynamoClient *dynamodb.DynamoDB) (int, error) {
@@ -123,7 +122,7 @@ func GetRecentGames(dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
 	return games, err
 }
 
-func GetGame(gameId string, dynamoClient *dynamodb.DynamoDB) (model.QuestRun, error) {
+func GetGame(gameId string, dynamoClient *dynamodb.DynamoDB) (*model.QuestRun, error) {
 	questRun := model.QuestRun{}
 	game := model.Game{}
 	primaryKey := dynamodb.AttributeValue{
@@ -134,24 +133,27 @@ func GetGame(gameId string, dynamoClient *dynamodb.DynamoDB) (model.QuestRun, er
 		Key: map[string]*dynamodb.AttributeValue{"Id": &primaryKey},
 	}
 	item, err := dynamoClient.GetItem(&getItem)
-	if err != nil {
-		return questRun, err
+	if err != nil || item.Item == nil {
+		return nil, err
 	}
+
 	err = dynamodbattribute.UnmarshalMap(item.Item, &game)
 	if err != nil {
-		return questRun, err
+		return nil, err
 	}
 	buffer := bytes.NewBuffer(game.GameGzip)
 	reader, err := gzip.NewReader(buffer)
 	if err != nil {
-		return questRun, err
+		return nil, err
 	}
 	jsonBytes, err := io.ReadAll(reader)
-
+	if err != io.ErrUnexpectedEOF {
+		return nil, err
+	}
 	err = json.Unmarshal(jsonBytes, &questRun)
 	if err != nil {
-		return questRun, err
+		return nil, err
 	}
 
-	return questRun, err
+	return &questRun, err
 }

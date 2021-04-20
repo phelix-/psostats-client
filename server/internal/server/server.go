@@ -32,9 +32,9 @@ func (s *Server) Run() {
 	})
 	s.app.Get("/", s.Index)
 	s.app.Get("/game/:gameId", s.GamePage)
-	s.app.Post("quests", s.PostGame)
+	s.app.Post("/api/game", s.PostGame)
 	s.app.Get("recent", s.GetRecentGames)
-	if err := s.app.Listen(":8080"); err != nil {
+	if err := s.app.Listen(":80"); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -66,12 +66,21 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	t, err := template.ParseFiles("./server/internal/templates/game.gohtml")
-	if err != nil {
-		return err
+
+	if game == nil {
+		t, err := template.ParseFiles("./server/internal/templates/gameNotFound.gohtml")
+		if err != nil {
+			return err
+		}
+		err = t.ExecuteTemplate(c.Response().BodyWriter(), "gameNotFound", game)
+	} else {
+		t, err := template.ParseFiles("./server/internal/templates/game.gohtml")
+		if err != nil {
+			return err
+		}
+		err = t.ExecuteTemplate(c.Response().BodyWriter(), "game", game)
 	}
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
-	err = t.ExecuteTemplate(c.Response().BodyWriter(), "game", game)
 	return err
 }
 
@@ -83,12 +92,15 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 		c.Status(400)
 		return err
 	}
-	if err := db.WriteGame(&questRun, s.dynamoClient); err != nil {
+	gameId, err := db.WriteGame(&questRun, s.dynamoClient)
+	if err != nil {
 		log.Printf("write game")
 		c.Status(500)
 		return err
 	}
-	log.Printf("got quest: %v", questRun)
+	c.Response().AppendBodyString(gameId)
+	log.Printf("got quest: %v %v, %v, %v, %v",
+		gameId, questRun.QuestName, questRun.PlayerName, questRun.Server, questRun.GuildCard)
 	return nil
 }
 
