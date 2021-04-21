@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/phelix-/psostats/v2/server/internal/db"
 	"log"
+	"os"
 	"text/template"
 	"time"
 
@@ -36,8 +37,15 @@ func (s *Server) Run() {
 	s.app.Get("/game/:gameId", s.GamePage)
 	s.app.Post("/api/game", s.PostGame)
 	s.app.Get("recent", s.GetRecentGames)
-	if err := s.app.Listen(":80"); err != nil {
-		log.Fatal(err)
+	if certLocation, found := os.LookupEnv("CERT"); found {
+		keyLocation := os.Getenv("KEY")
+		if err := s.app.ListenTLS(":443", certLocation, keyLocation); err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		if err := s.app.Listen(":80"); err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
