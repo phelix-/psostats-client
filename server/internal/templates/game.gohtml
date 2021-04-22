@@ -29,7 +29,7 @@
             <table>
                 <tr><th>Players</th></tr>
                 {{$outer := .Game}}
-                {{ range .Game.AllPlayers }} <tr><td>{{ .Class }} (Lv.{{ .Level }}) <a href="/players/{{ $outer.Server }}+{{ .GuildCard }}">{{ .Name }}</a></td></tr> {{ end }}
+                {{ range .Game.AllPlayers }} <tr><td>{{ .Class }} (Lv.{{ .Level }}) <a href="/gc/{{ $outer.Server }}+{{ .GuildCard }}">{{ .Name }}</a></td></tr> {{ end }}
                 <tr><td></td></tr>
             </table>
             <table>

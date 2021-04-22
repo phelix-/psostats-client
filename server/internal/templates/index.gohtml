@@ -24,7 +24,7 @@
                 </tr>
                 {{ range .Games }}
                     <tr>
-                        <td>{{ .Player }}</td>
+                        <td><a href="/players/{{ .Player }}">{{ .Player }}</a></td>
                         <td><span title="{{ .Time }}">{{ .FormattedTime }}</span></td>
                         <td>{{ .Episode }}</td>
                         <td><a href="/game/{{ .Id }}">{{ .Quest }}</a></td>

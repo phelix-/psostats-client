@@ -19,6 +19,7 @@ import (
 
 const (
 	usersTable               = "players"
+	gcToPlayerTable          = "gc_to_player"
 	gamesTable               = "games_by_id"
 	gamesByQuestTable        = "games_by_quest"
 	questRecordsTable        = "quest_records"
@@ -381,6 +382,25 @@ func GetUser(dynamoClient *dynamodb.DynamoDB, userName string) (*User, error) {
 
 	err = dynamodbattribute.UnmarshalMap(item.Item, &user)
 	return &user, err
+}
+
+func GetPlayerByGc(gc string, dynamoClient *dynamodb.DynamoDB) (string, error) {
+	primaryKey := dynamodb.AttributeValue{
+		S: aws.String(gc),
+	}
+	getItem := dynamodb.GetItemInput{
+		TableName: aws.String(gcToPlayerTable),
+		Key:       map[string]*dynamodb.AttributeValue{"Gc": &primaryKey},
+	}
+	item, err := dynamoClient.GetItem(&getItem)
+	if err != nil {
+		return "", err
+	}
+	playerName := ""
+	if len(item.Item) > 0 {
+		playerName = *item.Item["Player"].S
+	}
+	return playerName, nil
 }
 
 func GetRecentGames(dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
