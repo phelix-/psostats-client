@@ -11,24 +11,23 @@
             <h1>PSOStats</h1>
         </header>
         <div class="body">
-            <a href="/records">Records</a>
-            <h2>Recent Games</h2>
+            <h2>Records</h2>
             <table>
                 <tr>
-                    <th>Player</th>
-                    <th>Quest Time</th>
                     <th>Episode</th>
                     <th>Quest</th>
+                    <th>Player</th>
                     <th>Category</th>
+                    <th>Quest Time</th>
                     <th>Time</th>
                 </tr>
                 {{ range .Games }}
                     <tr>
-                        <td>{{ .Player }}</td>
-                        <td><span title="{{ .Time }}">{{ .FormattedTime }}</span></td>
                         <td>{{ .Episode }}</td>
                         <td><a href="/game/{{ .Id }}">{{ .Quest }}</a></td>
                         <td>{{ .Category }}</td>
+                        <td>{{ .Player }}</td>
+                        <td><span title="{{ .Time }}">{{ .FormattedTime }}</span></td>
                         <td><span title="{{ .Timestamp }}">{{ .FormattedDate }}</span></td>
                     </tr>
                 {{ end }}
