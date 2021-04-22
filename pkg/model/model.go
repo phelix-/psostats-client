@@ -66,14 +66,15 @@ type Event struct {
 }
 
 type Game struct {
-	Id            string
-	Player        string
-	Category      string
-	Episode       int
-	Quest         string
-	Time          time.Duration
-	Timestamp     time.Time
-	FormattedTime string
-	FormattedDate string
-	GameGzip      []byte
+	Id               string
+	Player           string
+	Category         string
+	Episode          int
+	Quest            string
+	QuestAndCategory string
+	Time             time.Duration
+	Timestamp        time.Time
+	FormattedTime    string
+	FormattedDate    string
+	GameGzip         []byte
 }

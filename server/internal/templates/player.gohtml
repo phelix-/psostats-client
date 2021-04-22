@@ -2,7 +2,7 @@
     <html>
     <head>
         <title>Recent - PSOStats</title>
-        <link href='https://fonts.googleapis.com/css?family=Oswald' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Oswald' rel='stylesheet' type='text/css'>
         <link href="/main.css" rel="stylesheet" type="text/css">
     </head>
     <body>
@@ -11,7 +11,27 @@
             <h1>PSOStats</h1>
         </header>
         <div class="body">
-            <a href="/records">Records</a>
+            <h2>Records</h2>
+            <table>
+                <tr>
+                    <th>Episode</th>
+                    <th>Quest</th>
+                    <th>Player</th>
+                    <th>Category</th>
+                    <th>Quest Time</th>
+                    <th>Time</th>
+                </tr>
+                {{ range .PlayerPbs }}
+                    <tr>
+                        <td>{{ .Episode }}</td>
+                        <td><a href="/game/{{ .Id }}">{{ .Quest }}</a></td>
+                        <td>{{ .Category }}</td>
+                        <td>{{ .Player }}</td>
+                        <td><span title="{{ .Time }}">{{ .FormattedTime }}</span></td>
+                        <td><span title="{{ .Timestamp }}">{{ .FormattedDate }}</span></td>
+                    </tr>
+                {{ end }}
+            </table>
             <h2>Recent Games</h2>
             <table>
                 <tr>
@@ -22,7 +42,7 @@
                     <th>Category</th>
                     <th>Time</th>
                 </tr>
-                {{ range .Games }}
+                {{ range .RecentGames }}
                     <tr>
                         <td>{{ .Player }}</td>
                         <td><span title="{{ .Time }}">{{ .FormattedTime }}</span></td>
