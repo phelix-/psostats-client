@@ -35,9 +35,8 @@ func New(dynamo *dynamodb.DynamoDB) *Server {
 }
 
 func (s *Server) Run() {
-	s.app.Static("/main.css", "./static/main.css", fiber.Static{
-		// modify config
-	})
+	s.app.Static("/main.css", "./static/main.css", fiber.Static{})
+	s.app.Static("/favicon.ico", "./static/favicon.ico", fiber.Static{})
 	// UI
 	s.app.Get("/", s.Index)
 	s.app.Get("/game/:gameId", s.GamePage)
