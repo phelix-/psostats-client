@@ -1,11 +1,14 @@
 package server
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/phelix-/psostats/v2/server/internal/db"
 	"log"
 	"os"
+	"strings"
 	"text/template"
 	"time"
 
@@ -85,6 +88,7 @@ func (s *Server) Index(c *fiber.Ctx) error {
 	err = t.ExecuteTemplate(c.Response().BodyWriter(), "index", model)
 	return err
 }
+
 func (s *Server) GamePage(c *fiber.Ctx) error {
 	gameId := c.Params("gameId")
 	game, err := db.GetGame(gameId, s.dynamoClient)
@@ -110,12 +114,27 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 }
 
 func (s *Server) PostGame(c *fiber.Ctx) error {
+	user, pass, err := s.getUserFromBasicAuth(c.Request().Header.Peek("Authorization"))
+	if err != nil {
+		c.Status(401)
+		return nil
+	}
+	userObject, err := db.GetUser(s.dynamoClient, user)
+	if err != nil {
+		c.Status(401)
+		return nil
+	}
+	if passwordsMatch := doPasswordsMatch(userObject.Password, pass); !passwordsMatch {
+		c.Status(401)
+		return nil
+	}
 	var questRun model.QuestRun
 	if err := c.BodyParser(&questRun); err != nil {
 		log.Printf("body parser")
 		c.Status(400)
 		return err
 	}
+	questRun.GuildCard = user
 	gameId, err := db.WriteGame(&questRun, s.dynamoClient)
 	if err != nil {
 		log.Printf("write game")
@@ -126,6 +145,23 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 	log.Printf("got quest: %v %v, %v, %v, %v",
 		gameId, questRun.QuestName, questRun.PlayerName, questRun.Server, questRun.GuildCard)
 	return nil
+}
+
+func (s *Server) getUserFromBasicAuth(headerBytes []byte) (string, string, error) {
+	headerString := string(headerBytes)
+	if len(headerString) > 0 && strings.HasPrefix(headerString, "Basic ") {
+		authBase64 := strings.TrimPrefix(headerString, "Basic ")
+		decoded, err := base64.StdEncoding.DecodeString(authBase64)
+		if err != nil {
+			return "", "", err
+		}
+		auth := string(decoded)
+		authSplit := strings.SplitN(auth, ":", 2)
+
+		return authSplit[0], authSplit[1], nil
+	} else {
+		return "", "", errors.New("missing basic auth header")
+	}
 }
 
 func (s *Server) GetRecentGames(c *fiber.Ctx) error {

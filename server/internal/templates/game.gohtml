@@ -24,7 +24,7 @@
                 {{ if gt .DTUsed 0 }}<tr><td>DT Used:</td><td>{{ .DTUsed }}</td></tr> {{ end }}
                 {{ if gt .CTUsed 0 }}<tr><td>CT Used:</td><td>{{ .CTUsed }}</td></tr> {{ end }}
                 {{ if gt .TPUsed 0 }}<tr><td>TP Used:</td><td>{{ .TPUsed }}</td></tr> {{ end }}
-                <tr><td>Submitted By:</td><td><a href="/players/{{ .Server }}+{{ .GuildCard }}">{{ .PlayerName }}</a></td></tr>
+                <tr><td>Submitted By:</td><td><a href="/players/{{ .GuildCard }}">{{ .GuildCard }}</a></td></tr>
             </table>
             <table>
                 <tr><th>Players</th></tr>
@@ -41,6 +41,7 @@
             <div id="monsters-alive-chart" style="width: 500px; margin: 0 35px auto"></div>
             <div id="monsters-killed-chart" style="width: 500px; margin: 0 35px auto"></div>
             <div id="sd-chart" style="width: 500px; margin: 0 35px auto"></div>
+            <div id="meseta-chart" style="width: 500px; margin: 0 35px auto"></div>
             {{ if gt .FTUsed 0 }}<div id="ft-chart" style="width: 500px; margin: 0 35px auto"></div>{{end}}
         </div>
     </div>
@@ -161,6 +162,32 @@
                     ]
                 }
             }
+            const mesetaOptions = {
+                title: {
+                    text: 'Meseta Charged'
+                },
+                chart: {
+                    id: 'meseta',
+                    type: 'area',
+                    group: "group1",
+                },
+                series: [{
+                    name: 'Meseta Charged',
+                    data: [{{ range .MesetaCharged }} {{ . }} , {{ end }}],
+                    color: '#b08313'
+                }],
+                xaxis: { tickAmount: 10 },
+                dataLabels: {
+                    enabled: false
+                },
+                annotations: {
+                    xaxis: [
+                        {{ range .Events }}
+                        {x: {{ .Second }}, label: { text: '{{ .Description }}' }},
+                        {{ end }}
+                    ]
+                }
+            }
             const hpChart = new ApexCharts(document.querySelector("#hp-chart"), options);
             hpChart.render();
             const monstersAliveChart = new ApexCharts(document.querySelector("#monsters-alive-chart"), monstersAliveOptions);
@@ -169,6 +196,8 @@
             monstersKilledChart.render();
             const sdChart = new ApexCharts(document.querySelector("#sd-chart"), sdOptions);
             sdChart.render();
+            const mesetaChart = new ApexCharts(document.querySelector("#meseta-chart"), mesetaOptions);
+            mesetaChart.render();
             {{ if gt .FTUsed 0 }}
             const ftOptions = {
                 title: {

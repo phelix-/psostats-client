@@ -19,6 +19,7 @@ import (
 type Client struct {
 	pso           *pso.PSO
 	version       string
+	httpClient    http.Client
 	config        *config.Config
 	uiRefreshRate time.Duration
 	ui            *consoleui.ConsoleUI
@@ -39,6 +40,7 @@ func New(version string) (*Client, error) {
 	return &Client{
 		pso:           pso,
 		version:       version,
+		httpClient:    http.Client{},
 		config:        clientConfig,
 		uiRefreshRate: clientConfig.GetUiRefreshRate(),
 		ui:            ui,
@@ -102,7 +104,13 @@ func (c *Client) uploadGame() {
 		log.Printf("Unable to generate json")
 	}
 	buf := bytes.NewBuffer(jsonBytes)
-	response, err := http.Post(c.config.GetServerBaseUrl()+"/api/game", "application/json", buf)
+	request, err := http.NewRequest("POST", c.config.GetServerBaseUrl()+"/api/game", buf)
+	if err != nil {
+		log.Printf("Failed to build request %v", err)
+	}
+	request.Header.Set("Content-Type", "application/json")
+	request.SetBasicAuth(*c.config.User, *c.config.Password)
+	response, err := c.httpClient.Do(request)
 	if err != nil {
 		log.Printf("Unable to upload game %v", err)
 	}

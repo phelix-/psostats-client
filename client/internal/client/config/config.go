@@ -16,6 +16,8 @@ const (
 type Config struct {
 	ServerBaseUrl *string `yaml:"serverBaseUrl"`
 	UiFps         *int    `yaml:"uiFps"`
+	User          *string `yaml:"user"`
+	Password      *string `yaml:"password"`
 }
 
 func (config *Config) GetUiRefreshRate() time.Duration {
@@ -34,7 +36,7 @@ func (config *Config) GetServerBaseUrl() string {
 	if config.ServerBaseUrl != nil {
 		return *config.ServerBaseUrl
 	} else {
-		return "http://localhost:8080"
+		return "https://psostats.com"
 	}
 }
 

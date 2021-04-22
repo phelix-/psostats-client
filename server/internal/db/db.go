@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/aws/aws-sdk-go/service/dynamodb/expression"
 	"github.com/phelix-/psostats/v2/pkg/model"
 	"io"
 	"log"
@@ -17,9 +18,12 @@ import (
 )
 
 const (
-	gamesTable          = "games_by_id"
-	gameCountTable      = "games_counter"
-	gameCountPrimaryKey = "game_count"
+	usersTable               = "players"
+	gamesTable               = "games_by_id"
+	gamesByQuestTable        = "games_by_quest"
+	recentGamesByPlayerTable = "recent_games_by_player"
+	gameCountTable           = "games_counter"
+	gameCountPrimaryKey      = "game_count"
 )
 
 func WriteGame(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) (string, error) {
@@ -55,7 +59,7 @@ func WriteGame(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) (strin
 
 	game := model.Game{
 		Id:        fmt.Sprintf("%d", gameId),
-		Player:    fmt.Sprintf("%v+%v", questRun.Server, questRun.GuildCard),
+		Player:    questRun.GuildCard,
 		Category:  category,
 		Quest:     questRun.QuestName,
 		Time:      duration,
@@ -75,6 +79,44 @@ func WriteGame(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) (strin
 	if err != nil {
 		return "", err
 	}
+	if questRun.Difficulty == "Ultimate" {
+		gameSummary := model.Game{
+			Id:        fmt.Sprintf("%d", gameId),
+			Player:    questRun.GuildCard,
+			Category:  category,
+			Quest:     fmt.Sprintf("%v+%v", questRun.QuestName, category),
+			Time:      duration,
+			Timestamp: questRun.QuestStartTime,
+			Episode:   int(questRun.Episode),
+		}
+		marshalledSummary, err := dynamodbattribute.MarshalMap(gameSummary)
+		if err != nil {
+			return game.Id, err
+		}
+		gamesByQuestInput := &dynamodb.PutItemInput{
+			Item:      marshalledSummary,
+			TableName: aws.String(gamesByQuestTable),
+		}
+		_, err = dynamoClient.PutItem(gamesByQuestInput)
+		if err != nil {
+			return game.Id, err
+		}
+
+		gameSummary.Quest = questRun.QuestName
+		marshalledSummary, err = dynamodbattribute.MarshalMap(gameSummary)
+		if err != nil {
+			return game.Id, err
+		}
+		gamesByQuestInput = &dynamodb.PutItemInput{
+			Item:      marshalledSummary,
+			TableName: aws.String(recentGamesByPlayerTable),
+		}
+		_, err = dynamoClient.PutItem(gamesByQuestInput)
+		if err != nil {
+			return game.Id, err
+		}
+	}
+
 	return game.Id, nil
 }
 
@@ -108,6 +150,30 @@ func incrementAndGetGameId(dynamoClient *dynamodb.DynamoDB) (int, error) {
 	return gameId, nil
 }
 
+type User struct {
+	Id       string
+	Gcs      []string
+	Password string
+}
+
+func GetUser(dynamoClient *dynamodb.DynamoDB, userName string) (*User, error) {
+	user := User{}
+	primaryKey := dynamodb.AttributeValue{
+		S: aws.String(userName),
+	}
+	getItem := dynamodb.GetItemInput{
+		TableName: aws.String(usersTable),
+		Key:       map[string]*dynamodb.AttributeValue{"Id": &primaryKey},
+	}
+	item, err := dynamoClient.GetItem(&getItem)
+	if err != nil || item.Item == nil {
+		return nil, err
+	}
+
+	err = dynamodbattribute.UnmarshalMap(item.Item, &user)
+	return &user, err
+}
+
 func GetRecentGames(dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
 	scanInput := dynamodb.ScanInput{
 		AttributesToGet: aws.StringSlice([]string{"Id", "Category", "Episode", "Quest", "Time", "Player", "Timestamp"}),
@@ -124,6 +190,48 @@ func GetRecentGames(dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
 	return games, err
 }
 
+//func WritePlayerPB(dynamoClient *dynamodb.DynamoDB, questRun model.QuestRun) error {
+//	gameSummary := model.Game{
+//		Id:        questRun.Id,
+//		Player:    questRun.GuildCard,
+//		Category:  questRun.Ca,
+//		Quest:     fmt.Sprintf("%v+%v", questRun.QuestName, category),
+//		Time:      time.ParseDuration(questRun.QuestDuration),
+//		Timestamp: questRun.QuestStartTime,
+//		Episode:   int(questRun.Episode),
+//	}
+//	marshalledSummary, err := dynamodbattribute.MarshalMap(gameSummary)
+//	if err != nil {
+//		return game.Id, err
+//	}
+//	gamesByQuestInput := &dynamodb.PutItemInput{
+//		Item:      marshalledSummary,
+//		TableName: aws.String(gamesByQuestTable),
+//	}
+//}
+
+func GetRecentGamesByPlayer(dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
+	requestExpression, err := expression.NewBuilder().WithKeyCondition(
+		expression.KeyEqual(expression.Key("Player"), expression.Value("phelix"))).Build()
+	if err != nil {
+		return nil, err
+	}
+	result, err := dynamoClient.Query(&dynamodb.QueryInput{
+		AttributesToGet:           aws.StringSlice([]string{"Id", "Category", "Episode", "Quest", "Time", "Player", "Timestamp"}),
+		ExpressionAttributeNames:  requestExpression.Names(),
+		ExpressionAttributeValues: requestExpression.Values(),
+		KeyConditionExpression:    requestExpression.KeyCondition(),
+		TableName:                 aws.String(recentGamesByPlayerTable),
+		ScanIndexForward:          aws.Bool(true),
+	})
+	if err != nil {
+		return nil, err
+	}
+	games := make([]model.Game, 0)
+	err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &games)
+	return games, err
+}
+
 func GetGame(gameId string, dynamoClient *dynamodb.DynamoDB) (*model.QuestRun, error) {
 	questRun := model.QuestRun{}
 	game := model.Game{}
@@ -132,7 +240,7 @@ func GetGame(gameId string, dynamoClient *dynamodb.DynamoDB) (*model.QuestRun, e
 	}
 	getItem := dynamodb.GetItemInput{
 		TableName: aws.String(gamesTable),
-		Key: map[string]*dynamodb.AttributeValue{"Id": &primaryKey},
+		Key:       map[string]*dynamodb.AttributeValue{"Id": &primaryKey},
 	}
 	item, err := dynamoClient.GetItem(&getItem)
 	if err != nil || item.Item == nil {
