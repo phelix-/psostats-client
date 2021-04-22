@@ -5,3 +5,4 @@ quest.json
 game-*.json
 *.exe
 *.7z
+.idea/
