@@ -38,13 +38,15 @@ func (s *Server) Run() {
 	s.app.Static("/main.css", "./static/main.css", fiber.Static{
 		// modify config
 	})
+	// UI
 	s.app.Get("/", s.Index)
 	s.app.Get("/game/:gameId", s.GamePage)
-	s.app.Post("/api/game", s.PostGame)
-	s.app.Get("/api/game/:gameId", s.GetGame)
-	s.app.Get("recent", s.GetRecentGames)
 	s.app.Get("/records", s.RecordsPage)
 	s.app.Get("/players/:player", s.PlayerPage)
+	// API
+	s.app.Post("/api/game", s.PostGame)
+	s.app.Get("/api/game/:gameId", s.GetGame)
+
 	if certLocation, found := os.LookupEnv("CERT"); found {
 		keyLocation := os.Getenv("KEY")
 		if err := s.app.ListenTLS(":443", certLocation, keyLocation); err != nil {
@@ -70,18 +72,7 @@ func (s *Server) Index(c *fiber.Ctx) error {
 		return err
 	}
 	for i, game := range games {
-		minutes := game.Time / time.Minute
-		seconds := (game.Time % time.Minute) / time.Second
-		game.FormattedTime = fmt.Sprintf("%01d:%02d", minutes, seconds)
-		shortCategory := game.Category
-		numPlayers := string(shortCategory[0])
-		pbRun := string(shortCategory[1])
-		pbText := ""
-		if pbRun == "p" {
-			pbText = " PB"
-		}
-		game.Category = numPlayers + " Player" + pbText
-		game.FormattedDate = game.Timestamp.In(time.Local).Format("15:04 01/02/2006")
+		addFormattedFields(&game)
 		games[i] = game
 	}
 	model := struct {
@@ -133,18 +124,7 @@ func (s *Server) RecordsPage(c *fiber.Ctx) error {
 		return err
 	}
 	for i, game := range games {
-		minutes := game.Time / time.Minute
-		seconds := (game.Time % time.Minute) / time.Second
-		game.FormattedTime = fmt.Sprintf("%01d:%02d", minutes, seconds)
-		shortCategory := game.Category
-		numPlayers := string(shortCategory[0])
-		pbRun := string(shortCategory[1])
-		pbText := ""
-		if pbRun == "p" {
-			pbText = " PB"
-		}
-		game.Category = numPlayers + " Player" + pbText
-		game.FormattedDate = game.Timestamp.In(time.Local).Format("15:04 01/02/2006")
+		addFormattedFields(&game)
 		games[i] = game
 	}
 	model := struct {
@@ -155,6 +135,21 @@ func (s *Server) RecordsPage(c *fiber.Ctx) error {
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	err = t.ExecuteTemplate(c.Response().BodyWriter(), "index", model)
 	return err
+}
+
+func addFormattedFields(game *model.Game) {
+	minutes := game.Time / time.Minute
+	seconds := (game.Time % time.Minute) / time.Second
+	game.FormattedTime = fmt.Sprintf("%01d:%02d", minutes, seconds)
+	shortCategory := game.Category
+	numPlayers := string(shortCategory[0])
+	pbRun := string(shortCategory[1])
+	pbText := ""
+	if pbRun == "p" {
+		pbText = " PB"
+	}
+	game.Category = numPlayers + " Player" + pbText
+	game.FormattedDate = game.Timestamp.In(time.Local).Format("15:04 01/02/2006")
 }
 
 func (s *Server) PlayerPage(c *fiber.Ctx) error {
@@ -170,7 +165,6 @@ func (s *Server) PlayerPage(c *fiber.Ctx) error {
 		c.Status(500)
 		return err
 	}
-	//player = string(playerBytes)
 	pbs, err := db.GetPlayerPbs(player, s.dynamoClient)
 
 	if err != nil {
@@ -180,18 +174,7 @@ func (s *Server) PlayerPage(c *fiber.Ctx) error {
 	}
 	sort.Slice(pbs, func(i, j int) bool { return pbs[i].Quest < pbs[j].Quest })
 	for i, game := range pbs {
-		minutes := game.Time / time.Minute
-		seconds := (game.Time % time.Minute) / time.Second
-		game.FormattedTime = fmt.Sprintf("%01d:%02d", minutes, seconds)
-		shortCategory := game.Category
-		numPlayers := string(shortCategory[0])
-		pbRun := string(shortCategory[1])
-		pbText := ""
-		if pbRun == "p" {
-			pbText = " PB"
-		}
-		game.Category = numPlayers + " Player" + pbText
-		game.FormattedDate = game.Timestamp.In(time.Local).Format("15:04 01/02/2006")
+		addFormattedFields(&game)
 		pbs[i] = game
 	}
 
@@ -203,18 +186,7 @@ func (s *Server) PlayerPage(c *fiber.Ctx) error {
 		return err
 	}
 	for i, game := range recent {
-		minutes := game.Time / time.Minute
-		seconds := (game.Time % time.Minute) / time.Second
-		game.FormattedTime = fmt.Sprintf("%01d:%02d", minutes, seconds)
-		shortCategory := game.Category
-		numPlayers := string(shortCategory[0])
-		pbRun := string(shortCategory[1])
-		pbText := ""
-		if pbRun == "p" {
-			pbText = " PB"
-		}
-		game.Category = numPlayers + " Player" + pbText
-		game.FormattedDate = game.Timestamp.In(time.Local).Format("15:04 01/02/2006")
+		addFormattedFields(&game)
 		recent[i] = game
 	}
 
@@ -342,38 +314,3 @@ func (s *Server) getUserFromBasicAuth(headerBytes []byte) (string, string, error
 		return "", "", errors.New("missing basic auth header")
 	}
 }
-
-func (s *Server) GetRecentGames(c *fiber.Ctx) error {
-	games, err := db.GetRecentGames(s.dynamoClient)
-	if err != nil {
-		log.Print("get recent games")
-		c.Status(500)
-		return err
-	}
-	bytes, err := json.Marshal(games)
-	if err != nil {
-		return err
-	}
-	_, err = c.Write(bytes)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// func (c *Client) runHttp() {
-//	fileServer := http.FileServer(http.Dir("./static"))
-//	http.Handle("/", fileServer)
-//	http.HandleFunc("/game/info", func(w http.ResponseWriter, r *http.Request) {
-//		bytes, err := json.Marshal(c.GetGameInfo())
-//		if err != nil {
-//			r.Response.StatusCode = 500
-//			fmt.Fprintf(w, "Error!")
-//			return
-//		}
-//		w.Header().Add("Content-Type", "application/json")
-//		w.Write(bytes)
-//	})
-//	addr := fmt.Sprintf(":%v", c.config.GetUiPort())
-//	log.Printf("Hosting local ui at localhost%v", addr)
-// }

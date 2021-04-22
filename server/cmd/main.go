@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	version := "0.0.1"
+	version := "0.1.0"
 
 	log.Printf("Starting Up PSOStats Server %v", version)
 
@@ -17,27 +17,6 @@ func main() {
 	}))
 
 	dynamoClient := dynamodb.New(awsSession)
-
-	// err := listTables(dynamoClient)
-	// if err != nil {
-	//	log.Fatal(err)
-	// }
-	// writeGame(dynamoClient)
 	s := server.New(dynamoClient)
 	s.Run()
 }
-
-//
-// func listTables(dynamoClient *dynamodb.DynamoDB) error {
-//	listTablesInput := &dynamodb.ListTablesInput{}
-//	result, err := dynamoClient.ListTables(listTablesInput)
-//	if err != nil {
-//		return err
-//	}
-//	for _, tableName := range result.TableNames {
-//		log.Print(*tableName)
-//	}
-//	return nil
-// }
-
-

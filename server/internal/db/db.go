@@ -47,18 +47,7 @@ func WriteGame(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) (strin
 	if err != nil {
 		return "", err
 	}
-
-	buffer := new(bytes.Buffer)
-	writer := gzip.NewWriter(buffer)
-	jsonQuestBytes, err := json.Marshal(questRun)
-	if err != nil {
-		return "", err
-	}
-	_, err = writer.Write(jsonQuestBytes)
-	if err != nil {
-		return "", err
-	}
-	err = writer.Flush()
+	gameGzip, err := compressGame(questRun)
 	if err != nil {
 		return "", err
 	}
@@ -76,7 +65,7 @@ func WriteGame(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) (strin
 		Time:      duration,
 		Timestamp: questRun.QuestStartTime,
 		Episode:   int(questRun.Episode),
-		GameGzip:  buffer.Bytes(),
+		GameGzip:  gameGzip,
 	}
 	marshalled, err := dynamodbattribute.MarshalMap(game)
 	if err != nil {
@@ -94,6 +83,24 @@ func WriteGame(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) (strin
 		return "", err
 	}
 	return game.Id, nil
+}
+
+func compressGame(questRun *model.QuestRun) ([]byte, error) {
+	buffer := new(bytes.Buffer)
+	writer := gzip.NewWriter(buffer)
+	jsonQuestBytes, err := json.Marshal(questRun)
+	if err != nil {
+		return nil, err
+	}
+	_, err = writer.Write(jsonQuestBytes)
+	if err != nil {
+		return nil, err
+	}
+	err = writer.Flush()
+	if err != nil {
+		return nil, err
+	}
+	return buffer.Bytes(), nil
 }
 
 func WriteGameByQuest(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) error {
@@ -193,6 +200,7 @@ func GetPlayerPbs(player string, dynamoClient *dynamodb.DynamoDB) ([]model.Game,
 	err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &games)
 	return games, err
 }
+
 func GetPlayerRecentGames(player string, dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
 	requestExpression, err := expression.NewBuilder().
 		WithKeyCondition(expression.KeyEqual(expression.Key("Player"), expression.Value(player))).
@@ -388,28 +396,6 @@ func GetRecentGames(dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
 	games := make([]model.Game, 0)
 	err = dynamodbattribute.UnmarshalListOfMaps(scan.Items, &games)
 	sort.Slice(games, func(i, j int) bool { return games[i].Timestamp.After(games[j].Timestamp) })
-	return games, err
-}
-
-func GetRecentGamesByPlayer(dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
-	requestExpression, err := expression.NewBuilder().WithKeyCondition(
-		expression.KeyEqual(expression.Key("Player"), expression.Value("phelix"))).Build()
-	if err != nil {
-		return nil, err
-	}
-	result, err := dynamoClient.Query(&dynamodb.QueryInput{
-		AttributesToGet:           aws.StringSlice([]string{"Id", "Category", "Episode", "Quest", "Time", "Player", "Timestamp"}),
-		ExpressionAttributeNames:  requestExpression.Names(),
-		ExpressionAttributeValues: requestExpression.Values(),
-		KeyConditionExpression:    requestExpression.KeyCondition(),
-		TableName:                 aws.String(recentGamesByPlayerTable),
-		ScanIndexForward:          aws.Bool(true),
-	})
-	if err != nil {
-		return nil, err
-	}
-	games := make([]model.Game, 0)
-	err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &games)
 	return games, err
 }
 
