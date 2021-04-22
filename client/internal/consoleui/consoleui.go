@@ -123,7 +123,7 @@ func (cui *ConsoleUI) DrawHP(playerData *player.BasePlayerInfo) {
 
 func (cui *ConsoleUI) DrawLocation(playerData *player.BasePlayerInfo, gameState *pso.GameState) {
 	floor := widgets.NewParagraph()
-	floorName := pso.GetFloorName(int(gameState.Episode), int(playerData.Floor))
+	floorName := pso.GetFloorName(int(gameState.Episode), int(playerData.Floor), pso.GetCmodeStage(gameState.QuestName))
 	warpingText := ""
 	if playerData.Warping {
 		warpingText = " (Warping)"

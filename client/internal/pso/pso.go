@@ -3,6 +3,8 @@ package pso
 import (
 	"fmt"
 	"log"
+	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -45,6 +47,16 @@ type GameState struct {
 	Difficulty        string
 	Episode           uint16
 	PlayerArray       []player.BasePlayerInfo
+}
+
+func GetCmodeStage(questName string) int {
+	if strings.HasPrefix(questName, "Stage") {
+		stageNumber := strings.TrimPrefix(questName, "Stage")
+		num, _ := strconv.Atoi(stageNumber)
+		return num
+	} else {
+		return -1
+	}
 }
 
 func (state *GameState) ClearQuest() {

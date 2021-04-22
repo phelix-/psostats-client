@@ -13,28 +13,28 @@
         </header>
         <div class="body">
             <table>
-                <tr><td>Quest Name:</td><td>{{ .QuestName }}</td></tr>
-                <tr><td>Episode:</td><td>{{ .Episode }}</td></tr>
-                <tr><td>Difficulty:</td><td>{{ .Difficulty }}</td></tr>
-                <tr><td>Quest Duration:</td><td>{{ .QuestDuration }}</td></tr>
-                <tr><td>Category:</td><td>{{ len .AllPlayers }}p {{ if .PbCategory}}PB{{else}}No-PB{{end}}</td></tr>
-                <tr><td>Deaths:</td><td>{{ .DeathCount }}</td></tr>
-                <tr><td>Enemies Killed:</td><td>{{ .MonstersDead }}</td></tr>
-                {{ if gt .FTUsed 0 }}<tr><td>FT Used:</td><td>{{ .FTUsed }}</td></tr> {{ end }}
-                {{ if gt .DTUsed 0 }}<tr><td>DT Used:</td><td>{{ .DTUsed }}</td></tr> {{ end }}
-                {{ if gt .CTUsed 0 }}<tr><td>CT Used:</td><td>{{ .CTUsed }}</td></tr> {{ end }}
-                {{ if gt .TPUsed 0 }}<tr><td>TP Used:</td><td>{{ .TPUsed }}</td></tr> {{ end }}
-                <tr><td>Submitted By:</td><td><a href="/players/{{ .GuildCard }}">{{ .GuildCard }}</a></td></tr>
+                <tr><td>Quest Name:</td><td>{{ .Game.QuestName }}</td></tr>
+                <tr><td>Episode:</td><td>{{ .Game.Episode }}</td></tr>
+                <tr><td>Difficulty:</td><td>{{ .Game.Difficulty }}</td></tr>
+                <tr><td>Quest Duration:</td><td>{{ .Game.QuestDuration }}</td></tr>
+                <tr><td>Category:</td><td>{{ len .Game.AllPlayers }}p {{ if .Game.PbCategory}}PB{{else}}No-PB{{end}}</td></tr>
+                <tr><td>Deaths:</td><td>{{ .Game.DeathCount }}</td></tr>
+                <tr><td>Enemies Killed:</td><td>{{ .Game.MonstersDead }}</td></tr>
+                {{ if gt .Game.FTUsed 0 }}<tr><td>FT Used:</td><td>{{ .Game.FTUsed }}</td></tr> {{ end }}
+                {{ if gt .Game.DTUsed 0 }}<tr><td>DT Used:</td><td>{{ .Game.DTUsed }}</td></tr> {{ end }}
+                {{ if gt .Game.CTUsed 0 }}<tr><td>CT Used:</td><td>{{ .Game.CTUsed }}</td></tr> {{ end }}
+                {{ if gt .Game.TPUsed 0 }}<tr><td>TP Used:</td><td>{{ .Game.TPUsed }}</td></tr> {{ end }}
+                <tr><td>Submitted By:</td><td><a href="/players/{{ .Game.GuildCard }}">{{ .Game.GuildCard }}</a></td></tr>
             </table>
             <table>
                 <tr><th>Players</th></tr>
-                {{$outer := .}}
-                {{ range .AllPlayers }} <tr><td>{{ .Class }} (Lv.{{ .Level }}) <a href="/players/{{ $outer.Server }}+{{ .GuildCard }}">{{ .Name }}</a></td></tr> {{ end }}
+                {{$outer := .Game}}
+                {{ range .Game.AllPlayers }} <tr><td>{{ .Class }} (Lv.{{ .Level }}) <a href="/players/{{ $outer.Server }}+{{ .GuildCard }}">{{ .Name }}</a></td></tr> {{ end }}
                 <tr><td></td></tr>
             </table>
             <table>
                 <tr><th>Weapons Used</th></tr>
-                {{ range .WeaponsUsed }} <tr><td>{{ . }}</td></tr> {{ end}}
+                {{ range .Game.WeaponsUsed }} <tr><td>{{ . }}</td></tr> {{ end}}
             </table>
 
             <div id="hp-chart" style="width: 500px; margin: 0 35px auto"></div>
@@ -42,7 +42,7 @@
             <div id="monsters-killed-chart" style="width: 500px; margin: 0 35px auto"></div>
             <div id="sd-chart" style="width: 500px; margin: 0 35px auto"></div>
             <div id="meseta-chart" style="width: 500px; margin: 0 35px auto"></div>
-            {{ if gt .FTUsed 0 }}<div id="ft-chart" style="width: 500px; margin: 0 35px auto"></div>{{end}}
+            {{ if gt .Game.FTUsed 0 }}<div id="ft-chart" style="width: 500px; margin: 0 35px auto"></div>{{end}}
         </div>
     </div>
     </body>
@@ -59,11 +59,11 @@
                 },
                 series: [{
                     name: 'HP',
-                    data: [{{ range .HP }} {{ . }} , {{ end }}],
+                    data: [{{ range .Game.HP }} {{ . }} , {{ end }}],
                     color: '#a43a3a'
-                }{{if gt .TPUsed 0}},{
+                }{{if gt .Game.TPUsed 0}},{
                     name: 'TP',
-                    data: [{{ range .TP }} {{ . }} , {{ end }}],
+                    data: [{{ range .Game.TP }} {{ . }} , {{ end }}],
                     color: '#64bcf2'
                 } {{end}}],
                 xaxis: { tickAmount: 10 },
@@ -74,9 +74,8 @@
                 },
                 annotations: {
                     xaxis: [
-                        {{ range .Events }}
-                        {x: {{ .Second }}, label: { text: '{{ .Description }}' }},
-                        {{ end }}
+                        {{ range .Game.Events }}{x: {{ .Second }}, label: { text: '{{ .Description }}' }},{{ end }}
+                        {{ range $key, $value := .InvincibleRanges }}{x: {{ $key }}, x2: {{ $value }}, opacity: 0.6, fillColor: '#ffd412'},{{ end }}
                     ]
                 }
             };
@@ -91,7 +90,7 @@
                 },
                 series: [{
                     name: 'Monsters Alive',
-                    data: [{{ range .MonsterCount }} {{ . }} , {{ end }}],
+                    data: [{{ range .Game.MonsterCount }} {{ . }} , {{ end }}],
                     color: '#333333'
                 }],
                 xaxis: { tickAmount: 10 },
@@ -100,7 +99,7 @@
                 },
                 annotations: {
                     xaxis: [
-                        {{ range .Events }}
+                        {{ range .Game.Events }}
                         {x: {{ .Second }}, label: { text: '{{ .Description }}' }},
                         {{ end }}
                     ]
@@ -117,7 +116,7 @@
                 },
                 series: [{
                     name: 'Monsters Killed',
-                    data: [{{ range .MonstersKilledCount }} {{ . }} , {{ end }}],
+                    data: [{{ range .Game.MonstersKilledCount }} {{ . }} , {{ end }}],
                     color: '#333333'
                 }],
                 xaxis: { tickAmount: 10 },
@@ -126,7 +125,7 @@
                 },
                 annotations: {
                     xaxis: [
-                        {{ range .Events }}
+                        {{ range .Game.Events }}
                         {x: {{ .Second }}, label: { text: '{{ .Description }}' }},
                         {{ end }}
                     ]
@@ -143,11 +142,11 @@
                 },
                 series: [{
                     name: 'Shifta',
-                    data: [{{ range .ShiftaLvl }} {{ . }} , {{ end }}],
+                    data: [{{ range .Game.ShiftaLvl }} {{ . }} , {{ end }}],
                     color: '#a43a3a'
                 },{
                     name: 'Deband',
-                    data: [{{ range .DebandLvl }} {{ . }} , {{ end }}],
+                    data: [{{ range .Game.DebandLvl }} {{ . }} , {{ end }}],
                     color: '#64bcf2'
                 }],
                 xaxis: { tickAmount: 10 },
@@ -156,7 +155,7 @@
                 },
                 annotations: {
                     xaxis: [
-                        {{ range .Events }}
+                        {{ range .Game.Events }}
                         {x: {{ .Second }}, label: { text: '{{ .Description }}' }},
                         {{ end }}
                     ]
@@ -173,7 +172,7 @@
                 },
                 series: [{
                     name: 'Meseta Charged',
-                    data: [{{ range .MesetaCharged }} {{ . }} , {{ end }}],
+                    data: [{{ range .Game.MesetaCharged }} {{ . }} , {{ end }}],
                     color: '#b08313'
                 }],
                 xaxis: { tickAmount: 10 },
@@ -182,7 +181,7 @@
                 },
                 annotations: {
                     xaxis: [
-                        {{ range .Events }}
+                        {{ range .Game.Events }}
                         {x: {{ .Second }}, label: { text: '{{ .Description }}' }},
                         {{ end }}
                     ]
@@ -198,7 +197,7 @@
             sdChart.render();
             const mesetaChart = new ApexCharts(document.querySelector("#meseta-chart"), mesetaOptions);
             mesetaChart.render();
-            {{ if gt .FTUsed 0 }}
+            {{ if gt .Game.FTUsed 0 }}
             const ftOptions = {
                 title: {
                     text: 'Freeze Traps'
@@ -210,13 +209,13 @@
                 },
                 series: [{
                     name: 'FT',
-                    data: [{{ range .FreezeTraps }} {{ . }} , {{ end }}],
+                    data: [{{ range .Game.FreezeTraps }} {{ . }} , {{ end }}],
                     color: '#64bcf2'
                 }],
                 xaxis: { tickAmount: 10 },
                 annotations: {
                     xaxis: [
-                        {{ range .Events }}
+                        {{ range .Game.Events }}
                         {x: {{ .Second }}, label: { text: '{{ .Description }}' }},
                         {{ end }}
                     ]

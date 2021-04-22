@@ -99,11 +99,34 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 		}
 		err = t.ExecuteTemplate(c.Response().BodyWriter(), "gameNotFound", game)
 	} else {
+		invincibleRanges := make(map[int]int)
+		invincibleStart := -1
+		for i, invincible := range game.Invincible {
+			if invincible {
+				if invincibleStart < 0 {
+					invincibleStart = i
+				}
+			} else {
+				if invincibleStart > 0 {
+					if i - invincibleStart >= 10 {
+						invincibleRanges[invincibleStart] = i
+					}
+					invincibleStart = -1
+				}
+			}
+		}
+		model := struct {
+			Game model.QuestRun
+			InvincibleRanges map[int]int
+		}{
+			Game: *game,
+			InvincibleRanges: invincibleRanges,
+		}
 		t, err := template.ParseFiles("./server/internal/templates/game.gohtml")
 		if err != nil {
 			return err
 		}
-		err = t.ExecuteTemplate(c.Response().BodyWriter(), "game", game)
+		err = t.ExecuteTemplate(c.Response().BodyWriter(), "game", model)
 	}
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
