@@ -214,9 +214,11 @@ func (s *Server) PlayerPage(c *fiber.Ctx) error {
 	}
 
 	model := struct {
+		Player string
 		PlayerPbs []model.Game
 		RecentGames []model.Game
 	}{
+		Player: player,
 		PlayerPbs: pbs,
 		RecentGames: recent,
 	}
