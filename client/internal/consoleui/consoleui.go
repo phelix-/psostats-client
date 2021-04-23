@@ -86,7 +86,13 @@ func (cui *ConsoleUI) drawConnection() {
 
 func (cui *ConsoleUI) drawRecording(gameState *pso.GameState) {
 	recording := widgets.NewParagraph()
-	if gameState.QuestComplete {
+	if gameState.UploadSuccessful {
+		recording.TextStyle.Fg = ui.ColorGreen
+		recording.Text = "[[ Uploaded ]] "
+	} else if gameState.Uploading {
+		recording.TextStyle.Fg = ui.ColorGreen
+		recording.Text = "[[ Uploading ]] "
+	} else if gameState.QuestComplete {
 		recording.TextStyle.Fg = ui.ColorGreen
 		recording.Text = "[[ Quest Complete ]] "
 	} else if gameState.QuestStarted && gameState.AllowQuestStart {

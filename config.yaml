@@ -5,6 +5,7 @@
 # uiFps: 5
 
 #serverBaseUrl: https://psostats.com
+#autoUpload: true
 
 # Add your credentials here
 user: ''

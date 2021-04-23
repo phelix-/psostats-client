@@ -20,6 +20,7 @@ const (
 )
 
 type PSO struct {
+	completeGame      chan QuestRun
 	questTypes        Quests
 	connected         bool
 	connectedStatus   string
@@ -40,9 +41,13 @@ type GameState struct {
 	QuestName         string
 	AllowQuestStart   bool // Guards against starting the client mid-quest
 	QuestStarted      bool
+	Uploading         bool
+	UploadSuccessful  bool
 	QuestComplete     bool
 	QuestStartTime    time.Time
 	QuestEndTime      time.Time
+	CmodeStage        int
+	RngSeed           uint32
 	monsterUnitxtAddr uint32
 	Difficulty        string
 	Episode           uint16
@@ -63,6 +68,9 @@ func (state *GameState) ClearQuest() {
 	state.MonsterCount = 0
 	state.QuestStarted = false
 	state.QuestComplete = false
+	state.Uploading = false
+	state.UploadSuccessful = false
+	state.CmodeStage = -1
 	state.QuestName = "No Active Quest"
 	state.PlayerArray = make([]player.BasePlayerInfo, 0)
 }
@@ -90,8 +98,9 @@ type PlayerData struct {
 	Time                time.Time
 }
 
-func New() *PSO {
+func New(completeGameChannel chan QuestRun) *PSO {
 	return &PSO{
+		completeGame: completeGameChannel,
 		questTypes:   NewQuests(),
 		Quests:       make(map[int]QuestRun),
 		MonsterNames: make(map[uint32]string),
