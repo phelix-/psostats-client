@@ -260,6 +260,7 @@ func (pso *PSO) consolidateFrame() {
 		currentQuestRun.QuestComplete = true
 		currentQuestRun.QuestEndTime = pso.GameState.QuestEndTime
 		currentQuestRun.QuestDuration = pso.GameState.QuestEndTime.Sub(currentQuestRun.QuestStartTime).String()
+		pso.completeGame <- currentQuestRun
 	} else {
 		currentQuestRun.QuestDuration = time.Now().Sub(currentQuestRun.QuestStartTime).String()
 	}
@@ -350,10 +351,13 @@ func (pso *PSO) RefreshData() error {
 				return err
 			}
 
-			err = pso.getQuestName(questDataPtr)
+			questName, err := pso.getQuestName(questDataPtr)
 			if err != nil {
 				return err
 			}
+			pso.GameState.QuestName = questName
+			pso.GameState.CmodeStage = GetCmodeStage(questName)
+
 
 			if !pso.GameState.QuestStarted {
 				questConditions, exists := pso.questTypes.GetQuest(int(pso.GameState.Episode), pso.GameState.QuestName)
@@ -389,6 +393,11 @@ func (pso *PSO) RefreshData() error {
 					}
 				}
 				if pso.GameState.QuestStarted && pso.GameState.AllowQuestStart {
+					rngSeed, err := pso.getRngSeed()
+					if err != nil {
+						return err
+					}
+					pso.GameState.RngSeed = rngSeed
 					pso.StartNewQuest(pso.GameState.QuestName, exists && questConditions.TerminalQuest())
 				}
 			} else if !pso.GameState.QuestComplete {
@@ -412,6 +421,21 @@ func (pso *PSO) RefreshData() error {
 						if switched {
 							pso.GameState.QuestComplete = true
 							pso.GameState.QuestEndTime = time.Now()
+						}
+					}
+					if !pso.GameState.QuestComplete {
+						if pso.GameState.CmodeStage > 0 && pso.CurrentPlayerData.Floor == 0 {
+							// Back to lobby, cmode failed
+							pso.GameState.ClearQuest()
+						} else {
+							rngSeed, err := pso.getRngSeed()
+							if err != nil {
+								return err
+							}
+							if rngSeed != pso.GameState.RngSeed {
+								// unseen quest reset
+								pso.GameState.ClearQuest()
+							}
 						}
 					}
 				}
@@ -561,10 +585,10 @@ func (pso *PSO) getQuestDataPointer(questPtr uint32) (uint32, error) {
 	return questDataPtr, nil
 }
 
-func (pso *PSO) getQuestName(questDataPtr uint32) error {
+func (pso *PSO) getQuestName(questDataPtr uint32) (string, error) {
 	buf, _, ok := w32.ReadProcessMemory(pso.handle, uintptr(questDataPtr+0x18), 64)
 	if !ok {
-		return errors.New("unable to getQuestName")
+		return "", errors.New("unable to getQuestName")
 	}
 	endIndex := len(buf)
 	for index, b := range buf {
@@ -573,11 +597,12 @@ func (pso *PSO) getQuestName(questDataPtr uint32) error {
 			break
 		}
 	}
+	questName := string(utf16.Decode(buf[0:endIndex]))
+	return questName, nil
+}
 
-	something := utf16.Decode(buf[0:endIndex])
-	aString := string(something)
-	pso.GameState.QuestName = aString
-	return nil
+func (pso *PSO) getRngSeed() (uint32, error) {
+	return numbers.ReadU32(pso.handle, uintptr(0x00A9C22C))
 }
 
 func (pso *PSO) getPlayerCount() (uint32, error) {

@@ -470,32 +470,35 @@ Episode 2:
       register: 123
   "Maximum Attack 4th Stage -2A-":
     start:
-      register: 110
+      floor: 5
+      switch: 99
     end:
       floor: 11
       switch: 29
   "Maximum Attack 4 -2A-":
     start:
-      register: 110
+      floor: 5
+      switch: 99
     end:
       floor: 11
       switch: 29
   "Maximum Attack 4th Stage -2B-":
     start:
-      register: 110
+      floor: 5
+      switch: 99
     end:
       floor: 11
       switch: 29
   "Maximum Attack 4 -2B-":
     start:
-      register: 110
+      floor: 5
+      switch: 99
     end:
       floor: 11
       switch: 29
   # Maximum Attack 4th Stage -2C-
   "Maximum Attack 4 -2C-":
     start:
-      # register: 110
       floor: 5
       switch: 99
     end:

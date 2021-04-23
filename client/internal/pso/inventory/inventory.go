@@ -67,8 +67,6 @@ func ReadInventory(handle w32.HANDLE, playerIndex uint8) (map[string]string, err
 					return equipment, errors.New("could not read item")
 				}
 				itemId := fmt.Sprintf("%04x%04x", itemBuffer[1], itemBuffer[0])
-				// itemDataBuffer, _, ok := w32.ReadProcessMemory(handle, uintptr(itemAddr+0xF2), 8)
-				// itemType := itemDataBuffer[0] & 0xFF00
 				itemType := readU8(handle, uintptr(itemAddr+itemTypeOffset))
 				itemGroup := readU8(handle, uintptr(itemAddr+itemGroupOffset))
 				equipped := readU8(handle, uintptr(itemAddr+itemEquippedOffset))&0x01 == 1
@@ -82,24 +80,23 @@ func ReadInventory(handle w32.HANDLE, playerIndex uint8) (map[string]string, err
 						switch itemGroup {
 						case 1:
 							frame := readFrame(handle, int(itemAddr), itemId, itemGroup)
-							equipment[frame.Id] = frame.Name
+							equipment[frame.Id] = frame.String()
 						case 2:
 							barrier := readBarrier(handle, int(itemAddr), itemId, itemGroup)
-							equipment[barrier.Id] = barrier.Name
+							equipment[barrier.Id] = barrier.StringNoSlots()
 						case 3:
 							unit := readUnit(handle, int(itemAddr), itemId)
 							equipment[unit.Id] = unit.Name
 						}
+					case 2:
+						mag := readMag(handle, int(itemAddr), itemId, itemGroup)
+						equipment[mag.Id] = mag.String()
 					}
 				}
-				// log.Printf("%v equipped=%v", itemId, equipped)
-				// log.Printf("%04x%04x %04x%04x", itemDataBuffer[1], itemDataBuffer[0], itemDataBuffer[3], itemDataBuffer[2])
-
 			}
 		}
 	}
 
-	// buf, _, ok := w32.ReadProcessMemory(handle, uintptr(playerAddress+base), uintptr((max-base)+4))
 	return equipment, nil
 }
 
@@ -156,8 +153,6 @@ func readWeapon(handle w32.HANDLE, itemAddr int, itemId string, itemGroup uint8)
 	weapon.Grind = readU8(handle, uintptr(itemAddr+itemWepGrind))
 	weapon.Special = readU8(handle, uintptr(itemAddr+itemWepSpecial))
 	weapon.SpecialName = getWeaponSpecial(weapon.Special)
-	// log.Printf("i=%2v itemAddr=%08x - itemId= type=%x grind=%v special=%x",
-	// 	i, itemAddr, , itemType, grind, special)
 	for j := 0; j < 6; j += 2 {
 		area := readU8(handle, uintptr(itemAddr+itemWepStats+j))
 		percent := readU8(handle, uintptr(itemAddr+itemWepStats+j+1))
@@ -190,7 +185,7 @@ type Weapon struct {
 	Hit         uint8
 }
 
-func (w *Weapon) String() string {
+func (w Weapon) String() string {
 	grindString := ""
 	if w.Grind > 0 {
 		grindString = fmt.Sprintf(" +%v", w.Grind)
@@ -206,15 +201,30 @@ func readFrame(handle w32.HANDLE, itemAddr int, itemId string, itemGroup uint8) 
 	itemIndex := readU8(handle, uintptr(itemAddr+0xF4))
 	weaponIndex := getWeaponIndex(handle, itemGroup-1, itemIndex, 0x04, 32)
 	weapon := Frame{
-		Id:   itemId,
-		Name: readItemName(handle, int(weaponIndex)),
+		Id:    itemId,
+		Name:  readItemName(handle, int(weaponIndex)),
+		Dfp:   readU8(handle, uintptr(itemAddr)+itemFrameDfp),
+		Evp:   readU8(handle, uintptr(itemAddr)+itemFrameDfp),
+		Slots: readU8(handle, uintptr(itemAddr)+itemArmSlots),
 	}
 	return weapon
 }
 
 type Frame struct {
-	Id   string
-	Name string
+	Id    string
+	Name  string
+	Dfp   uint8
+	Evp   uint8
+	Slots uint8
+}
+
+func (f Frame) StringNoSlots() string {
+	// lazy reuse of the Frame struct
+	return fmt.Sprintf("%v [%v|%v]", f.Name, f.Dfp, f.Evp)
+}
+
+func (f Frame) String() string {
+	return fmt.Sprintf("%v [%v|%v] [%vs]", f.Name, f.Dfp, f.Evp, f.Slots)
 }
 
 func readBarrier(handle w32.HANDLE, itemAddr int, itemId string, itemGroup uint8) Frame {
@@ -223,6 +233,8 @@ func readBarrier(handle w32.HANDLE, itemAddr int, itemId string, itemGroup uint8
 	weapon := Frame{
 		Id:   itemId,
 		Name: readItemName(handle, int(weaponIndex)),
+		Dfp:  readU8(handle, uintptr(itemAddr+itemBarrierDfp)),
+		Evp:  readU8(handle, uintptr(itemAddr+itemBarrierEvp)),
 	}
 	return weapon
 }
@@ -235,6 +247,31 @@ func readUnit(handle w32.HANDLE, itemAddr int, itemId string) Frame {
 		Name: readItemName(handle, int(weaponIndex)),
 	}
 	return weapon
+}
+
+func readMag(handle w32.HANDLE, itemAddr int, itemId string, itemGroup uint8) Mag {
+	weaponIndex := getWeaponIndex(handle, 0, itemGroup, 0x10, 28)
+	return Mag{
+		Id:   itemId,
+		Name: readItemName(handle, int(weaponIndex)),
+		Def:  (int(readU8(handle, uintptr(itemAddr+itemMagStats+1))) << 8 + int(readU8(handle, uintptr(itemAddr+itemMagStats+0)))) / 100,
+		Pow:  (int(readU8(handle, uintptr(itemAddr+itemMagStats+3))) << 8 + int(readU8(handle, uintptr(itemAddr+itemMagStats+2)))) / 100,
+		Dex:  (int(readU8(handle, uintptr(itemAddr+itemMagStats+5))) << 8 + int(readU8(handle, uintptr(itemAddr+itemMagStats+4)))) / 100,
+		Mind: (int(readU8(handle, uintptr(itemAddr+itemMagStats+7))) << 8 + int(readU8(handle, uintptr(itemAddr+itemMagStats+6)))) / 100,
+	}
+}
+
+type Mag struct {
+	Id   string
+	Name string
+	Def  int
+	Pow  int
+	Dex  int
+	Mind int
+}
+
+func (m Mag) String() string {
+	return fmt.Sprintf("%v [%v/%v/%v/%v]", m.Name, m.Def, m.Pow, m.Dex, m.Mind)
 }
 
 func getWeaponSpecial(specialId uint8) string {

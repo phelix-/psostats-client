@@ -26,6 +26,7 @@ type Client struct {
 	currentGameId int
 	errChan       chan error
 	done          chan struct{}
+	completeGame  chan pso.QuestRun
 }
 
 func New(version string) (*Client, error) {
@@ -33,8 +34,8 @@ func New(version string) (*Client, error) {
 	if err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
-
-	pso := pso.New()
+	completeGameChannel := make(chan pso.QuestRun)
+	pso := pso.New(completeGameChannel)
 	clientConfig := config.ReadFromFile("./config.yaml")
 
 	return &Client{
@@ -46,6 +47,7 @@ func New(version string) (*Client, error) {
 		ui:            ui,
 		errChan:       make(chan error),
 		done:          make(chan struct{}),
+		completeGame:  completeGameChannel,
 	}, nil
 }
 
@@ -70,7 +72,11 @@ func (c *Client) Run() error {
 			case "w":
 				c.writeGameJson()
 			case "u":
-				c.uploadGame()
+				c.uploadCurrentGame()
+			}
+		case game := <-c.completeGame:
+			if c.config.AutoUploadEnabled() {
+				c.uploadGame(game)
 			}
 		case err := <-c.errChan:
 			close(c.done)
@@ -98,8 +104,17 @@ func (c *Client) writeGameJson() {
 	file.Write(jsonBytes)
 }
 
-func (c *Client) uploadGame() {
-	jsonBytes, err := json.Marshal(c.pso.Quests[c.pso.CurrentQuest])
+func (c *Client) uploadCurrentGame() {
+	c.uploadGame(c.pso.Quests[c.pso.CurrentQuest])
+}
+
+func (c *Client) uploadGame(game pso.QuestRun) {
+	if c.pso.GameState.Uploading || c.pso.GameState.UploadSuccessful {
+		// Prevent resubmission
+		return
+	}
+	c.pso.GameState.Uploading = true
+	jsonBytes, err := json.Marshal(game)
 	if err != nil {
 		log.Printf("Unable to generate json")
 	}
@@ -116,6 +131,8 @@ func (c *Client) uploadGame() {
 	}
 	if response.StatusCode != 200 {
 		log.Printf("Got response status %v: %v", response.StatusCode, response.Body)
+	} else {
+		c.pso.GameState.UploadSuccessful = true
 	}
 }
 

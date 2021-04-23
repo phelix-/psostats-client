@@ -18,6 +18,7 @@ type Config struct {
 	UiFps         *int    `yaml:"uiFps"`
 	User          *string `yaml:"user"`
 	Password      *string `yaml:"password"`
+	AutoUpload    *bool   `yaml:"autoUpload"`
 }
 
 func (config *Config) GetUiRefreshRate() time.Duration {
@@ -52,4 +53,8 @@ func ReadFromFile(fileLocation string) *Config {
 		log.Fatalf("Error parsing config file %v", err)
 	}
 	return &config
+}
+
+func (config *Config) AutoUploadEnabled() bool {
+	return config.AutoUpload == nil || *config.AutoUpload
 }
