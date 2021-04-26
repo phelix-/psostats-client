@@ -32,10 +32,21 @@
                 {{ range .Game.AllPlayers }} <tr><td>{{ .Class }} (Lv.{{ .Level }}) <a href="/gc/{{ $outer.Server }}+{{ .GuildCard }}">{{ .Name }}</a></td></tr> {{ end }}
                 <tr><td></td></tr>
             </table>
+
+            {{ if .Game.EquipmentUsedTime.Weapon}}
+            <div id="weapon-donut" style="width: 500px; margin: 0 35px auto"></div>
+            <table>
+                {{ range $key, $value := .Game.EquipmentUsedTime.Frame }} <tr><td><img alt="Frame" src="/static/Frame_icon.png"/> {{ $key }}</td></tr> {{ end}}
+                {{ range $key, $value := .Game.EquipmentUsedTime.Unit }} <tr><td><img alt="Unit" src="/static/Unit_icon.png" style="margin-left: 16px;"/> {{ $key }}</td></tr> {{ end}}
+                {{ range $key, $value := .Game.EquipmentUsedTime.Barrier }} <tr><td><img alt="Barrier" src="/static/Shield_icon.png"/> {{ $key }}</td></tr> {{ end}}
+                {{ range $key, $value := .Game.EquipmentUsedTime.Mag }} <tr><td><img alt="Mag" src="/static/Mag_icon.png"/> {{ $key }}</td></tr> {{ end}}
+            </table>
+            {{ else }}
             <table>
                 <tr><th>Weapons Used</th></tr>
                 {{ range .Game.WeaponsUsed }} <tr><td>{{ . }}</td></tr> {{ end}}
             </table>
+            {{ end }}
 
             <div id="hp-chart" style="width: 500px; margin: 0 35px auto"></div>
             <div id="monsters-alive-chart" style="width: 500px; margin: 0 35px auto"></div>
@@ -57,13 +68,16 @@
                     type: 'line',
                     group: "group1",
                 },
+                stroke: {
+                    curve: 'stepline',
+                },
                 series: [{
                     name: 'HP',
-                    data: [{{ range .Game.HP }} {{ . }} , {{ end }}],
+                    data: [{{ range $key, $val := .HpRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
                     color: '#a43a3a'
                 }{{if gt .Game.TPUsed 0}},{
                     name: 'TP',
-                    data: [{{ range .Game.TP }} {{ . }} , {{ end }}],
+                    data: [{{ range $key, $val := .TpRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
                     color: '#64bcf2'
                 } {{end}}],
                 xaxis: { tickAmount: 10 },
@@ -88,9 +102,12 @@
                     type: 'area',
                     group: "group1",
                 },
+                stroke: {
+                    curve: 'stepline',
+                },
                 series: [{
                     name: 'Monsters Alive',
-                    data: [{{ range .Game.MonsterCount }} {{ . }} , {{ end }}],
+                    data: [{{ range $key, $val := .MonstersAliveRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
                     color: '#333333'
                 }],
                 xaxis: { tickAmount: 10 },
@@ -114,9 +131,12 @@
                     type: 'area',
                     group: "group1",
                 },
+                stroke: {
+                    curve: 'stepline',
+                },
                 series: [{
                     name: 'Monsters Killed',
-                    data: [{{ range .Game.MonstersKilledCount }} {{ . }} , {{ end }}],
+                    data: [{{ range $key, $val := .MonstersKilledRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
                     color: '#333333'
                 }],
                 xaxis: { tickAmount: 10 },
@@ -140,16 +160,20 @@
                     type: 'area',
                     group: "group1",
                 },
+                stroke: {
+                    curve: 'stepline',
+                },
                 series: [{
                     name: 'Shifta',
-                    data: [{{ range .Game.ShiftaLvl }} {{ . }} , {{ end }}],
+                    data: [{{ range $key, $val := .ShiftaRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
                     color: '#a43a3a'
                 },{
                     name: 'Deband',
-                    data: [{{ range .Game.DebandLvl }} {{ . }} , {{ end }}],
+                    data: [{{ range $key, $val := .DebandRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
                     color: '#64bcf2'
                 }],
                 xaxis: { tickAmount: 10 },
+                yaxis: { labels: { minWidth: 20 }},
                 dataLabels: {
                     enabled: false
                 },
@@ -170,9 +194,12 @@
                     type: 'area',
                     group: "group1",
                 },
+                stroke: {
+                    curve: 'stepline',
+                },
                 series: [{
                     name: 'Meseta Charged',
-                    data: [{{ range .Game.MesetaCharged }} {{ . }} , {{ end }}],
+                    data: [{{ range $key, $val := .MesetaChargedRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
                     color: '#b08313'
                 }],
                 xaxis: { tickAmount: 10 },
@@ -207,9 +234,12 @@
                     type: 'line',
                     group: "group1",
                 },
+                stroke: {
+                    curve: 'stepline',
+                },
                 series: [{
                     name: 'FT',
-                    data: [{{ range .Game.FreezeTraps }} {{ . }} , {{ end }}],
+                    data: [{{ range $key, $val := .FreezeTrapRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
                     color: '#64bcf2'
                 }],
                 xaxis: { tickAmount: 10 },
@@ -224,6 +254,31 @@
             const ftChart = new ApexCharts(document.querySelector("#ft-chart"), ftOptions);
             ftChart.render();
             {{ end }}
+
+            const weaponDonutOptions = {
+                series: [ {{ range $key, $value := .Game.EquipmentUsedTime.Weapon }} {{ $value }}, {{ end }}],
+                labels: [ {{ range $key, $value := .Game.EquipmentUsedTime.Weapon }} "{{ $key }}", {{ end }}],
+                chart: {
+                    type: 'donut',
+                },
+                title: {
+                    text: "Weapons Used"
+                },
+                responsive: [{
+                    breakpoint: 480,
+                    options: {
+                        chart: {
+                            width: 200
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }]
+            };
+
+            const weaponDonutChart = new ApexCharts(document.querySelector("#weapon-donut"), weaponDonutOptions);
+            weaponDonutChart.render();
 
         </script>
 {{end}}

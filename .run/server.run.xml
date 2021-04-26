@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="server" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="psostats" />
+    <working_directory value="$PROJECT_DIR$" />
+    <kind value="FILE" />
+    <filePath value="$PROJECT_DIR$/server/cmd/main.go" />
+    <package value="github.com/phelix-/psostats/v2" />
+    <directory value="$PROJECT_DIR$" />
+    <method v="2" />
+  </configuration>
+</component>

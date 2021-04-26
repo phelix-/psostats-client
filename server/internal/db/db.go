@@ -18,15 +18,16 @@ import (
 )
 
 const (
-	usersTable               = "players"
-	gcToPlayerTable          = "gc_to_player"
-	gamesTable               = "games_by_id"
-	gamesByQuestTable        = "games_by_quest"
-	questRecordsTable        = "quest_records"
-	recentGamesByPlayerTable = "recent_games_by_player"
-	gameCountTable           = "games_counter"
+	PlayersTable             = "players"
+	GcToPlayerTable          = "gc_to_player"
+	GamesByIdTable           = "games_by_id"
+	GamesByQuestTable        = "games_by_quest"
+	QuestRecordsTable        = "quest_records"
+	RecentGamesByPlayerTable = "recent_games_by_player"
+	RecentGamesByMonth       = "recent_games_by_month"
+	GameCountTable           = "games_counter"
 	gameCountPrimaryKey      = "game_count"
-	playerPbTable            = "player_pb"
+	PlayerPbTable            = "player_pb"
 )
 
 func getCategoryFromQuest(questRun *model.QuestRun) string {
@@ -43,7 +44,7 @@ func getCategoryString(numPlayers int, pbCategory bool) string {
 	return category
 }
 
-func WriteGame(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) (string, error) {
+func WriteGameById(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) (string, error) {
 	gameId, err := incrementAndGetGameId(dynamoClient)
 	if err != nil {
 		return "", err
@@ -77,13 +78,36 @@ func WriteGame(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) (strin
 	delete(marshalled, "QuestAndCategory")
 	input2 := &dynamodb.PutItemInput{
 		Item:      marshalled,
-		TableName: aws.String(gamesTable),
+		TableName: aws.String(GamesByIdTable),
 	}
 	_, err = dynamoClient.PutItem(input2)
 	if err != nil {
 		return "", err
 	}
-	return game.Id, nil
+	err = writeRecentGame(game, dynamoClient)
+	return game.Id, err
+}
+
+func writeRecentGame(game model.Game, dynamoClient *dynamodb.DynamoDB) error {
+	month := game.Timestamp.UTC().Format("01/2006")
+	marshalled, err := dynamodbattribute.MarshalMap(game)
+	if err != nil {
+		return err
+	}
+	delete(marshalled, "FormattedDate")
+	delete(marshalled, "FormattedTime")
+	delete(marshalled, "GameGzip")
+	delete(marshalled, "QuestAndCategory")
+	monthAttribute := dynamodb.AttributeValue{
+		S:    aws.String(month),
+	}
+	marshalled["Month"] = &monthAttribute
+	input := &dynamodb.PutItemInput{
+		Item:      marshalled,
+		TableName: aws.String(RecentGamesByMonth),
+	}
+	_, err = dynamoClient.PutItem(input)
+	return err
 }
 
 func compressGame(questRun *model.QuestRun) ([]byte, error) {
@@ -115,13 +139,13 @@ func WriteGameByQuest(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB)
 	}
 	gamesByQuestInput := &dynamodb.PutItemInput{
 		Item:      marshalledSummary,
-		TableName: aws.String(gamesByQuestTable),
+		TableName: aws.String(GamesByQuestTable),
 	}
 	_, err = dynamoClient.PutItem(gamesByQuestInput)
 	return err
 }
 
-func WriteQuestRecord(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) error {
+func WriteGameByQuestRecord(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) error {
 	gameSummary := summaryFromQuestRun(questRun)
 	marshalledSummary, err := dynamodbattribute.MarshalMap(gameSummary)
 	delete(marshalledSummary, "GameGzip")
@@ -132,7 +156,7 @@ func WriteQuestRecord(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB)
 	}
 	gamesByQuestInput := &dynamodb.PutItemInput{
 		Item:      marshalledSummary,
-		TableName: aws.String(questRecordsTable),
+		TableName: aws.String(QuestRecordsTable),
 	}
 	_, err = dynamoClient.PutItem(gamesByQuestInput)
 	return err
@@ -151,7 +175,7 @@ func GetQuestRecord(quest string, numPlayers int, pbCategory bool, dynamoClient 
 		ExpressionAttributeNames:  requestExpression.Names(),
 		ExpressionAttributeValues: requestExpression.Values(),
 		KeyConditionExpression:    requestExpression.KeyCondition(),
-		TableName:                 aws.String(questRecordsTable),
+		TableName:                 aws.String(QuestRecordsTable),
 	})
 	if err != nil {
 		return nil, err
@@ -169,7 +193,7 @@ func GetQuestRecords(dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
 	scanInput := dynamodb.ScanInput{
 		AttributesToGet: aws.StringSlice([]string{"Id", "Category", "Episode", "Quest", "Time", "Player", "Timestamp"}),
 		Limit:           aws.Int64(1000),
-		TableName:       aws.String(questRecordsTable),
+		TableName:       aws.String(QuestRecordsTable),
 	}
 	scan, err := dynamoClient.Scan(&scanInput)
 	if err != nil {
@@ -191,7 +215,7 @@ func GetPlayerPbs(player string, dynamoClient *dynamodb.DynamoDB) ([]model.Game,
 		ExpressionAttributeNames:  requestExpression.Names(),
 		ExpressionAttributeValues: requestExpression.Values(),
 		KeyConditionExpression:    requestExpression.KeyCondition(),
-		TableName:                 aws.String(playerPbTable),
+		TableName:                 aws.String(PlayerPbTable),
 	})
 	if err != nil {
 		return nil, err
@@ -213,39 +237,14 @@ func GetPlayerRecentGames(player string, dynamoClient *dynamodb.DynamoDB) ([]mod
 		ExpressionAttributeNames:  requestExpression.Names(),
 		ExpressionAttributeValues: requestExpression.Values(),
 		KeyConditionExpression:    requestExpression.KeyCondition(),
-		TableName:                 aws.String(recentGamesByPlayerTable),
+		TableName:                 aws.String(RecentGamesByPlayerTable),
 	})
 	if err != nil {
 		return nil, err
 	}
 	games := make([]model.Game, 0)
 	err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &games)
-	return games, err
-}
-
-func GetTopQuestRuns(quest string, numPlayers int, pbCategory bool, dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
-	category := getCategoryString(numPlayers, pbCategory)
-	questKey := fmt.Sprintf("%v+%v", quest, category)
-	requestExpression, err := expression.NewBuilder().
-		WithKeyCondition(expression.KeyEqual(expression.Key("QuestAndCategory"), expression.Value(questKey))).
-		Build()
-	if err != nil {
-		return nil, err
-	}
-	result, err := dynamoClient.Query(&dynamodb.QueryInput{
-		AttributesToGet:           aws.StringSlice([]string{"Id", "Category", "Episode", "Quest", "Time", "Player", "Timestamp"}),
-		ExpressionAttributeNames:  requestExpression.Names(),
-		ExpressionAttributeValues: requestExpression.Values(),
-		KeyConditionExpression:    requestExpression.KeyCondition(),
-		TableName:                 aws.String(gamesByQuestTable),
-		ScanIndexForward:          aws.Bool(true),
-		Limit:                     aws.Int64(5),
-	})
-	if err != nil {
-		return nil, err
-	}
-	games := make([]model.Game, 0)
-	err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &games)
+	sort.Slice(games, func(i, j int) bool { return games[i].Timestamp.After(games[j].Timestamp) })
 	return games, err
 }
 
@@ -263,7 +262,7 @@ func GetPlayerPB(quest, player string, numPlayers int, pbCategory bool, dynamoCl
 		ExpressionAttributeNames:  requestExpression.Names(),
 		ExpressionAttributeValues: requestExpression.Values(),
 		KeyConditionExpression:    requestExpression.KeyCondition(),
-		TableName:                 aws.String(playerPbTable),
+		TableName:                 aws.String(PlayerPbTable),
 	})
 	if err != nil {
 		return nil, err
@@ -288,7 +287,7 @@ func WritePlayerPb(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) er
 	delete(marshalledSummary, "FormattedTime")
 	gamesByQuestInput := &dynamodb.PutItemInput{
 		Item:      marshalledSummary,
-		TableName: aws.String(playerPbTable),
+		TableName: aws.String(PlayerPbTable),
 	}
 	_, err = dynamoClient.PutItem(gamesByQuestInput)
 	return err
@@ -305,7 +304,7 @@ func WriteGameByPlayer(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB
 	}
 	gamesByQuestInput := &dynamodb.PutItemInput{
 		Item:      marshalledSummary,
-		TableName: aws.String(recentGamesByPlayerTable),
+		TableName: aws.String(RecentGamesByPlayerTable),
 	}
 	_, err = dynamoClient.PutItem(gamesByQuestInput)
 	return err
@@ -342,7 +341,7 @@ func incrementAndGetGameId(dynamoClient *dynamodb.DynamoDB) (int, error) {
 		S: aws.String(gameCountPrimaryKey),
 	}
 	updateItemInput := dynamodb.UpdateItemInput{
-		TableName:        aws.String(gameCountTable),
+		TableName:        aws.String(GameCountTable),
 		Key:              map[string]*dynamodb.AttributeValue{"key": &primaryKey},
 		AttributeUpdates: map[string]*dynamodb.AttributeValueUpdate{"count": &update},
 		ReturnValues:     aws.String(dynamodb.ReturnValueUpdatedNew),
@@ -372,7 +371,7 @@ func GetUser(dynamoClient *dynamodb.DynamoDB, userName string) (*User, error) {
 		S: aws.String(userName),
 	}
 	getItem := dynamodb.GetItemInput{
-		TableName: aws.String(usersTable),
+		TableName: aws.String(PlayersTable),
 		Key:       map[string]*dynamodb.AttributeValue{"Id": &primaryKey},
 	}
 	item, err := dynamoClient.GetItem(&getItem)
@@ -389,7 +388,7 @@ func GetPlayerByGc(gc string, dynamoClient *dynamodb.DynamoDB) (string, error) {
 		S: aws.String(gc),
 	}
 	getItem := dynamodb.GetItemInput{
-		TableName: aws.String(gcToPlayerTable),
+		TableName: aws.String(GcToPlayerTable),
 		Key:       map[string]*dynamodb.AttributeValue{"Gc": &primaryKey},
 	}
 	item, err := dynamoClient.GetItem(&getItem)
@@ -404,18 +403,35 @@ func GetPlayerByGc(gc string, dynamoClient *dynamodb.DynamoDB) (string, error) {
 }
 
 func GetRecentGames(dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
-	scanInput := dynamodb.ScanInput{
-		AttributesToGet: aws.StringSlice([]string{"Id", "Category", "Episode", "Quest", "Time", "Player", "Timestamp"}),
-		Limit:           aws.Int64(20),
-		TableName:       aws.String(gamesTable),
+	thisMonth := time.Now().UTC().Format("01/2006")
+	lastMonth := time.Now().UTC().AddDate(0, -1, 0).Format("01/2006")
+	thisMonthGames, err := GetGamesForMonth(thisMonth, dynamoClient)
+	lastMonthGames, err := GetGamesForMonth(lastMonth, dynamoClient)
+	games := append(thisMonthGames, lastMonthGames...)
+
+	sort.Slice(games, func(i, j int) bool { return games[i].Timestamp.After(games[j].Timestamp) })
+	return games, err
+}
+
+func GetGamesForMonth(month string, dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
+	requestExpression, err := expression.NewBuilder().
+		WithKeyCondition(expression.KeyEqual(expression.Key("Month"), expression.Value(month))).
+		Build()
+	if err != nil {
+		return nil, err
 	}
-	scan, err := dynamoClient.Scan(&scanInput)
+	result, err := dynamoClient.Query(&dynamodb.QueryInput{
+		ExpressionAttributeNames:  requestExpression.Names(),
+		ExpressionAttributeValues: requestExpression.Values(),
+		KeyConditionExpression:    requestExpression.KeyCondition(),
+		TableName:                 aws.String(RecentGamesByMonth),
+	})
+
 	if err != nil {
 		return nil, err
 	}
 	games := make([]model.Game, 0)
-	err = dynamodbattribute.UnmarshalListOfMaps(scan.Items, &games)
-	sort.Slice(games, func(i, j int) bool { return games[i].Timestamp.After(games[j].Timestamp) })
+	err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &games)
 	return games, err
 }
 
@@ -426,7 +442,7 @@ func GetGame(gameId string, dynamoClient *dynamodb.DynamoDB) (*model.QuestRun, e
 		S: aws.String(gameId),
 	}
 	getItem := dynamodb.GetItemInput{
-		TableName: aws.String(gamesTable),
+		TableName: aws.String(GamesByIdTable),
 		Key:       map[string]*dynamodb.AttributeValue{"Id": &primaryKey},
 	}
 	item, err := dynamoClient.GetItem(&getItem)

@@ -94,6 +94,7 @@ type QuestRun struct {
 	MonstersKilledCount      []int
 	MonstersDead             int
 	WeaponsUsed              map[string]string
+	EquipmentUsedTime        map[string]map[string]int
 	FreezeTraps              []uint16
 	previousFt               uint16
 	previousDt               uint16
@@ -114,7 +115,6 @@ func (pso *PSO) StartNewQuest(questName string, terminalQuest bool) {
 	}
 	questStartTime := time.Now()
 	pso.GameState.QuestStartTime = questStartTime
-	pso.CurrentQuest++
 
 	maxPartySupplyableShifta := int16(0)
 	for _, p := range allPlayers {
@@ -134,7 +134,7 @@ func (pso *PSO) StartNewQuest(questName string, terminalQuest bool) {
 		pbCategory = pbCategory || lowered || shiftaCast
 	}
 
-	pso.Quests[pso.CurrentQuest] = QuestRun{
+	pso.CurrentQuest = QuestRun{
 		Server:                   pso.server,
 		PlayerName:               pso.CurrentPlayerData.Name,
 		PlayerClass:              pso.CurrentPlayerData.Class,
@@ -167,21 +167,28 @@ func (pso *PSO) StartNewQuest(questName string, terminalQuest bool) {
 		MonsterCount:             make([]int, 0),
 		MonstersKilledCount:      make([]int, 0),
 		WeaponsUsed:              make(map[string]string),
-		FreezeTraps:              make([]uint16, 0),
-		previousDt:               0,
-		previousFt:               0,
-		previousCt:               0,
-		FTUsed:                   0,
-		DTUsed:                   0,
-		CTUsed:                   0,
-		previousTp:               0,
-		TPUsed:                   0,
+		EquipmentUsedTime: map[string]map[string]int{
+			"Weapon":  make(map[string]int),
+			"Frame":   make(map[string]int),
+			"Barrier": make(map[string]int),
+			"Unit":    make(map[string]int),
+			"Mag":     make(map[string]int),
+		},
+		FreezeTraps: make([]uint16, 0),
+		previousDt:  0,
+		previousFt:  0,
+		previousCt:  0,
+		FTUsed:      0,
+		DTUsed:      0,
+		CTUsed:      0,
+		previousTp:  0,
+		TPUsed:      0,
 	}
 }
 
 func (pso *PSO) consolidateFrame() {
 
-	currentQuestRun := pso.Quests[pso.CurrentQuest]
+	currentQuestRun := pso.CurrentQuest
 	currentSecond := int(time.Now().Sub(currentQuestRun.QuestStartTime).Seconds())
 	if currentQuestRun.QuestComplete {
 		return
@@ -231,8 +238,10 @@ func (pso *PSO) consolidateFrame() {
 		currentQuestRun.MonstersKilledCount = append(currentQuestRun.MonstersKilledCount, currentQuestRun.MonstersDead)
 		currentQuestRun.FreezeTraps = append(currentQuestRun.FreezeTraps, pso.CurrentPlayerData.FreezeTraps)
 		currentQuestRun.Invincible = append(currentQuestRun.Invincible, pso.CurrentPlayerData.InvincibilityFrames > 0)
-		for id, display := range pso.Equipment {
-			currentQuestRun.WeaponsUsed[id] = display
+		for _, equipment := range pso.Equipment {
+			currentQuestRun.WeaponsUsed[equipment.Display] = equipment.Display
+			usageTime := currentQuestRun.EquipmentUsedTime[equipment.Type][equipment.Display]
+			currentQuestRun.EquipmentUsedTime[equipment.Type][equipment.Display] = usageTime + 1
 		}
 		if pso.CurrentPlayerData.ShiftaLvl > currentQuestRun.maxPartyPbShifta {
 			currentQuestRun.IllegalShifta = true
@@ -264,12 +273,12 @@ func (pso *PSO) consolidateFrame() {
 	} else {
 		currentQuestRun.QuestDuration = time.Now().Sub(currentQuestRun.QuestStartTime).String()
 	}
-	pso.Quests[pso.CurrentQuest] = currentQuestRun
+	pso.CurrentQuest = currentQuestRun
 }
 
 func (pso *PSO) consolidateMonsterState(monsters []Monster) {
 	now := time.Now()
-	currentQuestRun := pso.Quests[pso.CurrentQuest]
+	currentQuestRun := pso.CurrentQuest
 	for _, monster := range monsters {
 		monsterId := int(monster.Id)
 		existingMonster, exists := currentQuestRun.Monsters[monsterId]
@@ -292,7 +301,7 @@ func (pso *PSO) consolidateMonsterState(monsters []Monster) {
 
 		}
 	}
-	pso.Quests[pso.CurrentQuest] = currentQuestRun
+	pso.CurrentQuest = currentQuestRun
 }
 
 func (pso *PSO) RefreshData() error {
@@ -358,7 +367,6 @@ func (pso *PSO) RefreshData() error {
 			pso.GameState.QuestName = questName
 			pso.GameState.CmodeStage = GetCmodeStage(questName)
 
-
 			if !pso.GameState.QuestStarted {
 				questConditions, exists := pso.questTypes.GetQuest(int(pso.GameState.Episode), pso.GameState.QuestName)
 				if exists && !questConditions.Ignore {
@@ -367,7 +375,15 @@ func (pso *PSO) RefreshData() error {
 						if err != nil {
 							return err
 						}
-						pso.GameState.QuestStarted = registerSet
+						if pso.GameState.CmodeStage > 0 {
+							cmodeFailedRegister, err := quest.IsRegisterSet(pso.handle, 253)
+							if err != nil {
+								return err
+							}
+							pso.GameState.QuestStarted = registerSet && !cmodeFailedRegister
+						} else {
+							pso.GameState.QuestStarted = registerSet
+						}
 					} else if questConditions.TerminalQuest() {
 						switchSet, err := pso.getFloorSwitch(uint16(questConditions.StartTrigger.Switch), questConditions.StartTrigger.Floor)
 						if err != nil {
