@@ -4,9 +4,9 @@
 # Console UI frames per second, must be between 1 and 30
 # uiFps: 5
 
-serverBaseUrl: http://localhost
+#serverBaseUrl: https://psostats.com
 #autoUpload: true
 
 # Add your credentials here
-user: 'phelix'
-password: 'Pb7*6uzfW&VJ!v'
+user: ''
+password: ''
