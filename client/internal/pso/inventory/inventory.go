@@ -41,8 +41,13 @@ const (
 	itemMesetaAmount   = 0x100
 )
 
-func ReadInventory(handle w32.HANDLE, playerIndex uint8) (map[string]string, error) {
-	equipment := make(map[string]string)
+type Equipment struct {
+	Type    string
+	Display string
+}
+
+func ReadInventory(handle w32.HANDLE, playerIndex uint8) ([]Equipment, error) {
+	equipment := make([]Equipment, 0)
 	buf, _, ok := w32.ReadProcessMemory(handle, uintptr(itemArrayCount), 2)
 	if !ok {
 		return equipment, errors.New("could not read item count")
@@ -75,22 +80,22 @@ func ReadInventory(handle w32.HANDLE, playerIndex uint8) (map[string]string, err
 					switch itemType {
 					case 0:
 						weapon := readWeapon(handle, int(itemAddr), itemId, itemGroup)
-						equipment[weapon.Id] = weapon.String()
+						equipment = append(equipment, Equipment{Type: "Weapon", Display: weapon.String()})
 					case 1:
 						switch itemGroup {
 						case 1:
 							frame := readFrame(handle, int(itemAddr), itemId, itemGroup)
-							equipment[frame.Id] = frame.String()
+							equipment = append(equipment, Equipment{Type: "Frame", Display: frame.String()})
 						case 2:
 							barrier := readBarrier(handle, int(itemAddr), itemId, itemGroup)
-							equipment[barrier.Id] = barrier.StringNoSlots()
+							equipment = append(equipment, Equipment{Type: "Barrier", Display: barrier.StringNoSlots()})
 						case 3:
 							unit := readUnit(handle, int(itemAddr), itemId)
-							equipment[unit.Id] = unit.Name
+							equipment = append(equipment, Equipment{Type: "Unit", Display: unit.Name})
 						}
 					case 2:
 						mag := readMag(handle, int(itemAddr), itemId, itemGroup)
-						equipment[mag.Id] = mag.String()
+						equipment = append(equipment, Equipment{Type: "Mag", Display: mag.String()})
 					}
 				}
 			}
@@ -254,10 +259,10 @@ func readMag(handle w32.HANDLE, itemAddr int, itemId string, itemGroup uint8) Ma
 	return Mag{
 		Id:   itemId,
 		Name: readItemName(handle, int(weaponIndex)),
-		Def:  (int(readU8(handle, uintptr(itemAddr+itemMagStats+1))) << 8 + int(readU8(handle, uintptr(itemAddr+itemMagStats+0)))) / 100,
-		Pow:  (int(readU8(handle, uintptr(itemAddr+itemMagStats+3))) << 8 + int(readU8(handle, uintptr(itemAddr+itemMagStats+2)))) / 100,
-		Dex:  (int(readU8(handle, uintptr(itemAddr+itemMagStats+5))) << 8 + int(readU8(handle, uintptr(itemAddr+itemMagStats+4)))) / 100,
-		Mind: (int(readU8(handle, uintptr(itemAddr+itemMagStats+7))) << 8 + int(readU8(handle, uintptr(itemAddr+itemMagStats+6)))) / 100,
+		Def:  (int(readU8(handle, uintptr(itemAddr+itemMagStats+1)))<<8 + int(readU8(handle, uintptr(itemAddr+itemMagStats+0)))) / 100,
+		Pow:  (int(readU8(handle, uintptr(itemAddr+itemMagStats+3)))<<8 + int(readU8(handle, uintptr(itemAddr+itemMagStats+2)))) / 100,
+		Dex:  (int(readU8(handle, uintptr(itemAddr+itemMagStats+5)))<<8 + int(readU8(handle, uintptr(itemAddr+itemMagStats+4)))) / 100,
+		Mind: (int(readU8(handle, uintptr(itemAddr+itemMagStats+7)))<<8 + int(readU8(handle, uintptr(itemAddr+itemMagStats+6)))) / 100,
 	}
 }
 

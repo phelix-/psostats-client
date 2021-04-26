@@ -78,7 +78,7 @@ func GetFloorName(episode, floor, cmodeStage int) string {
 			case 4:
 				area = 20 + floor
 			case 5:
-				area = 28 + floor
+				area = 27 + floor
 			}
 			floorName = fmt.Sprintf("Area %v", area)
 		} else {

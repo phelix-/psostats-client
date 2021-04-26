@@ -43,6 +43,7 @@ type QuestRun struct {
 	MonstersKilledCount []int
 	MonstersDead        int
 	WeaponsUsed         map[string]string
+	EquipmentUsedTime   map[string]map[string]int
 	FreezeTraps         []uint16
 	FTUsed              uint16
 	DTUsed              uint16

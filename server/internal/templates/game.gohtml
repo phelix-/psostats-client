@@ -37,6 +37,8 @@
                 {{ range .Game.WeaponsUsed }} <tr><td>{{ . }}</td></tr> {{ end}}
             </table>
 
+            <div id="weapon-donut" style="width: 500px; margin: 0 35px auto"></div>
+
             <div id="hp-chart" style="width: 500px; margin: 0 35px auto"></div>
             <div id="monsters-alive-chart" style="width: 500px; margin: 0 35px auto"></div>
             <div id="monsters-killed-chart" style="width: 500px; margin: 0 35px auto"></div>
@@ -224,6 +226,31 @@
             const ftChart = new ApexCharts(document.querySelector("#ft-chart"), ftOptions);
             ftChart.render();
             {{ end }}
+
+            const weaponDonutOptions = {
+                series: [ {{ range $key, $value := .Game.EquipmentUsedTime.Weapon }} {{ $value }}, {{ end }}],
+                labels: [ {{ range $key, $value := .Game.EquipmentUsedTime.Weapon }} "{{ $key }}", {{ end }}],
+                chart: {
+                    type: 'donut',
+                },
+                title: {
+                    text: "Weapons Used"
+                },
+                responsive: [{
+                    breakpoint: 480,
+                    options: {
+                        chart: {
+                            width: 200
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }]
+            };
+
+            const weaponDonutChart = new ApexCharts(document.querySelector("#weapon-donut"), weaponDonutOptions);
+            weaponDonutChart.render();
 
         </script>
 {{end}}

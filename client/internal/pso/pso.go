@@ -2,6 +2,7 @@ package pso
 
 import (
 	"fmt"
+	"github.com/phelix-/psostats/v2/client/internal/pso/inventory"
 	"log"
 	"strconv"
 	"strings"
@@ -27,10 +28,9 @@ type PSO struct {
 	server            string
 	handle            w32.HANDLE
 	CurrentPlayerData player.BasePlayerInfo
-	Equipment         map[string]string
+	Equipment         []inventory.Equipment
 	GameState         GameState
-	CurrentQuest      int
-	Quests            map[int]QuestRun
+	CurrentQuest      QuestRun
 	errors            chan error
 	done              chan struct{}
 	MonsterNames      map[uint32]string
@@ -102,7 +102,6 @@ func New(completeGameChannel chan QuestRun) *PSO {
 	return &PSO{
 		completeGame: completeGameChannel,
 		questTypes:   NewQuests(),
-		Quests:       make(map[int]QuestRun),
 		MonsterNames: make(map[uint32]string),
 	}
 }

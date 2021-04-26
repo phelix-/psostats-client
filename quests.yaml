@@ -358,7 +358,13 @@ Episode 2:
 
 # ---- Event ----
   # Festivity On The Beach
-  # Christmas Fiasco
+  "Christmas Fiasco":
+    start:
+      floor: 4
+      switch: 100
+    end:
+      floor: 11
+      switch: 3
   "Maximum Attack E: Temple":
     start:
       floor: 1
@@ -655,11 +661,31 @@ Episode 4:
       register: 86
     end:
       register: 43
-  # Sweep-up Operation #10
-  # Sweep-up Operation #11
-  # Sweep-up Operation #12
-  # Sweep-up Operation #13
-  # Sweep-up Operation #14
+  "Sweep-up Operation #10":
+    start:
+      register: 210
+    end:
+      register: 254
+  "Sweep-up Operation #11":
+    start:
+      register: 210
+    end:
+      register: 254
+  "Sweep-up Operation #12":
+    start:
+      register: 210
+    end:
+      register: 254
+  "Sweep-up Operation #13":
+    start:
+      register: 210
+    end:
+      register: 254
+  "Sweep-up Operation #14":
+    start:
+      register: 210
+    end:
+      register: 254
 
 # ---- Retrieval ----
   # Lost BERSERK BATON

@@ -51,10 +51,6 @@ func New(version string) (*Client, error) {
 	}, nil
 }
 
-func (c *Client) GetGameInfo() pso.QuestRun {
-	return c.pso.Quests[c.pso.CurrentQuest]
-}
-
 func (c *Client) Run() error {
 	defer c.ui.Close()
 
@@ -71,8 +67,6 @@ func (c *Client) Run() error {
 				return nil
 			case "w":
 				c.writeGameJson()
-			case "u":
-				c.uploadCurrentGame()
 			}
 		case game := <-c.completeGame:
 			if c.config.AutoUploadEnabled() {
@@ -97,15 +91,11 @@ func (c *Client) writeGameJson() {
 		log.Printf("Unable to write to %v, %v", filename, err)
 	}
 	defer file.Close()
-	jsonBytes, err := json.Marshal(c.pso.Quests[c.pso.CurrentQuest])
+	jsonBytes, err := json.Marshal(c.pso.CurrentQuest)
 	if err != nil {
 		log.Printf("Unable to generate json")
 	}
 	file.Write(jsonBytes)
-}
-
-func (c *Client) uploadCurrentGame() {
-	c.uploadGame(c.pso.Quests[c.pso.CurrentQuest])
 }
 
 func (c *Client) uploadGame(game pso.QuestRun) {
@@ -144,7 +134,7 @@ func (c *Client) runUI() {
 			connected, statusString := c.pso.CheckConnection()
 			c.ui.SetConnectionStatus(connected, statusString)
 
-			currentQuest := c.pso.Quests[c.pso.CurrentQuest]
+			currentQuest := c.pso.CurrentQuest
 			err := c.ui.DrawScreen(&c.pso.CurrentPlayerData, &c.pso.GameState, &currentQuest)
 			if err != nil {
 				c.errChan <- fmt.Errorf("runUI: error drawing screen in ui: %w", err)
