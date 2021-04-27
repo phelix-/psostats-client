@@ -127,6 +127,7 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 			FreezeTrapRanges map[int]uint16
 			ShiftaRanges     map[int]int16
 			DebandRanges     map[int]int16
+			HpPoolRanges map[int]int
 		}{
 			Game:             *game,
 			InvincibleRanges: invincibleRanges,
@@ -138,6 +139,7 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 			FreezeTrapRanges: convertU16ToXY(game.FreezeTraps),
 			ShiftaRanges:     convertToXY(game.ShiftaLvl),
 			DebandRanges:     convertToXY(game.DebandLvl),
+			HpPoolRanges: convertIntToXY(game.MonsterHpPool),
 		}
 		t, err := template.ParseFiles("./server/internal/templates/game.gohtml")
 		if err != nil {

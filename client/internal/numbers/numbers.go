@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"log"
 	"math"
 
 	"github.com/TheTitanrain/w32"
@@ -70,18 +71,18 @@ func ReadU8(handle w32.HANDLE, address uintptr) (uint8, error) {
 	return uint8(buf[0]), nil
 }
 
-func ReadU16(handle w32.HANDLE, address uintptr) (uint16, error) {
+func ReadU16(handle w32.HANDLE, address uintptr) uint16 {
 	buf, _, ok := w32.ReadProcessMemory(handle, address, 2)
 	if !ok {
-		return 0, errors.New(fmt.Sprintf("Unable to readU16 @0x%08x", address))
+		log.Fatalf("Unable to readU16 @0x%08x", address)
 	}
-	return buf[0], nil
+	return buf[0]
 }
 
-func ReadU32(handle w32.HANDLE, address uintptr) (uint32, error) {
+func ReadU32(handle w32.HANDLE, address uintptr) uint32 {
 	buf, _, ok := w32.ReadProcessMemory(handle, address, 4)
 	if !ok {
-		return 0, errors.New(fmt.Sprintf("Unable to read 0x%08x", address))
+		log.Fatalf("Unable to read 0x%08x", address)
 	}
-	return Uint32From16(buf[0:2]), nil
+	return Uint32From16(buf[0:2])
 }

@@ -17,6 +17,21 @@ import (
 const (
 	basePlayerArrayAddress = 0x00A94254
 	myPlayerIndexAddress   = 0x00A9C4F4
+	bPDeRolLeData = 0x00A43CC8
+	monsterDeRolLeHP = 0x6B4
+	monsterDeRolLeHPMax = 0x6B0
+	monsterDeRolLeSkullHP = 0x6B8
+	monsterDeRolLeSkullHPMax = 0x20
+	monsterDeRolLeShellHP = 0x39C
+	monsterDeRolLeShellHPMax = 0x1C
+
+	bPBarbaRayData = 0x00A43CC8
+	monsterBarbaRayHP = 0x704
+	monsterBarbaRayHPMax = 0x700
+	monsterBarbaRaySkullHP = 0x708
+	monsterBarbaRaySkullHPMax = 0x20
+	monsterBarbaRayShellHP = 0x7AC
+	monsterBarbaRayShellHPMax = 0x1C
 )
 
 type BaseGameInfo struct {
@@ -42,12 +57,24 @@ func (game *BaseGameInfo) DifficultyString() string {
 type Monster struct {
 	Name       string
 	hp         uint16
+	MaxHp      uint16
 	Id         uint16
 	UnitxtId   uint32
 	SpawnTime  time.Time
 	KilledTime time.Time
 	Alive      bool
 	Frame1     bool
+	Index      int
+}
+
+type BossData struct {
+	Name       string
+	Id         uint16
+	UnitxtId   uint32
+	SpawnTime  time.Time
+	KilledTime time.Time
+	FirstFrame int
+	Hp         []int
 }
 
 type Event struct {
@@ -61,7 +88,6 @@ type QuestRun struct {
 	PlayerClass              string
 	GuildCard                string
 	AllPlayers               []player.BasePlayerInfo
-	Id                       string
 	Difficulty               string
 	Episode                  uint16
 	QuestName                string
@@ -90,8 +116,10 @@ type QuestRun struct {
 	Invincible               []bool
 	Events                   []Event
 	Monsters                 map[int]Monster
+	Bosses                   map[string]BossData
 	MonsterCount             []int
 	MonstersKilledCount      []int
+	MonsterHpPool            []int
 	MonstersDead             int
 	WeaponsUsed              map[string]string
 	EquipmentUsedTime        map[string]map[string]int
@@ -142,7 +170,6 @@ func (pso *PSO) StartNewQuest(questName string, terminalQuest bool) {
 		AllPlayers:               allPlayers,
 		Difficulty:               pso.GameState.Difficulty,
 		Episode:                  pso.GameState.Episode,
-		Id:                       fmt.Sprint(pso.CurrentQuest),
 		QuestStartTime:           questStartTime,
 		QuestStartDate:           questStartTime.Format("15:04 01/02/2006"),
 		QuestName:                questName,
@@ -164,8 +191,10 @@ func (pso *PSO) StartNewQuest(questName string, terminalQuest bool) {
 		Invincible:               make([]bool, 0),
 		Events:                   make([]Event, 0),
 		Monsters:                 make(map[int]Monster),
+		Bosses:                   make(map[string]BossData),
 		MonsterCount:             make([]int, 0),
 		MonstersKilledCount:      make([]int, 0),
+		MonsterHpPool:            make([]int, 0),
 		WeaponsUsed:              make(map[string]string),
 		EquipmentUsedTime: map[string]map[string]int{
 			"Weapon":  make(map[string]int),
@@ -279,9 +308,12 @@ func (pso *PSO) consolidateFrame() {
 func (pso *PSO) consolidateMonsterState(monsters []Monster) {
 	now := time.Now()
 	currentQuestRun := pso.CurrentQuest
+	monsterHpPool := 0
+	recordThisSecond := len(currentQuestRun.MonsterHpPool)-1 < currentQuestRun.lastRecordedSecond
 	for _, monster := range monsters {
 		monsterId := int(monster.Id)
 		existingMonster, exists := currentQuestRun.Monsters[monsterId]
+		monsterHpPool += int(monster.hp)
 		if !exists {
 			monster.SpawnTime = now
 			monster.Alive = true
@@ -298,10 +330,80 @@ func (pso *PSO) consolidateMonsterState(monsters []Monster) {
 				log.Printf("frame1? %v | %v", existingMonster.Id, existingMonster.UnitxtId)
 			}
 			currentQuestRun.Monsters[monsterId] = existingMonster
-
+		}
+		if isBoss, bossName := isBoss(existingMonster); isBoss {
+			idString := fmt.Sprintf("%v", existingMonster.Id)
+			if !exists {
+				form := 0
+				for _, boss := range currentQuestRun.Bosses {
+					if boss.UnitxtId == existingMonster.UnitxtId && boss.Id != existingMonster.Id {
+						form++
+					}
+				}
+				if form > 0 {
+					bossName = fmt.Sprintf("%v (%d)", bossName, form)
+				}
+				currentQuestRun.Bosses[idString] = BossData{
+					Name:       bossName,
+					Id:         existingMonster.Id,
+					UnitxtId:   existingMonster.UnitxtId,
+					SpawnTime:  now,
+					FirstFrame: currentQuestRun.lastRecordedSecond,
+					Hp:         make([]int, 0),
+				}
+			}
+			boss := currentQuestRun.Bosses[idString]
+			if recordThisSecond {
+				boss.Hp = append(boss.Hp, int(monster.hp))
+			}
+			boss.KilledTime = existingMonster.KilledTime
+			currentQuestRun.Bosses[idString] = boss
 		}
 	}
+	if recordThisSecond {
+		currentQuestRun.MonsterHpPool = append(currentQuestRun.MonsterHpPool, monsterHpPool)
+	}
 	pso.CurrentQuest = currentQuestRun
+}
+
+func isBoss(monster Monster) (bool, string) {
+	if monster.UnitxtId == 44 {
+		return true, "Sil Dragon"
+	}
+	if monster.UnitxtId == 45 && monster.Index == 0 {
+		return true, "Dal Ra Lie"
+	}
+	if monster.UnitxtId == 46 && monster.Index == 31 {
+		return true, "Vol Opt ver. 2 (1)"
+	}
+	if monster.UnitxtId == 46 && monster.Index == 32 {
+		return true, "Vol Opt ver. 2 (2)"
+	}
+	if monster.UnitxtId == 47 {
+		return true, "Dark Falz"
+	}
+	if monster.UnitxtId == 73 && monster.Index == 0 {
+		return true, "Barba Ray"
+	}
+	if monster.UnitxtId == 76 {
+		return true, "Gol Dragon"
+	}
+	if monster.UnitxtId == 77 {
+		return true, "Gal Gryphon"
+	}
+	if monster.UnitxtId == 78 {
+		return true, "Olga Flow"
+	}
+	if monster.UnitxtId == 106 {
+		return true, "Saint-Million"
+	}
+	if monster.UnitxtId == 107 {
+		return true, "Shambertin"
+	}
+	if monster.UnitxtId == 108 {
+		return true, "Kondrieu"
+	}
+	return false, ""
 }
 
 func (pso *PSO) RefreshData() error {
@@ -350,10 +452,7 @@ func (pso *PSO) RefreshData() error {
 			return err
 		}
 
-		questPtr, err := quest.GetQuestPointer(pso.handle)
-		if err != nil {
-			return err
-		}
+		questPtr := quest.GetQuestPointer(pso.handle)
 		if questPtr != 0 {
 			questDataPtr, err := pso.getQuestDataPointer(questPtr)
 			if err != nil {
@@ -409,10 +508,7 @@ func (pso *PSO) RefreshData() error {
 					}
 				}
 				if pso.GameState.QuestStarted && pso.GameState.AllowQuestStart {
-					rngSeed, err := pso.getRngSeed()
-					if err != nil {
-						return err
-					}
+					rngSeed := pso.getRngSeed()
 					pso.GameState.RngSeed = rngSeed
 					pso.StartNewQuest(pso.GameState.QuestName, exists && questConditions.TerminalQuest())
 				}
@@ -444,10 +540,7 @@ func (pso *PSO) RefreshData() error {
 							// Back to lobby, cmode failed
 							pso.GameState.ClearQuest()
 						} else {
-							rngSeed, err := pso.getRngSeed()
-							if err != nil {
-								return err
-							}
+							rngSeed := pso.getRngSeed()
 							if rngSeed != pso.GameState.RngSeed {
 								// unseen quest reset
 								pso.GameState.ClearQuest()
@@ -495,14 +588,8 @@ func (pso *PSO) getBaseCharacterAddress(index uint8) (int, error) {
 }
 
 func (pso *PSO) getUnitxtStuff() error {
-	unitxtAddr, err := numbers.ReadU32(pso.handle, uintptr(0x00a9cd50))
-	if err != nil {
-		return fmt.Errorf("getUnitxtStuff %w", err)
-	}
-	monsterUnitxtAddr, err := numbers.ReadU32(pso.handle, uintptr(unitxtAddr+16))
-	if err != nil {
-		return fmt.Errorf("getUnitxtStuff2 %w", err)
-	}
+	unitxtAddr := numbers.ReadU32(pso.handle, uintptr(0x00a9cd50))
+	monsterUnitxtAddr := numbers.ReadU32(pso.handle, uintptr(unitxtAddr+16))
 	pso.GameState.monsterUnitxtAddr = monsterUnitxtAddr
 
 	return nil
@@ -514,10 +601,7 @@ func (pso *PSO) getMonsterName(monsterId uint32) (string, error) {
 		return monsterName, nil
 	}
 
-	monsterNameAddr, err := numbers.ReadU32(pso.handle, uintptr(pso.GameState.monsterUnitxtAddr+(4*monsterId)))
-	if err != nil {
-		return "", fmt.Errorf("getMonsterName1 %v %w", monsterId, err)
-	}
+	monsterNameAddr := numbers.ReadU32(pso.handle, uintptr(pso.GameState.monsterUnitxtAddr+(4*monsterId)))
 	buf, _, ok := w32.ReadProcessMemory(pso.handle, uintptr(monsterNameAddr), 32)
 	if !ok {
 		return "", errors.New("unable to getMonsterName")
@@ -617,11 +701,11 @@ func (pso *PSO) getQuestName(questDataPtr uint32) (string, error) {
 	return questName, nil
 }
 
-func (pso *PSO) getRngSeed() (uint32, error) {
+func (pso *PSO) getRngSeed() uint32 {
 	return numbers.ReadU32(pso.handle, uintptr(0x00A9C22C))
 }
 
-func (pso *PSO) getPlayerCount() (uint32, error) {
+func (pso *PSO) getPlayerCount() uint32 {
 	playerCountAddr := 0x00AAE168
 	return numbers.ReadU32(pso.handle, uintptr(playerCountAddr))
 }
@@ -629,12 +713,9 @@ func (pso *PSO) getPlayerCount() (uint32, error) {
 func (pso *PSO) GetMonsterList() ([]Monster, error) {
 	npcCountAddr := 0x00AAE164
 	npcArrayAddr := 0x00AAD720
-	npcCount, err := numbers.ReadU32(pso.handle, uintptr(npcCountAddr))
-	if err != nil {
-		return nil, err
-	}
-	playerCount, err := pso.getPlayerCount()
-	pCountInt := int(playerCount)
+	npcCount := int(numbers.ReadU32(pso.handle, uintptr(npcCountAddr)))
+	ephineaMonsters := numbers.ReadU32(pso.handle, uintptr(0x00B5F800))
+	playerCount := int(pso.getPlayerCount())
 
 	buf, _, ok := w32.ReadProcessMemory(pso.handle, uintptr(npcArrayAddr), uintptr(4*(playerCount+npcCount+1)))
 	if !ok {
@@ -642,37 +723,66 @@ func (pso *PSO) GetMonsterList() ([]Monster, error) {
 	}
 	monsterCount := 0
 	monsters := make([]Monster, 0)
-	for i := 0; i < int(npcCount); i++ {
-		effectiveI := i + pCountInt
+	for i := 0; i < npcCount; i++ {
+		effectiveI := i + playerCount
 		// log.Printf("npc[%v] 0x%08x | 0x%08x 0x%08x", i, npcArrayAddr+(2*effectiveI), buf[2*effectiveI], buf[(2*effectiveI)+1])
 		monsterAddr := numbers.Uint32FromU16(buf[2*effectiveI], buf[(2*effectiveI)+1])
-		monsterId, err := numbers.ReadU16(pso.handle, uintptr(monsterAddr+0x1c))
-		if err != nil {
-			return nil, err
+		monsterId := numbers.ReadU16(pso.handle, uintptr(monsterAddr+0x1c))
+		monsterType := numbers.ReadU32(pso.handle, uintptr(monsterAddr+0x378))
+		var hp, maxHp uint16
+		if ephineaMonsters != 0 {
+			hp = numbers.ReadU16(pso.handle, uintptr(ephineaMonsters+0x04+(uint32(monsterId)*32)))
+			maxHp = numbers.ReadU16(pso.handle, uintptr(ephineaMonsters+(uint32(monsterId)*32)))
+		} else {
+			hp = numbers.ReadU16(pso.handle, uintptr(monsterAddr+0x334))
+			maxHp = numbers.ReadU16(pso.handle, uintptr(monsterAddr+0x2BC))
 		}
-		monsterType, err := numbers.ReadU32(pso.handle, uintptr(monsterAddr+0x378))
-		if err != nil {
-			return nil, err
+		if monsterType == 45 {
+			if i == 0 {
+				maxHp = uint16(numbers.ReadU32(pso.handle, uintptr(monsterAddr + monsterDeRolLeHPMax)))
+				hp = numbers.ReadU16(pso.handle, uintptr(monsterAddr + monsterDeRolLeHP))
+				// todo Missing skull hp atm
+			} else {
+				maxDataPtr := numbers.ReadU32(pso.handle, uintptr(bPDeRolLeData))
+				if maxDataPtr != 0 {
+					maxHp = uint16(numbers.ReadU32(pso.handle, uintptr(monsterAddr + monsterDeRolLeShellHPMax)))
+				}
+				hp = numbers.ReadU16(pso.handle, uintptr(monsterAddr + monsterDeRolLeShellHP))
+			}
+		} else if monsterType == 73 {
+			maxDataPtr := numbers.ReadU32(pso.handle, uintptr(bPBarbaRayData))
+			if i == 0 {
+				maxHp = numbers.ReadU16(pso.handle, uintptr(monsterAddr + monsterBarbaRayHPMax))
+				hp = numbers.ReadU16(pso.handle, uintptr(monsterAddr + monsterBarbaRayHP))
+				// todo Missing skull hp atm
+			} else {
+				if maxDataPtr != 0 {
+					maxHp = numbers.ReadU16(pso.handle, uintptr(maxDataPtr + monsterBarbaRayShellHPMax))
+				}
+				hp = numbers.ReadU16(pso.handle, uintptr(monsterAddr + monsterBarbaRayShellHP))
+			}
 		}
-		hp, err := numbers.ReadU16(pso.handle, uintptr(monsterAddr+0x334))
-		if err != nil {
-			return nil, err
+		// todo fix signed ints one of these days
+		if hp > 0x8000 {
+			hp = 0
 		}
 		// log.Printf("npc[@0x%08x] id = 0x%04x - 0x%08x", monsterAddr, monsterId, monsterType)
 		if monsterType != 0 {
 			monsterName, err := pso.getMonsterName(monsterType)
 			if err != nil {
-				return nil, err
-			}
-
-			monsters = append(monsters, Monster{
-				Name:     monsterName,
-				hp:       hp,
-				Id:       monsterId,
-				UnitxtId: monsterType,
-			})
-			if hp > 0 {
-				monsterCount++
+				log.Printf("%v", err)
+			} else {
+				monsters = append(monsters, Monster{
+					Name:     monsterName,
+					hp:       hp,
+					MaxHp:    maxHp,
+					Id:       monsterId,
+					Index:    i,
+					UnitxtId: monsterType,
+				})
+				if hp > 0 {
+					monsterCount++
+				}
 			}
 		}
 	}

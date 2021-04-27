@@ -39,8 +39,10 @@ type QuestRun struct {
 	Invincible          []bool
 	Events              []Event
 	Monsters            map[int]Monster
+	Bosses              map[string]BossData
 	MonsterCount        []int
 	MonstersKilledCount []int
+	MonsterHpPool       []int
 	MonstersDead        int
 	WeaponsUsed         map[string]string
 	EquipmentUsedTime   map[string]map[string]int
@@ -59,6 +61,16 @@ type Monster struct {
 	KilledTime time.Time
 	Alive      bool
 	Frame1     bool
+}
+
+type BossData struct {
+	Name       string
+	Id         uint16
+	UnitxtId   uint32
+	SpawnTime  time.Time
+	KilledTime time.Time
+	FirstFrame int
+	Hp         []int
 }
 
 type Event struct {

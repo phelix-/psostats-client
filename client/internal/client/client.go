@@ -119,7 +119,7 @@ func (c *Client) uploadGame(game pso.QuestRun) {
 	if err != nil {
 		log.Printf("Unable to upload game %v", err)
 	}
-	if response.StatusCode != 200 {
+	if response == nil || response.StatusCode != 200 {
 		log.Printf("Got response status %v: %v", response.StatusCode, response.Body)
 	} else {
 		c.pso.GameState.UploadSuccessful = true

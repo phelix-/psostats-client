@@ -7,15 +7,12 @@ import (
 	"github.com/phelix-/psostats/v2/client/internal/numbers"
 )
 
-func GetQuestPointer(handle w32.HANDLE) (uint32, error) {
+func GetQuestPointer(handle w32.HANDLE) uint32 {
 	return numbers.ReadU32(handle, uintptr(0x00A95AA8))
 }
 
 func IsRegisterSet(handle w32.HANDLE, registerId uint16) (bool, error) {
-	questRegisterAddress, err := numbers.ReadU32(handle, uintptr(0x00A954B0))
-	if err != nil {
-		return false, err
-	}
+	questRegisterAddress := numbers.ReadU32(handle, uintptr(0x00A954B0))
 	registerSet := false
 	if questRegisterAddress != 0 {
 		buf, _, ok := w32.ReadProcessMemory(handle, uintptr(questRegisterAddress)+(4*uintptr(registerId)), 2)
