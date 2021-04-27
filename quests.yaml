@@ -462,7 +462,11 @@ Episode 2:
       warpIn: true
     end:
       register: 254
-  # Lost CHARGE VULCAN
+  "Lost CHARGE VULCAN":
+    start:
+      warpIn: true
+    end:
+      register: 254
   # Dream Messenger
   # Revisiting Darkness
   # Dolmolm Research

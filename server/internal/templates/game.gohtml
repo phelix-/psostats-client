@@ -50,15 +50,45 @@
 
             <div id="hp-chart" style="width: 500px; margin: 0 35px auto"></div>
             <div id="monsters-alive-chart" style="width: 500px; margin: 0 35px auto"></div>
+            <div id="monsters-hp-chart" style="width: 500px; margin: 0 35px auto"></div>
             <div id="monsters-killed-chart" style="width: 500px; margin: 0 35px auto"></div>
             <div id="sd-chart" style="width: 500px; margin: 0 35px auto"></div>
             <div id="meseta-chart" style="width: 500px; margin: 0 35px auto"></div>
             {{ if gt .Game.FTUsed 0 }}<div id="ft-chart" style="width: 500px; margin: 0 35px auto"></div>{{end}}
+            {{ range $key, $value := .Game.Bosses }}<div id="boss-{{ $value.Id }}" style="width: 500px; margin: 0 35px auto"></div>{{ end }}
         </div>
     </div>
     </body>
     </html>
         <script>
+            {{ range $key, $value := .Game.Bosses }}
+            const options{{ $value.Id }} = {
+                title: {
+                    text: '{{ $value.Name }}'
+                },
+                chart: {
+                    id: 'boss-{{ $value.Id }}',
+                    type: 'line',
+                },
+                stroke: {
+                    curve: 'stepline',
+                },
+                series: [{
+                    name: 'HP',
+                    data: [ {{ range $value.Hp }} {{ . }}, {{ end }} ],
+                    color: '#a43a3a'
+                }],
+                xaxis: { tickAmount: 10 },
+                yaxis: {
+                    labels: {
+                        minWidth: 40
+                    }
+                },
+            };
+            const boss{{ .Id }}Chart = new ApexCharts(document.querySelector("#boss-{{ .Id }}"), options{{ .Id }});
+            boss{{ .Id }}Chart.render();
+
+            {{ end }}
             const options = {
                 title: {
                     text: 'HP'
@@ -108,6 +138,35 @@
                 series: [{
                     name: 'Monsters Alive',
                     data: [{{ range $key, $val := .MonstersAliveRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
+                    color: '#333333'
+                }],
+                xaxis: { tickAmount: 10 },
+                dataLabels: {
+                    enabled: false
+                },
+                annotations: {
+                    xaxis: [
+                        {{ range .Game.Events }}
+                        {x: {{ .Second }}, label: { text: '{{ .Description }}' }},
+                        {{ end }}
+                    ]
+                }
+            }
+            const monsterHpPoolOptions = {
+                title: {
+                    text: 'Total Monster HP'
+                },
+                chart: {
+                    id: 'monsterHpPool',
+                    type: 'area',
+                    group: "group1",
+                },
+                stroke: {
+                    curve: 'stepline',
+                },
+                series: [{
+                    name: 'Total Monster HP',
+                    data: [{{ range $key, $val := .HpPoolRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
                     color: '#333333'
                 }],
                 xaxis: { tickAmount: 10 },
@@ -218,6 +277,8 @@
             hpChart.render();
             const monstersAliveChart = new ApexCharts(document.querySelector("#monsters-alive-chart"), monstersAliveOptions);
             monstersAliveChart.render();
+            const monsterHpPoolChart = new ApexCharts(document.querySelector("#monsters-hp-chart"), monsterHpPoolOptions);
+            monsterHpPoolChart.render();
             const monstersKilledChart = new ApexCharts(document.querySelector("#monsters-killed-chart"), monstersKilledOptions);
             monstersKilledChart.render();
             const sdChart = new ApexCharts(document.querySelector("#sd-chart"), sdOptions);
