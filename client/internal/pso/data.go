@@ -258,10 +258,18 @@ func (pso *PSO) consolidateFrame() {
 		currentQuestRun.MonstersKilledCount = append(currentQuestRun.MonstersKilledCount, currentQuestRun.MonstersDead)
 		currentQuestRun.FreezeTraps = append(currentQuestRun.FreezeTraps, pso.CurrentPlayerData.FreezeTraps)
 		currentQuestRun.Invincible = append(currentQuestRun.Invincible, pso.CurrentPlayerData.InvincibilityFrames > 0)
+		weaponFound := false
 		for _, equipment := range pso.Equipment {
 			currentQuestRun.WeaponsUsed[equipment.Display] = equipment.Display
 			usageTime := currentQuestRun.EquipmentUsedTime[equipment.Type][equipment.Display]
 			currentQuestRun.EquipmentUsedTime[equipment.Type][equipment.Display] = usageTime + 1
+			if equipment.Type == inventory.EquipmentTypeWeapon {
+				weaponFound = true
+			}
+		}
+		if !weaponFound {
+			usageTime := currentQuestRun.EquipmentUsedTime[inventory.EquipmentTypeWeapon][inventory.WeaponBareHanded]
+			currentQuestRun.EquipmentUsedTime[inventory.EquipmentTypeWeapon][inventory.WeaponBareHanded] = usageTime + 1
 		}
 		if pso.CurrentPlayerData.ShiftaLvl > currentQuestRun.maxPartyPbShifta {
 			currentQuestRun.IllegalShifta = true
