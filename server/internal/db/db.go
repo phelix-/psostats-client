@@ -18,8 +18,6 @@ import (
 )
 
 const (
-	PlayersTable             = "players"
-	GcToPlayerTable          = "gc_to_player"
 	GamesByIdTable           = "games_by_id"
 	GamesByQuestTable        = "games_by_quest"
 	QuestRecordsTable        = "quest_records"
@@ -29,6 +27,10 @@ const (
 	gameCountPrimaryKey      = "game_count"
 	PlayerPbTable            = "player_pb"
 )
+
+type PsoStatsDb struct {
+	dynamoClient *dynamodb.DynamoDB
+}
 
 func getCategoryFromQuest(questRun *model.QuestRun) string {
 	return getCategoryString(len(questRun.AllPlayers), questRun.PbCategory)
@@ -99,7 +101,7 @@ func writeRecentGame(game model.Game, dynamoClient *dynamodb.DynamoDB) error {
 	delete(marshalled, "GameGzip")
 	delete(marshalled, "QuestAndCategory")
 	monthAttribute := dynamodb.AttributeValue{
-		S:    aws.String(month),
+		S: aws.String(month),
 	}
 	marshalled["Month"] = &monthAttribute
 	input := &dynamodb.PutItemInput{
@@ -357,49 +359,6 @@ func incrementAndGetGameId(dynamoClient *dynamodb.DynamoDB) (int, error) {
 	}
 	log.Printf("gameId: %v", gameId)
 	return gameId, nil
-}
-
-type User struct {
-	Id       string
-	Gcs      []string
-	Password string
-}
-
-func GetUser(dynamoClient *dynamodb.DynamoDB, userName string) (*User, error) {
-	user := User{}
-	primaryKey := dynamodb.AttributeValue{
-		S: aws.String(userName),
-	}
-	getItem := dynamodb.GetItemInput{
-		TableName: aws.String(PlayersTable),
-		Key:       map[string]*dynamodb.AttributeValue{"Id": &primaryKey},
-	}
-	item, err := dynamoClient.GetItem(&getItem)
-	if err != nil || item.Item == nil {
-		return nil, err
-	}
-
-	err = dynamodbattribute.UnmarshalMap(item.Item, &user)
-	return &user, err
-}
-
-func GetPlayerByGc(gc string, dynamoClient *dynamodb.DynamoDB) (string, error) {
-	primaryKey := dynamodb.AttributeValue{
-		S: aws.String(gc),
-	}
-	getItem := dynamodb.GetItemInput{
-		TableName: aws.String(GcToPlayerTable),
-		Key:       map[string]*dynamodb.AttributeValue{"Gc": &primaryKey},
-	}
-	item, err := dynamoClient.GetItem(&getItem)
-	if err != nil {
-		return "", err
-	}
-	playerName := ""
-	if len(item.Item) > 0 {
-		playerName = *item.Item["Player"].S
-	}
-	return playerName, nil
 }
 
 func GetRecentGames(dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {

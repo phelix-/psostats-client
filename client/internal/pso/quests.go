@@ -4,19 +4,24 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"strconv"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 )
 
 type Trigger struct {
-	Register *int   `yaml:"register"`
-	Floor    uint16 `yaml:"floor"`
-	Switch   int    `yaml:"switch"`
-	WarpIn   bool   `yaml:"warpIn"`
+	Register *uint16 `yaml:"register"`
+	Floor    uint16  `yaml:"floor"`
+	Switch   uint16 `yaml:"switch"`
+	WarpIn   bool    `yaml:"warpIn"`
 }
 
 type Quest struct {
+	Episode      string
+	QuestName    string
 	Ignore       bool    `yaml:"ignore"`
+	Remap        *string `yaml:"remap"`
 	StartTrigger Trigger `yaml:"start"`
 	EndTrigger   Trigger `yaml:"end"`
 }
@@ -36,6 +41,14 @@ func NewQuests() Quests {
 	err = yaml.Unmarshal(data, allQuests)
 	if err != nil {
 		log.Fatalf("Error parsing quests file %v", err)
+	}
+	for episode, questsForEpisode := range allQuests {
+		for questName, quest := range questsForEpisode {
+			quest.Episode = episode
+			quest.QuestName = questName
+			questsForEpisode[questName] = quest
+		}
+		allQuests[episode] = questsForEpisode
 	}
 
 	return Quests{
@@ -74,4 +87,14 @@ func (q *Quest) TerminalQuest() bool {
 
 func (q *Quest) EndsOnRegister() bool {
 	return q.EndTrigger.Register != nil
+}
+
+func (q *Quest) GetCmodeStage() int {
+	if strings.HasPrefix(q.QuestName, "Stage") {
+		stageNumber := strings.TrimPrefix(q.QuestName, "Stage")
+		num, _ := strconv.Atoi(stageNumber)
+		return num
+	} else {
+		return -1
+	}
 }

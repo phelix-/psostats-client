@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/phelix-/psostats/v2/server/internal/db"
+	"github.com/phelix-/psostats/v2/server/internal/userdb"
 	"log"
 	"net/url"
 	"os"
@@ -22,6 +23,7 @@ import (
 type Server struct {
 	app          *fiber.App
 	dynamoClient *dynamodb.DynamoDB
+	userDb       userdb.UserDb
 }
 
 func New(dynamo *dynamodb.DynamoDB) *Server {
@@ -31,6 +33,7 @@ func New(dynamo *dynamodb.DynamoDB) *Server {
 	return &Server{
 		app:          f,
 		dynamoClient: dynamo,
+		userDb:       userdb.DynamoInstance(dynamo),
 	}
 }
 
@@ -117,29 +120,29 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 			}
 		}
 		model := struct {
-			Game             model.QuestRun
-			InvincibleRanges map[int]int
-			HpRanges map[int]uint16
-			TpRanges map[int]uint16
-			MonstersAliveRanges map[int]int
+			Game                 model.QuestRun
+			InvincibleRanges     map[int]int
+			HpRanges             map[int]uint16
+			TpRanges             map[int]uint16
+			MonstersAliveRanges  map[int]int
 			MonstersKilledRanges map[int]int
-			MesetaChargedRanges map[int]int
-			FreezeTrapRanges map[int]uint16
-			ShiftaRanges     map[int]int16
-			DebandRanges     map[int]int16
-			HpPoolRanges map[int]int
+			MesetaChargedRanges  map[int]int
+			FreezeTrapRanges     map[int]uint16
+			ShiftaRanges         map[int]int16
+			DebandRanges         map[int]int16
+			HpPoolRanges         map[int]int
 		}{
-			Game:             *game,
-			InvincibleRanges: invincibleRanges,
-			HpRanges: convertU16ToXY(game.HP),
-			TpRanges: convertU16ToXY(game.TP),
-			MonstersAliveRanges: convertIntToXY(game.MonsterCount),
+			Game:                 *game,
+			InvincibleRanges:     invincibleRanges,
+			HpRanges:             convertU16ToXY(game.HP),
+			TpRanges:             convertU16ToXY(game.TP),
+			MonstersAliveRanges:  convertIntToXY(game.MonsterCount),
 			MonstersKilledRanges: convertIntToXY(game.MonstersKilledCount),
-			MesetaChargedRanges: convertIntToXY(game.MesetaCharged),
-			FreezeTrapRanges: convertU16ToXY(game.FreezeTraps),
-			ShiftaRanges:     convertToXY(game.ShiftaLvl),
-			DebandRanges:     convertToXY(game.DebandLvl),
-			HpPoolRanges: convertIntToXY(game.MonsterHpPool),
+			MesetaChargedRanges:  convertIntToXY(game.MesetaCharged),
+			FreezeTrapRanges:     convertU16ToXY(game.FreezeTraps),
+			ShiftaRanges:         convertToXY(game.ShiftaLvl),
+			DebandRanges:         convertToXY(game.DebandLvl),
+			HpPoolRanges:         convertIntToXY(game.MonsterHpPool),
 		}
 		t, err := template.ParseFiles("./server/internal/templates/game.gohtml")
 		if err != nil {
@@ -291,7 +294,7 @@ func (s *Server) PlayerPage(c *fiber.Ctx) error {
 
 func (s *Server) GcRedirect(c *fiber.Ctx) error {
 	gc := c.Params("gc")
-	playerName, err := db.GetPlayerByGc(gc, s.dynamoClient)
+	playerName, err := s.userDb.GetUsernameByGc(gc)
 	if err != nil {
 		log.Printf("loading player by gc %v %v", gc, err)
 	}
@@ -304,7 +307,7 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 		c.Status(401)
 		return nil
 	}
-	userObject, err := db.GetUser(s.dynamoClient, user)
+	userObject, err := s.userDb.GetUser(user)
 	if err != nil {
 		c.Status(401)
 		return nil

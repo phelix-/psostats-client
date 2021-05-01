@@ -135,7 +135,8 @@ func (c *Client) runUI() {
 			c.ui.SetConnectionStatus(connected, statusString)
 
 			currentQuest := c.pso.CurrentQuest
-			err := c.ui.DrawScreen(&c.pso.CurrentPlayerData, &c.pso.GameState, &currentQuest)
+			floorName := c.pso.GetFloorName()
+			err := c.ui.DrawScreen(&c.pso.CurrentPlayerData, &c.pso.GameState, &currentQuest, floorName)
 			if err != nil {
 				c.errChan <- fmt.Errorf("runUI: error drawing screen in ui: %w", err)
 				return

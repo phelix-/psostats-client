@@ -2,7 +2,10 @@ package pso
 
 import "fmt"
 
-func GetFloorName(episode, floor, cmodeStage int) string {
+func (pso *PSO) GetFloorName() string {
+	episode := pso.GameState.Episode
+	floor := int(pso.CurrentPlayerData.Floor)
+	cmodeStage := pso.GameState.CmodeStage
 	floorName := fmt.Sprintf("Unknown Floor E%vF%v", episode, floor)
 	switch episode {
 	case 1:

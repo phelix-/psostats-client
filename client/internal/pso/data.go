@@ -3,6 +3,7 @@ package pso
 import (
 	"errors"
 	"fmt"
+	"github.com/phelix-/psostats/v2/pkg/model"
 	"log"
 	"time"
 	"unicode/utf16"
@@ -15,22 +16,22 @@ import (
 )
 
 const (
-	basePlayerArrayAddress = 0x00A94254
-	myPlayerIndexAddress   = 0x00A9C4F4
-	bPDeRolLeData = 0x00A43CC8
-	monsterDeRolLeHP = 0x6B4
-	monsterDeRolLeHPMax = 0x6B0
-	monsterDeRolLeSkullHP = 0x6B8
+	basePlayerArrayAddress   = uintptr(0x00A94254)
+	myPlayerIndexAddress     = 0x00A9C4F4
+	bPDeRolLeData            = 0x00A43CC8
+	monsterDeRolLeHP         = 0x6B4
+	monsterDeRolLeHPMax      = 0x6B0
+	monsterDeRolLeSkullHP    = 0x6B8
 	monsterDeRolLeSkullHPMax = 0x20
-	monsterDeRolLeShellHP = 0x39C
+	monsterDeRolLeShellHP    = 0x39C
 	monsterDeRolLeShellHPMax = 0x1C
 
-	bPBarbaRayData = 0x00A43CC8
-	monsterBarbaRayHP = 0x704
-	monsterBarbaRayHPMax = 0x700
-	monsterBarbaRaySkullHP = 0x708
+	bPBarbaRayData            = 0x00A43CC8
+	monsterBarbaRayHP         = 0x704
+	monsterBarbaRayHPMax      = 0x700
+	monsterBarbaRaySkullHP    = 0x708
 	monsterBarbaRaySkullHPMax = 0x20
-	monsterBarbaRayShellHP = 0x7AC
+	monsterBarbaRayShellHP    = 0x7AC
 	monsterBarbaRayShellHPMax = 0x1C
 )
 
@@ -57,7 +58,6 @@ func (game *BaseGameInfo) DifficultyString() string {
 type Monster struct {
 	Name       string
 	hp         uint16
-	MaxHp      uint16
 	Id         uint16
 	UnitxtId   uint32
 	SpawnTime  time.Time
@@ -65,16 +65,6 @@ type Monster struct {
 	Alive      bool
 	Frame1     bool
 	Index      int
-}
-
-type BossData struct {
-	Name       string
-	Id         uint16
-	UnitxtId   uint32
-	SpawnTime  time.Time
-	KilledTime time.Time
-	FirstFrame int
-	Hp         []int
 }
 
 type Event struct {
@@ -116,7 +106,7 @@ type QuestRun struct {
 	Invincible               []bool
 	Events                   []Event
 	Monsters                 map[int]Monster
-	Bosses                   map[string]BossData
+	Bosses                   map[string]model.BossData
 	MonsterCount             []int
 	MonstersKilledCount      []int
 	MonsterHpPool            []int
@@ -191,7 +181,7 @@ func (pso *PSO) StartNewQuest(questName string, terminalQuest bool) {
 		Invincible:               make([]bool, 0),
 		Events:                   make([]Event, 0),
 		Monsters:                 make(map[int]Monster),
-		Bosses:                   make(map[string]BossData),
+		Bosses:                   make(map[string]model.BossData),
 		MonsterCount:             make([]int, 0),
 		MonstersKilledCount:      make([]int, 0),
 		MonsterHpPool:            make([]int, 0),
@@ -213,6 +203,7 @@ func (pso *PSO) StartNewQuest(questName string, terminalQuest bool) {
 		previousTp:  0,
 		TPUsed:      0,
 	}
+	pso.GameState.QuestStarted = true
 }
 
 func (pso *PSO) consolidateFrame() {
@@ -280,7 +271,7 @@ func (pso *PSO) consolidateFrame() {
 	if currentQuestRun.lastFloor != pso.CurrentPlayerData.Floor {
 		currentQuestRun.Events = append(currentQuestRun.Events, Event{
 			Second:      currentSecond,
-			Description: GetFloorName(int(currentQuestRun.Episode), int(pso.CurrentPlayerData.Floor), GetCmodeStage(currentQuestRun.QuestName)),
+			Description: pso.GetFloorName(),
 		})
 		currentQuestRun.lastFloor = pso.CurrentPlayerData.Floor
 	}
@@ -343,7 +334,7 @@ func (pso *PSO) consolidateMonsterState(monsters []Monster) {
 				if form > 0 {
 					bossName = fmt.Sprintf("%v (%d)", bossName, form)
 				}
-				currentQuestRun.Bosses[idString] = BossData{
+				currentQuestRun.Bosses[idString] = model.BossData{
 					Name:       bossName,
 					Id:         existingMonster.Id,
 					UnitxtId:   existingMonster.UnitxtId,
@@ -418,10 +409,7 @@ func (pso *PSO) RefreshData() error {
 		return err
 	}
 
-	address, err := pso.getBaseCharacterAddress(index)
-	if err != nil {
-		return err
-	}
+	address := pso.getBaseCharacterAddress(index)
 	game, err := pso.getBaseGameInfo()
 	if err != nil {
 		return err
@@ -430,7 +418,6 @@ func (pso *PSO) RefreshData() error {
 	pso.GameState.Difficulty = game.DifficultyString()
 
 	if address != 0 {
-
 		playerData, err := player.GetPlayerData(pso.handle, address)
 		if err != nil {
 			return err
@@ -454,63 +441,32 @@ func (pso *PSO) RefreshData() error {
 
 		questPtr := quest.GetQuestPointer(pso.handle)
 		if questPtr != 0 {
-			questDataPtr, err := pso.getQuestDataPointer(questPtr)
-			if err != nil {
-				return err
-			}
+			questStartConditionsMet := false
+			questDataPtr := quest.GetQuestDataPointer(pso.handle, questPtr)
 
 			questName, err := pso.getQuestName(questDataPtr)
 			if err != nil {
 				return err
 			}
+			questConfig, exists := pso.questTypes.GetQuest(int(pso.GameState.Episode), questName)
+			if exists && questConfig.Remap != nil {
+				questName = *questConfig.Remap
+				questConfig, exists = pso.questTypes.GetQuest(int(pso.GameState.Episode), questName)
+			}
 			pso.GameState.QuestName = questName
-			pso.GameState.CmodeStage = GetCmodeStage(questName)
+			pso.GameState.CmodeStage = questConfig.GetCmodeStage()
 
 			if !pso.GameState.QuestStarted {
-				questConditions, exists := pso.questTypes.GetQuest(int(pso.GameState.Episode), pso.GameState.QuestName)
-				if exists && !questConditions.Ignore {
-					if questConditions.StartsOnRegister() {
-						registerSet, err := quest.IsRegisterSet(pso.handle, uint16(*questConditions.StartTrigger.Register))
-						if err != nil {
-							return err
-						}
-						if pso.GameState.CmodeStage > 0 {
-							cmodeFailedRegister, err := quest.IsRegisterSet(pso.handle, 253)
-							if err != nil {
-								return err
-							}
-							pso.GameState.QuestStarted = registerSet && !cmodeFailedRegister
-						} else {
-							pso.GameState.QuestStarted = registerSet
-						}
-					} else if questConditions.TerminalQuest() {
-						switchSet, err := pso.getFloorSwitch(uint16(questConditions.StartTrigger.Switch), questConditions.StartTrigger.Floor)
-						if err != nil {
-							return err
-						}
-						pso.GameState.QuestStarted = switchSet
-					} else if questConditions.StartsAtWarpIn() {
-						allPlayers, err := pso.getOtherPlayers()
-						if err != nil {
-							log.Panicf("unable to get all players %v", err)
-						}
-						for playerIndex, p := range allPlayers {
-							if p.Floor != 0 && !p.Warping {
-								if len(pso.GameState.PlayerArray) > playerIndex {
-									previousPlayerState := pso.GameState.PlayerArray[playerIndex]
-									if previousPlayerState.GuildCard == p.GuildCard && previousPlayerState.Warping {
-										pso.GameState.QuestStarted = true
-									}
-								}
-							}
-						}
-						pso.GameState.PlayerArray = allPlayers
+				if exists && !questConfig.Ignore {
+					questStartConditionsMet, err = pso.checkQuestStartConditions(questConfig)
+					if err != nil {
+						return err
 					}
 				}
-				if pso.GameState.QuestStarted && pso.GameState.AllowQuestStart {
+				if questStartConditionsMet && pso.GameState.AllowQuestStart {
 					rngSeed := pso.getRngSeed()
 					pso.GameState.RngSeed = rngSeed
-					pso.StartNewQuest(pso.GameState.QuestName, exists && questConditions.TerminalQuest())
+					pso.StartNewQuest(pso.GameState.QuestName, exists && questConfig.TerminalQuest())
 				}
 			} else if !pso.GameState.QuestComplete {
 				questConditions, exists := pso.questTypes.GetQuest(int(pso.GameState.Episode), pso.GameState.QuestName)
@@ -550,11 +506,10 @@ func (pso *PSO) RefreshData() error {
 				}
 			}
 			if pso.GameState.QuestStarted {
-				if pso.GameState.AllowQuestStart {
-					pso.consolidateFrame()
-					pso.consolidateMonsterState(monsters)
-				}
-			} else {
+				pso.consolidateFrame()
+				pso.consolidateMonsterState(monsters)
+			}
+			if !questStartConditionsMet {
 				pso.GameState.AllowQuestStart = true
 			}
 		} else {
@@ -576,15 +531,9 @@ func (pso *PSO) getMyPlayerIndex() (uint8, error) {
 	return index, nil
 }
 
-func (pso *PSO) getBaseCharacterAddress(index uint8) (int, error) {
-	address := basePlayerArrayAddress + (4 * int(index))
-	buf, _, ok := w32.ReadProcessMemory(pso.handle, uintptr(address), 4)
-	if !ok {
-		return 0, errors.New("unable to getBaseCharacterAddress")
-	}
-	baseAddress := int(buf[1])<<16 + int(buf[0])
-	// log.Printf("Base address: %v", baseAddress)
-	return baseAddress, nil
+func (pso *PSO) getBaseCharacterAddress(index uint8) uintptr {
+	address := basePlayerArrayAddress + (4 * uintptr(index))
+	return uintptr(numbers.ReadU32(pso.handle, address))
 }
 
 func (pso *PSO) getUnitxtStuff() error {
@@ -622,10 +571,7 @@ func (pso *PSO) getMonsterName(monsterId uint32) (string, error) {
 func (pso *PSO) getOtherPlayers() ([]player.BasePlayerInfo, error) {
 	players := make([]player.BasePlayerInfo, 0)
 	for i := 0; i < 12; i++ {
-		address, err := pso.getBaseCharacterAddress(uint8(i))
-		if err != nil {
-			return nil, err
-		}
+		address := pso.getBaseCharacterAddress(uint8(i))
 		if address != 0 {
 			playerData, err := player.GetPlayerData(pso.handle, address)
 			if err != nil {
@@ -676,17 +622,8 @@ func (pso *PSO) getFloorSwitch(switchId uint16, floor uint16) (bool, error) {
 }
 
 // -------------- Quest Data Block -------------- //
-func (pso *PSO) getQuestDataPointer(questPtr uint32) (uint32, error) {
-	buf, _, ok := w32.ReadProcessMemory(pso.handle, uintptr(questPtr+0x19C), 4)
-	if !ok {
-		return 0, errors.New("unable to getQuestDataPointer")
-	}
-	questDataPtr := uint32(buf[1])<<16 + uint32(buf[0])
-	return questDataPtr, nil
-}
-
-func (pso *PSO) getQuestName(questDataPtr uint32) (string, error) {
-	buf, _, ok := w32.ReadProcessMemory(pso.handle, uintptr(questDataPtr+0x18), 64)
+func (pso *PSO) getQuestName(questDataPtr uintptr) (string, error) {
+	buf, _, ok := w32.ReadProcessMemory(pso.handle, questDataPtr+0x18, 64)
 	if !ok {
 		return "", errors.New("unable to getQuestName")
 	}
@@ -701,6 +638,48 @@ func (pso *PSO) getQuestName(questDataPtr uint32) (string, error) {
 	return questName, nil
 }
 
+func (pso *PSO) checkQuestStartConditions(questConfig Quest) (bool, error) {
+	questStart := false
+	if questConfig.StartsOnRegister() {
+		registerSet, err := quest.IsRegisterSet(pso.handle, *questConfig.StartTrigger.Register)
+		if err != nil {
+			return false, err
+		}
+		if questConfig.GetCmodeStage() > 0 {
+			cmodeFailedRegister, err := quest.IsRegisterSet(pso.handle, 253)
+			if err != nil {
+				return false, err
+			}
+			questStart = registerSet && !cmodeFailedRegister
+		} else {
+			questStart = registerSet
+		}
+	} else if questConfig.TerminalQuest() {
+		switchSet, err := pso.getFloorSwitch(questConfig.StartTrigger.Switch, questConfig.StartTrigger.Floor)
+		if err != nil {
+			return false, err
+		}
+		questStart = switchSet
+	} else if questConfig.StartsAtWarpIn() {
+		allPlayers, err := pso.getOtherPlayers()
+		if err != nil {
+			log.Panicf("unable to get all players %v", err)
+		}
+		for _, p := range allPlayers {
+			questStart = p.Floor != 0 && !p.Warping
+			//if p.Floor != 0 && !p.Warping {
+			//	if len(pso.GameState.PlayerArray) > playerIndex {
+			//		previousPlayerState := pso.GameState.PlayerArray[playerIndex]
+			//		if previousPlayerState.GuildCard == p.GuildCard && previousPlayerState.Warping {
+			//			pso.GameState.QuestStarted = true
+			//		}
+			//	}
+			//}
+		}
+	}
+	return questStart, nil
+}
+
 func (pso *PSO) getRngSeed() uint32 {
 	return numbers.ReadU32(pso.handle, uintptr(0x00A9C22C))
 }
@@ -711,62 +690,50 @@ func (pso *PSO) getPlayerCount() uint32 {
 }
 
 func (pso *PSO) GetMonsterList() ([]Monster, error) {
-	npcCountAddr := 0x00AAE164
-	npcArrayAddr := 0x00AAD720
-	npcCount := int(numbers.ReadU32(pso.handle, uintptr(npcCountAddr)))
-	ephineaMonsters := numbers.ReadU32(pso.handle, uintptr(0x00B5F800))
+	npcCountAddr := uintptr(0x00AAE164)
+	npcArrayAddr := uintptr(0x00AAD720)
+	ephineaMonstersAddr := uintptr(0x00B5F800)
+	npcCount := int(numbers.ReadU32(pso.handle, npcCountAddr))
 	playerCount := int(pso.getPlayerCount())
+	ephineaMonsters := uintptr(numbers.ReadU32(pso.handle, ephineaMonstersAddr))
 
-	buf, _, ok := w32.ReadProcessMemory(pso.handle, uintptr(npcArrayAddr), uintptr(4*(playerCount+npcCount+1)))
+	buf, _, ok := w32.ReadProcessMemory(pso.handle, npcArrayAddr, uintptr(4*(playerCount+npcCount+1)))
 	if !ok {
 		return nil, errors.New("unable to GetMonsterList")
 	}
 	monsterCount := 0
 	monsters := make([]Monster, 0)
-	for i := 0; i < npcCount; i++ {
-		effectiveI := i + playerCount
-		// log.Printf("npc[%v] 0x%08x | 0x%08x 0x%08x", i, npcArrayAddr+(2*effectiveI), buf[2*effectiveI], buf[(2*effectiveI)+1])
-		monsterAddr := numbers.Uint32FromU16(buf[2*effectiveI], buf[(2*effectiveI)+1])
-		monsterId := numbers.ReadU16(pso.handle, uintptr(monsterAddr+0x1c))
-		monsterType := numbers.ReadU32(pso.handle, uintptr(monsterAddr+0x378))
-		var hp, maxHp uint16
+	for i := playerCount; i < (playerCount + npcCount); i++ {
+		monsterAddr := uintptr(numbers.Uint32FromU16(buf[2*i], buf[(2*i)+1]))
+		monsterId := numbers.ReadU16(pso.handle, monsterAddr+0x1c)
+		monsterType := numbers.ReadU32(pso.handle, monsterAddr+0x378)
+		var hp uint16
 		if ephineaMonsters != 0 {
-			hp = numbers.ReadU16(pso.handle, uintptr(ephineaMonsters+0x04+(uint32(monsterId)*32)))
-			maxHp = numbers.ReadU16(pso.handle, uintptr(ephineaMonsters+(uint32(monsterId)*32)))
+			hp = numbers.ReadU16(pso.handle, ephineaMonsters+0x04+(uintptr(monsterId)*32))
 		} else {
-			hp = numbers.ReadU16(pso.handle, uintptr(monsterAddr+0x334))
-			maxHp = numbers.ReadU16(pso.handle, uintptr(monsterAddr+0x2BC))
+			hp = numbers.ReadU16(pso.handle, monsterAddr+0x334)
 		}
 		if monsterType == 45 {
+			// DRL
 			if i == 0 {
-				maxHp = uint16(numbers.ReadU32(pso.handle, uintptr(monsterAddr + monsterDeRolLeHPMax)))
-				hp = numbers.ReadU16(pso.handle, uintptr(monsterAddr + monsterDeRolLeHP))
+				hp = numbers.ReadU16(pso.handle, monsterAddr+monsterDeRolLeHP)
 				// todo Missing skull hp atm
 			} else {
-				maxDataPtr := numbers.ReadU32(pso.handle, uintptr(bPDeRolLeData))
-				if maxDataPtr != 0 {
-					maxHp = uint16(numbers.ReadU32(pso.handle, uintptr(monsterAddr + monsterDeRolLeShellHPMax)))
-				}
-				hp = numbers.ReadU16(pso.handle, uintptr(monsterAddr + monsterDeRolLeShellHP))
+				hp = numbers.ReadU16(pso.handle, monsterAddr+monsterDeRolLeShellHP)
 			}
 		} else if monsterType == 73 {
-			maxDataPtr := numbers.ReadU32(pso.handle, uintptr(bPBarbaRayData))
+			// Barba Ray
 			if i == 0 {
-				maxHp = numbers.ReadU16(pso.handle, uintptr(monsterAddr + monsterBarbaRayHPMax))
-				hp = numbers.ReadU16(pso.handle, uintptr(monsterAddr + monsterBarbaRayHP))
+				hp = numbers.ReadU16(pso.handle, monsterAddr+monsterBarbaRayHP)
 				// todo Missing skull hp atm
 			} else {
-				if maxDataPtr != 0 {
-					maxHp = numbers.ReadU16(pso.handle, uintptr(maxDataPtr + monsterBarbaRayShellHPMax))
-				}
-				hp = numbers.ReadU16(pso.handle, uintptr(monsterAddr + monsterBarbaRayShellHP))
+				hp = numbers.ReadU16(pso.handle, monsterAddr+monsterBarbaRayShellHP)
 			}
 		}
-		// todo fix signed ints one of these days
+		// underflow seems to be possible
 		if hp > 0x8000 {
 			hp = 0
 		}
-		// log.Printf("npc[@0x%08x] id = 0x%04x - 0x%08x", monsterAddr, monsterId, monsterType)
 		if monsterType != 0 {
 			monsterName, err := pso.getMonsterName(monsterType)
 			if err != nil {
@@ -775,7 +742,6 @@ func (pso *PSO) GetMonsterList() ([]Monster, error) {
 				monsters = append(monsters, Monster{
 					Name:     monsterName,
 					hp:       hp,
-					MaxHp:    maxHp,
 					Id:       monsterId,
 					Index:    i,
 					UnitxtId: monsterType,

@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"github.com/phelix-/psostats/v2/client/internal/pso/inventory"
 	"log"
-	"strconv"
-	"strings"
 	"syscall"
 	"time"
 
@@ -51,17 +49,6 @@ type GameState struct {
 	monsterUnitxtAddr uint32
 	Difficulty        string
 	Episode           uint16
-	PlayerArray       []player.BasePlayerInfo
-}
-
-func GetCmodeStage(questName string) int {
-	if strings.HasPrefix(questName, "Stage") {
-		stageNumber := strings.TrimPrefix(questName, "Stage")
-		num, _ := strconv.Atoi(stageNumber)
-		return num
-	} else {
-		return -1
-	}
 }
 
 func (state *GameState) ClearQuest() {
@@ -72,7 +59,6 @@ func (state *GameState) ClearQuest() {
 	state.UploadSuccessful = false
 	state.CmodeStage = -1
 	state.QuestName = "No Active Quest"
-	state.PlayerArray = make([]player.BasePlayerInfo, 0)
 }
 
 func (state *GameState) Clear() {

@@ -45,12 +45,17 @@ func (cui *ConsoleUI) Close() {
 func (cui *ConsoleUI) ClearScreen() {
 	ui.Clear()
 }
-func (cui *ConsoleUI) DrawScreen(playerData *player.BasePlayerInfo, gameState *pso.GameState, currentQuest *pso.QuestRun) error {
+func (cui *ConsoleUI) DrawScreen(
+	playerData *player.BasePlayerInfo,
+	gameState *pso.GameState,
+	currentQuest *pso.QuestRun,
+	floorName string,
+) error {
 	cui.drawLogo()
 	cui.drawConnection()
 	cui.drawRecording(gameState)
 	cui.DrawHP(playerData)
-	cui.DrawLocation(playerData, gameState)
+	cui.DrawLocation(floorName, playerData, gameState)
 	if gameState.QuestStarted && gameState.AllowQuestStart {
 		cui.drawQuestInfo(currentQuest, playerData)
 	}
@@ -127,9 +132,8 @@ func (cui *ConsoleUI) DrawHP(playerData *player.BasePlayerInfo) {
 	ui.Render(hpChart)
 }
 
-func (cui *ConsoleUI) DrawLocation(playerData *player.BasePlayerInfo, gameState *pso.GameState) {
+func (cui *ConsoleUI) DrawLocation(floorName string, playerData *player.BasePlayerInfo, gameState *pso.GameState) {
 	floor := widgets.NewParagraph()
-	floorName := pso.GetFloorName(int(gameState.Episode), int(playerData.Floor), pso.GetCmodeStage(gameState.QuestName))
 	warpingText := ""
 	if playerData.Warping {
 		warpingText = " (Warping)"

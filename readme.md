@@ -1,6 +1,6 @@
 # Running
 
-Configure `config.yaml` if desired. If localUi is enabled and given network access the ui will be at `http://localhost:8081/` and you can view raw game data at `http://localhost:8081/game/info`
+Configure `config.yaml` if desired.
 
 `w` - write a game log file
 
@@ -21,13 +21,13 @@ Runs will be marked as PB Category if any preparation has been done before start
 # To Do
 
 * Detect solo mode
-* equipped mags
-* separate games
+* new player registration
+* merge multiplayer games
 * detect non-vanilla weapons
-* boss kill times
-* CMode QoL
-  - Floor names are wrong I think
-* weapon/armor timeline? show unit/shield switches?
+* quest splits?
+* aggregate stats
+  - player
+  - overall
 
 # Package Structure
 
@@ -44,7 +44,9 @@ Runs will be marked as PB Category if any preparation has been done before start
     ├── server                  # The PSO Stats Server
     │   ├── cmd                 # The main function for the server 
     │   └── internal            # Private packages for the server only 
-    │       └── server          # TODO: ???
+    │       ├── db              # Game database interaction
+    │       ├── server          # TODO: ???
+    │       └── userdb          # Database layer for users and guildcard mapping
     └── winres                  # Windows exe config
 
 # Building client

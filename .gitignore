@@ -6,3 +6,4 @@ game-*.json
 *.exe
 *.7z
 .idea/
+db_tests/data

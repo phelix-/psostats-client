@@ -121,17 +121,17 @@ Episode 1:
     start:
       warpIn: true
     end:
-      register: 254
+      register: 15
   "Lost ICE SPINNER":
     start:
       warpIn: true
     end:
-      register: 254
+      register: 15
   "Lost SOUL BLADE":
     start:
       warpIn: true
     end:
-      register: 254
+      register: 211
   "Lost HELL PALLASCH":
     start:
       warpIn: true
@@ -188,12 +188,7 @@ Episode 1:
       floor: 10
       switch: 31
   "Maximum Attack 4th Stage -1A-":
-    start:
-      floor: 4
-      switch: 99
-    end:
-      floor: 10
-      switch: 31
+    remap: "Maximum Attack 4 -1A-"
   "Maximum Attack 4 -1B-":
     start:
       floor: 4
@@ -202,12 +197,7 @@ Episode 1:
       floor: 10
       switch: 32
   "Maximum Attack 4th Stage -1B-":
-    start:
-      floor: 4
-      switch: 99
-    end:
-      floor: 10
-      switch: 32
+    remap: "Maximum Attack 4 -1B-"
   "Maximum Attack 4 -1C-":
     start:
       floor: 4
@@ -215,11 +205,7 @@ Episode 1:
     end:
       register: 254
   "Maximum Attack 4th Stage -1C-":
-    start:
-      floor: 4
-      switch: 99
-    end:
-      register: 254
+    remap: "Maximum Attack 4 -1C-"
   # MA1R
   "Maximum Attack E: EP 1":
     start:
@@ -448,25 +434,34 @@ Episode 2:
       switch: 20
     end:
       register: 89
-  # CAL's Clock Challenge
+  "CAL's Clock Challenge":
+    start:
+      floor: 1
+      switch: 40
+    end:
+      register: 254
 
 # ---- Retrieval ----
-  # Lost SHOCK RIFLE
+  "Lost SHOCK RIFLE":
+    start:
+      warpIn: true
+    end:
+      register: 15
   "Lost BIND ASSAULT":
     start:
       warpIn: true
     end:
-      register: 254
+      register: 15
   "Lost FILL CANNON":
     start:
       warpIn: true
     end:
-      register: 254
+      register: 15
   "Lost CHARGE VULCAN":
     start:
       warpIn: true
     end:
-      register: 254
+      register: 15
   # Dream Messenger
   # Revisiting Darkness
   # Dolmolm Research
@@ -479,12 +474,7 @@ Episode 2:
     end:
       register: 123
   "Maximum Attack 4th Stage -2A-":
-    start:
-      floor: 5
-      switch: 99
-    end:
-      floor: 11
-      switch: 29
+    remap: "Maximum Attack 4 -2A-"
   "Maximum Attack 4 -2A-":
     start:
       floor: 5
@@ -493,12 +483,7 @@ Episode 2:
       floor: 11
       switch: 29
   "Maximum Attack 4th Stage -2B-":
-    start:
-      floor: 5
-      switch: 99
-    end:
-      floor: 11
-      switch: 29
+    remap: "Maximum Attack 4 -2B-"
   "Maximum Attack 4 -2B-":
     start:
       floor: 5
@@ -506,7 +491,8 @@ Episode 2:
     end:
       floor: 11
       switch: 29
-  # Maximum Attack 4th Stage -2C-
+  "Maximum Attack 4th Stage -2C-":
+    remap: "Maximum Attack 4 -2C-"
   "Maximum Attack 4 -2C-":
     start:
       floor: 5
@@ -573,9 +559,21 @@ Episode 2:
       register: 98
 
 # ---- Halloween ----
-  # Hollow Reality: Temple
-  # Hollow Reality: Spaceship
-  # Hollow Phantasm: Jungle
+  "Hollow Reality: Temple":
+    start:
+      warpIn: true
+    end:
+      register: 0
+  "Hollow Reality: Spaceship":
+    start:
+      warpIn: true
+    end:
+      register: 0
+  "Hollow Phantasm: Jungle":
+    start:
+      warpIn: true
+    end:
+      register: 0
   "Hollow Phantasm: Seabed": 
     start:
       warpIn: true
@@ -635,11 +633,31 @@ Episode 4:
     end:
       register: 233
   # The Robots' Reckoning
-  # War of Limits 1
-  # War of Limits 2
-  # War of Limits 3
-  # War of Limits 4
-  # War of Limits 5
+  "War of Limits 1":
+    start:
+      warpIn: true
+    end:
+      register: 254
+  "War of Limits 2":
+    start:
+      warpIn: true
+    end:
+      register: 254
+  "War of Limits 3":
+    start:
+      warpIn: true
+    end:
+      register: 254
+  "War of Limits 4":
+    start:
+      warpIn: true
+    end:
+      register: 254
+  "War of Limits 5":
+    start:
+      warpIn: true
+    end:
+      register: 254
   "New Mop-Up Operation #1":
     start:
       register: 205
@@ -692,8 +710,16 @@ Episode 4:
       register: 254
 
 # ---- Retrieval ----
-  # Lost BERSERK BATON
-  # Lost SPIRIT STRIKER
+  "Lost BERSERK BATON":
+    start:
+      warpIn: true
+    end:
+      register: 15
+  "Lost SPIRIT STRIKER":
+    start:
+      warpIn: true
+    end:
+      register: 15
 
 # ---- Event ----
   "Christmas Fiasco":
@@ -726,13 +752,18 @@ Episode 4:
       floor: 8
       switch: 50
   "Maximum Attack 4th Stage -A-":
+    remap: "Maximum Attack 4 -4A-"
+  "Maximum Attack 4 -4B-":
     start:
       floor: 5
       switch: 66
     end:
       floor: 8
-      switch: 50
-  # Maximum Attack 4th Stage -4B-
+      switch: 20
+  "Maximum Attack 4th Stage -4B-":
+    remap: "Maximum Attack 4 -4B-"
+  "Maximum Attack 4th Stage -B-":
+    remap: "Maximum Attack 4 -4B-"
   "Maximum Attack 4 -4C-":
     start:
       floor: 5
@@ -741,12 +772,7 @@ Episode 4:
       floor: 8
       switch: 192
   "Maximum Attack 4th Stage -4C-":
-    start:
-      floor: 5
-      switch: 66
-    end:
-      floor: 8
-      switch: 192
+    remap: "Maximum Attack 4 -4C-"
   # Maximum Attack 4th Stage -4R-
   "Maximum Attack E: Episode 4":
     start:
