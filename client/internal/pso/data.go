@@ -448,11 +448,7 @@ func (pso *PSO) RefreshData() error {
 			if err != nil {
 				return err
 			}
-			questConfig, exists := pso.questTypes.GetQuest(int(pso.GameState.Episode), questName)
-			if exists && questConfig.Remap != nil {
-				questName = *questConfig.Remap
-				questConfig, exists = pso.questTypes.GetQuest(int(pso.GameState.Episode), questName)
-			}
+			questConfig, exists := pso.questTypes.GetQuestConfig(int(pso.GameState.Episode), questName)
 			pso.GameState.QuestName = questName
 			pso.GameState.CmodeStage = questConfig.GetCmodeStage()
 
@@ -469,29 +465,15 @@ func (pso *PSO) RefreshData() error {
 					pso.StartNewQuest(pso.GameState.QuestName, exists && questConfig.TerminalQuest())
 				}
 			} else if !pso.GameState.QuestComplete {
-				questConditions, exists := pso.questTypes.GetQuest(int(pso.GameState.Episode), pso.GameState.QuestName)
 				if exists {
-					if questConditions.EndsOnRegister() {
-						registerSet, err := quest.IsRegisterSet(pso.handle, uint16(*questConditions.EndTrigger.Register))
-						if err != nil {
-							return err
-						}
-
-						if registerSet {
-							pso.GameState.QuestComplete = true
-							pso.GameState.QuestEndTime = time.Now()
-						}
-					} else if questConditions.EndTrigger.Floor == pso.CurrentPlayerData.Floor {
-						switched, err := pso.getFloorSwitch(uint16(questConditions.EndTrigger.Switch), pso.CurrentPlayerData.Floor)
-						if err != nil {
-							return err
-						}
-						if switched {
-							pso.GameState.QuestComplete = true
-							pso.GameState.QuestEndTime = time.Now()
-						}
+					questEndConditionsMet, err := pso.checkQuestEndConditions(questConfig)
+					if err != nil {
+						return err
 					}
-					if !pso.GameState.QuestComplete {
+					if questEndConditionsMet {
+						pso.GameState.QuestComplete = true
+						pso.GameState.QuestEndTime = time.Now()
+					} else {
 						if pso.GameState.CmodeStage > 0 && pso.CurrentPlayerData.Floor == 0 {
 							// Back to lobby, cmode failed
 							pso.GameState.ClearQuest()
@@ -509,10 +491,8 @@ func (pso *PSO) RefreshData() error {
 				pso.consolidateFrame()
 				pso.consolidateMonsterState(monsters)
 			}
-			if !questStartConditionsMet {
-				pso.GameState.AllowQuestStart = true
-			}
 		} else {
+			pso.GameState.AllowQuestStart = true
 			pso.GameState.ClearQuest()
 		}
 	} else {
@@ -667,17 +647,19 @@ func (pso *PSO) checkQuestStartConditions(questConfig Quest) (bool, error) {
 		}
 		for _, p := range allPlayers {
 			questStart = p.Floor != 0 && !p.Warping
-			//if p.Floor != 0 && !p.Warping {
-			//	if len(pso.GameState.PlayerArray) > playerIndex {
-			//		previousPlayerState := pso.GameState.PlayerArray[playerIndex]
-			//		if previousPlayerState.GuildCard == p.GuildCard && previousPlayerState.Warping {
-			//			pso.GameState.QuestStarted = true
-			//		}
-			//	}
-			//}
 		}
 	}
 	return questStart, nil
+}
+
+func (pso *PSO) checkQuestEndConditions(questConfig Quest) (bool, error) {
+	if questConfig.EndsOnRegister() {
+		return quest.IsRegisterSet(pso.handle, *questConfig.EndTrigger.Register)
+	} else if questConfig.EndTrigger.Floor == pso.CurrentPlayerData.Floor {
+		return pso.getFloorSwitch(questConfig.EndTrigger.Switch, pso.CurrentPlayerData.Floor)
+	} else {
+		return false, errors.New(fmt.Sprintf("Quest %v ends on neither quest nor register", questConfig.QuestName))
+	}
 }
 
 func (pso *PSO) getRngSeed() uint32 {

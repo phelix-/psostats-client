@@ -13,7 +13,7 @@ import (
 type Trigger struct {
 	Register *uint16 `yaml:"register"`
 	Floor    uint16  `yaml:"floor"`
-	Switch   uint16 `yaml:"switch"`
+	Switch   uint16  `yaml:"switch"`
 	WarpIn   bool    `yaml:"warpIn"`
 }
 
@@ -57,7 +57,7 @@ func NewQuests() Quests {
 	}
 }
 
-func (q *Quests) GetQuest(episode int, questName string) (Quest, bool) {
+func (q *Quests) GetQuestConfig(episode int, questName string) (Quest, bool) {
 	questsForEpisode, exists := q.allQuests[fmt.Sprintf("Episode %v", episode)]
 	if !exists {
 		log.Printf("Episode %v not found?", episode)
@@ -69,6 +69,9 @@ func (q *Quests) GetQuest(episode int, questName string) (Quest, bool) {
 			q.warnedQuests[questName] = true
 			log.Printf("Episode %v Quest '%v' not configured", episode, questName)
 		}
+	}
+	if questFound && quest.Remap != nil {
+		return q.GetQuestConfig(episode, *quest.Remap)
 	}
 	return quest, questFound
 }
