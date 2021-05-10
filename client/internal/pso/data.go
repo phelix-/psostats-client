@@ -394,13 +394,25 @@ func isBoss(monster Monster) (bool, string) {
 		return true, "Olga Flow"
 	}
 	if monster.UnitxtId == 106 {
-		return true, "Saint-Million"
+		if monster.Index < 5 {
+			return true, fmt.Sprintf("Saint-Million Tail (%v)", monster.Index)
+		} else if monster.Index < 9 {
+			return true, fmt.Sprintf("Saint-Million Head (%v)", monster.Index - 4)
+		}
 	}
 	if monster.UnitxtId == 107 {
-		return true, "Shambertin"
+		if monster.Index < 5 {
+			return true, fmt.Sprintf("Shambertin Tail (%v)", monster.Index)
+		} else if monster.Index < 9 {
+			return true, fmt.Sprintf("Shambertin Head (%v)", monster.Index - 4)
+		}
 	}
 	if monster.UnitxtId == 108 {
-		return true, "Kondrieu"
+		if monster.Index < 5 {
+			return true, fmt.Sprintf("Kondrieu Tail (%v)", monster.Index)
+		} else if monster.Index < 9 {
+			return true, fmt.Sprintf("Kondrieu Head (%v)", monster.Index - 4)
+		}
 	}
 	return false, ""
 }

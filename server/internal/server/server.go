@@ -200,7 +200,12 @@ func (s *Server) RecordsPage(c *fiber.Ctx) error {
 		return err
 	}
 	games, err := db.GetQuestRecords(s.dynamoClient)
-	sort.Slice(games, func(i, j int) bool { return games[i].Quest < games[j].Quest })
+	sort.Slice(games, func(i, j int) bool {
+		if games[i].Episode != games[j].Episode {
+			return games[i].Episode < games[j].Episode
+		}
+		return games[i].Quest < games[j].Quest 
+	})
 
 	if err != nil {
 		log.Print("get recent games")

@@ -28,6 +28,8 @@ Runs will be marked as PB Category if any preparation has been done before start
 * aggregate stats
   - player
   - overall
+* ep4 boss trainwreck
+* talking to npc quest register stuff
 
 # Package Structure
 
