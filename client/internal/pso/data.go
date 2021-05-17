@@ -684,7 +684,10 @@ func (pso *PSO) checkQuestStartConditions(questConfig Quest) (bool, error) {
 			log.Panicf("unable to get all players %v", err)
 		}
 		for _, p := range allPlayers {
-			questStart = p.Floor != 0 && !p.Warping
+			if p.Floor != 0 && !p.Warping {
+				questStart = true
+				break
+			}
 		}
 	}
 	return questStart, nil
