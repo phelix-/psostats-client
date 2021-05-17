@@ -21,19 +21,26 @@ import (
 )
 
 type Server struct {
-	app          *fiber.App
-	dynamoClient *dynamodb.DynamoDB
-	userDb       userdb.UserDb
+	app              *fiber.App
+	dynamoClient     *dynamodb.DynamoDB
+	userDb           userdb.UserDb
+	recentGames      []model.QuestRun
+	recentGamesCount int
+	recentGamesSize  int
 }
 
 func New(dynamo *dynamodb.DynamoDB) *Server {
 	f := fiber.New(fiber.Config{
 		// modify config
 	})
+	cacheSize := 500
 	return &Server{
-		app:          f,
-		dynamoClient: dynamo,
-		userDb:       userdb.DynamoInstance(dynamo),
+		app:              f,
+		dynamoClient:     dynamo,
+		userDb:           userdb.DynamoInstance(dynamo),
+		recentGames:      make([]model.QuestRun, cacheSize),
+		recentGamesCount: 0,
+		recentGamesSize:  cacheSize,
 	}
 }
 
@@ -204,7 +211,10 @@ func (s *Server) RecordsPage(c *fiber.Ctx) error {
 		if games[i].Episode != games[j].Episode {
 			return games[i].Episode < games[j].Episode
 		}
-		return games[i].Quest < games[j].Quest 
+		if games[i].Quest != games[j].Quest {
+			return games[i].Quest < games[j].Quest
+		}
+		return games[i].Category < games[j].Category
 	})
 
 	if err != nil {
@@ -340,6 +350,15 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 		return err
 	}
 	questRun.Id = gameId
+
+	for _, recentGame := range s.recentGames {
+		if gamesMatch(recentGame, questRun) {
+			log.Printf("game[%v] matched game[%v]", questRun.Id, recentGame.Id)
+		}
+	}
+	s.recentGames[s.recentGamesCount%s.recentGamesSize] = questRun
+	s.recentGamesCount++
+
 	if isLeaderboardCandidate(questRun) {
 		numPlayers := len(questRun.AllPlayers)
 		topRun, err := db.GetQuestRecord(questRun.QuestName, numPlayers, questRun.PbCategory, s.dynamoClient)
@@ -417,4 +436,39 @@ func (s *Server) getUserFromBasicAuth(headerBytes []byte) (string, string, error
 	} else {
 		return "", "", errors.New("missing basic auth header")
 	}
+}
+
+func gamesMatch(a, b model.QuestRun) bool {
+	if a.QuestName != b.QuestName {
+		return false
+	}
+	if a.Difficulty != b.Difficulty {
+		return false
+	}
+	if a.Episode != b.Episode {
+		return false
+	}
+	if a.Server != b.Server {
+		return false
+	}
+	if a.GuildCard == b.GuildCard {
+		return false
+	}
+	if a.QuestStartTime.Add(time.Second*-30).After(b.QuestStartTime) &&
+		a.QuestStartTime.Add(time.Second*30).Before(b.QuestStartTime) {
+		return false
+	}
+	if a.QuestEndTime.Add(time.Second*-30).After(b.QuestEndTime) &&
+		a.QuestEndTime.Add(time.Second*30).Before(b.QuestEndTime) {
+		return false
+	}
+	if len(a.AllPlayers) != len(b.AllPlayers) {
+		return false
+	}
+	for i := range a.AllPlayers {
+		if a.AllPlayers[i] != b.AllPlayers[i] {
+			return false
+		}
+	}
+	return true
 }

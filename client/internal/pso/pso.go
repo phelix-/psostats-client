@@ -35,20 +35,23 @@ type PSO struct {
 }
 
 type GameState struct {
-	MonsterCount      int
-	QuestName         string
-	AllowQuestStart   bool // Guards against starting the client mid-quest
-	QuestStarted      bool
-	Uploading         bool
-	UploadSuccessful  bool
-	QuestComplete     bool
-	QuestStartTime    time.Time
-	QuestEndTime      time.Time
-	CmodeStage        int
-	RngSeed           uint32
-	monsterUnitxtAddr uint32
-	Difficulty        string
-	Episode           uint16
+	MonsterCount         int
+	QuestName            string
+	AllowQuestStart      bool // Guards against starting the client mid-quest
+	QuestStarted         bool
+	Uploading            bool
+	UploadSuccessful     bool
+	QuestComplete        bool
+	QuestStartTime       time.Time
+	QuestEndTime         time.Time
+	CmodeStage           int
+	RngSeed              uint32
+	Difficulty           string
+	Episode              uint16
+	Map                  uint16
+	Floor                uint16
+	questPointer         uintptr
+	questRegisterPointer uintptr
 }
 
 func (state *GameState) ClearQuest() {
@@ -59,6 +62,8 @@ func (state *GameState) ClearQuest() {
 	state.UploadSuccessful = false
 	state.CmodeStage = -1
 	state.QuestName = "No Active Quest"
+	state.questRegisterPointer = 0
+	state.questPointer = 0
 }
 
 func (state *GameState) Clear() {

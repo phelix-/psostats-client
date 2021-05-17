@@ -61,9 +61,15 @@ func WriteGameById(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) (s
 		return "", err
 	}
 
+	players := make(map[string]string)
+	for _, player := range questRun.AllPlayers {
+		players[player.GuildCard] = player.Class
+	}
+
 	game := model.Game{
 		Id:        fmt.Sprintf("%d", gameId),
 		Player:    questRun.GuildCard,
+		Players:   players,
 		Category:  category,
 		Quest:     questRun.QuestName,
 		Time:      duration,
