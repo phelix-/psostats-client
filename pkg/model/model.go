@@ -81,6 +81,7 @@ type Event struct {
 type Game struct {
 	Id               string
 	Player           string
+	Players          map[string]string
 	Category         string
 	Episode          int
 	Quest            string

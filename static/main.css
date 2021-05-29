@@ -1,0 +1,31 @@
+body {
+    background-color: #333;
+    color: #ccc;
+}
+.nav-link:focus, .nav-link:hover {
+    color: #aaa;
+}
+.nav-link {
+    color: #ccc;
+}
+.list-group-item {
+    background-color: #444;
+    color: #cccccc;
+}
+.list-group-item:hover {
+    background-color: #555;
+}
+.text-muted {
+    color: #929ea8 !important;
+}
+a {
+    color: #abcdff;
+    text-decoration: none;
+}
+a:hover {
+    color: #abcdff;
+}
+.table-dark {
+    color: #ccc;
+    --bs-table-bg: #333;
+}

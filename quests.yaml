@@ -230,7 +230,11 @@ Episode 1:
       warpIn: true
     end:
       register: 254
-  # Xrd REV1
+  "Random Attack Xrd REV 1":
+    start:
+      warpIn: true
+    end:
+      register: 254
 
 # ---- VR ----
   "Towards the Future": 
@@ -520,6 +524,11 @@ Episode 2:
       register: 254
   # Maximum Attack S
   # Random Attack Xrd Stage
+  "Random Attack Xrd REV 2":
+    start:
+      warpIn: true
+    end:
+      register: 254
 
 # ---- Tower ----
   # The East Tower
@@ -781,7 +790,11 @@ Episode 4:
     end:
       register: 254
   # Maximum Attack S
-  # Random Attack Xrd REV 4
+  "Random Attack Xrd REV 4":
+    start:
+      warpIn: true
+    end:
+      register: 254
 
 # ---- Shop ----
   # Claire's Deal 5

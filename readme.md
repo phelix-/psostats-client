@@ -29,7 +29,9 @@ Runs will be marked as PB Category if any preparation has been done before start
   - player
   - overall
 * ep4 boss trainwreck
-* talking to npc quest register stuff
+* multiple units being combined
+* pb graph
+* death gunners https://discord.com/channels/209828685052641281/810649151058214963/848266650251952138
 
 # Package Structure
 

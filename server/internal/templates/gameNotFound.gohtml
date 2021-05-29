@@ -1,16 +1,37 @@
 {{define "gameNotFound"}}
-    <html>
+    <html lang="en">
     <head>
-        <title>Recent - PSOStats</title>
+        <title>PSOStats</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
         <link href="/main.css" rel="stylesheet" type="text/css">
     </head>
     <body>
-    <div class="outer-container">
-        <header>
-            <h1><a href="/">PSOStats</a></h1>
-        </header>
-        <div class="body">
-            <h2>Game Not Found</h2>
+    <div class="container">
+        <div class="row psostats-nav">
+            <div class="col">
+                <ul class="nav">
+                    <li class="nav-item">
+                        <img src="/static/egotrap.png" height="48" width="48" alt="PSOStats"/>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Recent</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/records">Records</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/info">Info</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/download">Download</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <h1>Game Not Found</h1>
+            </div>
         </div>
     </div>
     </body>

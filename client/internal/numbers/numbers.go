@@ -57,18 +57,9 @@ func ReadNullTerminatedString(handle w32.HANDLE, address uintptr) (string, error
 		}
 		split := make([]byte, 1)
 		split[0] = byte(b)
-		// binary.LittleEndian.PutUint16(split, b)
 		byteBuf.Write(split)
 	}
 	return byteBuf.String(), nil
-}
-
-func ReadU8(handle w32.HANDLE, address uintptr) (uint8, error) {
-	buf, _, ok := w32.ReadProcessMemory(handle, address, 1)
-	if !ok {
-		return 0, errors.New(fmt.Sprintf("Unable to readU8 @0x%08x", address))
-	}
-	return uint8(buf[0]), nil
 }
 
 func ReadU16(handle w32.HANDLE, address uintptr) uint16 {
@@ -79,10 +70,18 @@ func ReadU16(handle w32.HANDLE, address uintptr) uint16 {
 	return buf[0]
 }
 
-func ReadU32(handle w32.HANDLE, address uintptr) uint32 {
+func ReadU32Unchecked(handle w32.HANDLE, address uintptr) uint32 {
+	ret, err := ReadU32(handle, address)
+	if err != nil {
+		log.Fatalf("%v", err)
+	}
+	return ret
+}
+
+func ReadU32(handle w32.HANDLE, address uintptr) (uint32, error) {
 	buf, _, ok := w32.ReadProcessMemory(handle, address, 4)
 	if !ok {
-		log.Fatalf("Unable to read 0x%08x", address)
+		return 0, errors.New(fmt.Sprintf("Unable to readU32 0x%08x", address))
 	}
-	return Uint32From16(buf[0:2])
+	return Uint32From16(buf[0:2]), nil
 }
