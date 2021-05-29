@@ -15,7 +15,7 @@ func main() {
 	}
 
 	defer file.Close()
-	version := "0.6.7"
+	version := "0.6.8"
 
 	log.SetOutput(file)
 	log.Printf("Starting Up version %v", version)

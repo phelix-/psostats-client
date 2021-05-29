@@ -328,7 +328,7 @@ func (pso *PSO) consolidateMonsterState(monsters []Monster) {
 			existingMonster.KilledTime = now
 			existingMonster.Frame1 = existingMonster.KilledTime.Sub(existingMonster.SpawnTime).Milliseconds() < 60
 			if existingMonster.Frame1 {
-				log.Printf("frame1? %v | %v", existingMonster.Id, existingMonster.UnitxtId)
+				log.Printf("frame1? %v(%v) %v", existingMonster.Name, existingMonster.UnitxtId, existingMonster.Id)
 			}
 			currentQuestRun.Monsters[monsterId] = existingMonster
 		}
@@ -464,7 +464,6 @@ func (pso *PSO) RefreshData() error {
 			if questPtr != pso.GameState.questPointer {
 				pso.GameState.questRegisterPointer = quest.GetQuestRegisterPointer(pso.handle)
 				pso.GameState.questPointer = questPtr
-				log.Printf("0x%08x", pso.GameState.questRegisterPointer)
 			}
 			questStartConditionsMet := false
 			questDataPtr := quest.GetQuestDataPointer(pso.handle, questPtr)
@@ -696,10 +695,10 @@ func (pso *PSO) checkQuestStartConditions(questConfig Quest) (bool, error) {
 func (pso *PSO) checkQuestEndConditions(questConfig Quest) (bool, error) {
 	if questConfig.EndsOnRegister() {
 		return quest.IsRegisterSet(pso.handle, *questConfig.EndTrigger.Register, pso.GameState.questRegisterPointer)
-	} else if questConfig.EndTrigger.Floor == pso.GameState.Floor {
-		return pso.getFloorSwitch(questConfig.EndTrigger.Switch, pso.GameState.Floor)
+	} else if questConfig.EndTrigger.Floor != 0 {
+		return pso.getFloorSwitch(questConfig.EndTrigger.Switch, questConfig.EndTrigger.Floor)
 	} else {
-		return false, errors.New(fmt.Sprintf("Quest %v ends on neither quest nor register", questConfig.QuestName))
+		return false, errors.New(fmt.Sprintf("Quest %v ends on neither switch nor register", questConfig.QuestName))
 	}
 }
 

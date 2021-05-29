@@ -218,7 +218,7 @@ func readFrame(handle w32.HANDLE, itemAddr int, itemId string, itemGroup uint8) 
 		Id:    itemId,
 		Name:  readItemName(handle, int(weaponIndex)),
 		Dfp:   readU8(handle, uintptr(itemAddr)+itemFrameDfp),
-		Evp:   readU8(handle, uintptr(itemAddr)+itemFrameDfp),
+		Evp:   readU8(handle, uintptr(itemAddr)+itemFrameEvp),
 		Slots: readU8(handle, uintptr(itemAddr)+itemArmSlots),
 	}
 	return weapon

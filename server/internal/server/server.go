@@ -51,6 +51,8 @@ func (s *Server) Run() {
 	// UI
 	s.app.Get("/", s.Index)
 	s.app.Get("/game/:gameId", s.GamePage)
+	s.app.Get("/info", s.InfoPage)
+	s.app.Get("/download", s.DownloadPage)
 	s.app.Get("/records", s.RecordsPage)
 	s.app.Get("/players/:player", s.PlayerPage)
 	s.app.Get("/gc/:gc", s.GcRedirect)
@@ -95,6 +97,27 @@ func (s *Server) Index(c *fiber.Ctx) error {
 	err = t.ExecuteTemplate(c.Response().BodyWriter(), "index", model)
 	return err
 }
+func (s *Server) InfoPage(c *fiber.Ctx) error {
+	t, err := template.ParseFiles("./server/internal/templates/info.gohtml")
+	if err != nil {
+		return err
+	}
+	infoModel := struct {}{}
+	err = t.ExecuteTemplate(c.Response().BodyWriter(), "info", infoModel)
+	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
+	return err
+}
+
+func (s *Server) DownloadPage(c *fiber.Ctx) error {
+	t, err := template.ParseFiles("./server/internal/templates/download.gohtml")
+	if err != nil {
+		return err
+	}
+	downloadModel := struct {}{}
+	err = t.ExecuteTemplate(c.Response().BodyWriter(), "download", downloadModel)
+	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
+	return err
+}
 
 func (s *Server) GamePage(c *fiber.Ctx) error {
 	gameId := c.Params("gameId")
@@ -110,6 +133,11 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 		}
 		err = t.ExecuteTemplate(c.Response().BodyWriter(), "gameNotFound", game)
 	} else {
+		duration, err := time.ParseDuration(game.QuestDuration)
+		if err != nil {
+			return err
+		}
+
 		invincibleRanges := make(map[int]int)
 		invincibleStart := -1
 		for i, invincible := range game.Invincible {
@@ -128,6 +156,7 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 		}
 		model := struct {
 			Game                 model.QuestRun
+			FormattedQuestTime   string
 			InvincibleRanges     map[int]int
 			HpRanges             map[int]uint16
 			TpRanges             map[int]uint16
@@ -140,6 +169,7 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 			HpPoolRanges         map[int]int
 		}{
 			Game:                 *game,
+			FormattedQuestTime:   formatDuration(duration),
 			InvincibleRanges:     invincibleRanges,
 			HpRanges:             convertU16ToXY(game.HP),
 			TpRanges:             convertU16ToXY(game.TP),
@@ -159,6 +189,16 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 	}
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
+}
+
+func formatDuration(d time.Duration) string {
+	d = d.Round(time.Millisecond)
+	minutes := d / time.Minute
+	d -= minutes * time.Minute
+	seconds := d / time.Second
+	d -= seconds * time.Second
+	milliseconds := d / time.Millisecond
+	return fmt.Sprintf("%d:%d.%03d", minutes, seconds, milliseconds)
 }
 
 func convertIntToXY(values []int) map[int]int {
