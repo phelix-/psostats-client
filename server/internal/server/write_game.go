@@ -35,29 +35,30 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 		return err
 	}
 	questRun.UserName = user
-	gameId, err := db.WriteGameById(&questRun, s.dynamoClient)
-	if err != nil {
-		log.Printf("write game %v", err)
-		c.Status(500)
-		return err
-	}
-	questRun.Id = gameId
 
 	var matchingGame *model.QuestRun = nil
 	for _, recentGame := range s.recentGames {
 		if gamesMatch(recentGame, questRun) {
-			log.Printf("game[%v] matched game[%v]", questRun.Id, recentGame.Id)
+			log.Printf("matched game[%v]", recentGame.Id)
 			matchingGame = &recentGame
 			break
 		}
 	}
 
 	if matchingGame != nil {
+		questRun.Id = matchingGame.Id
 		err := db.AttachGameToId(questRun, matchingGame.Id, s.dynamoClient)
 		if err != nil {
 			log.Printf("%v", err)
 		}
 	} else {
+		gameId, err := db.WriteGameById(&questRun, s.dynamoClient)
+		if err != nil {
+			log.Printf("write game %v", err)
+			c.Status(500)
+			return err
+		}
+		questRun.Id = gameId
 		s.recentGames[s.recentGamesCount%s.recentGamesSize] = questRun
 		s.recentGamesCount++
 	}
@@ -67,35 +68,35 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 		if matchingGame == nil {
 			topRun, err := db.GetQuestRecord(questRun.QuestName, numPlayers, questRun.PbCategory, s.dynamoClient)
 			if err != nil {
-				log.Printf("failed to get top quest runs for gameId:%v - %v", gameId, err)
+				log.Printf("failed to get top quest runs for gameId:%v - %v", questRun.Id, err)
 			} else if topRun == nil || topRun.Time > questDuration {
 				log.Printf("new record for %v %vp pb:%v - %v",
-					questRun.QuestName, numPlayers, questRun.PbCategory, gameId)
+					questRun.QuestName, numPlayers, questRun.PbCategory, questRun.Id)
 				if err = db.WriteGameByQuestRecord(&questRun, s.dynamoClient); err != nil {
-					log.Printf("failed to update leaderboard for game %v - %v", gameId, err)
+					log.Printf("failed to update leaderboard for game %v - %v", questRun.Id, err)
 				}
 			}
-		}
-		if err = db.WriteGameByQuest(&questRun, s.dynamoClient); err != nil {
-			log.Printf("failed to update games by quest for game %v - %v", gameId, err)
+			if err = db.WriteGameByQuest(&questRun, s.dynamoClient); err != nil {
+				log.Printf("failed to update games by quest for game %v - %v", questRun.Id, err)
+			}
 		}
 		playerPb, err := db.GetPlayerPB(questRun.QuestName, user, numPlayers, questRun.PbCategory, s.dynamoClient)
 		if err != nil {
-			log.Printf("failed to get player pb for gameId:%v - %v", gameId, err)
+			log.Printf("failed to get player pb for gameId:%v - %v", questRun.Id, err)
 		} else if playerPb == nil || playerPb.Time > questDuration {
 			log.Printf("new pb for %v %v %vp pb:%v - %v",
-				user, questRun.QuestName, numPlayers, questRun.PbCategory, gameId)
+				user, questRun.QuestName, numPlayers, questRun.PbCategory, questRun.Id)
 			if err = db.WritePlayerPb(&questRun, s.dynamoClient); err != nil {
-				log.Printf("failed to update pb for game %v - %v", gameId, err)
+				log.Printf("failed to update pb for game %v - %v", questRun.Id, err)
 			}
 		}
 	}
 	if err = db.WriteGameByPlayer(&questRun, s.dynamoClient); err != nil {
-		log.Printf("failed to update games by player for game %v - %v", gameId, err)
+		log.Printf("failed to update games by player for game %v - %v", questRun.Id, err)
 	}
 
-	c.Response().AppendBodyString(gameId)
+	c.Response().AppendBodyString(questRun.Id)
 	log.Printf("got quest: %v %v, %v, %v, %v",
-		gameId, questRun.QuestName, questRun.PlayerName, questRun.Server, questRun.UserName)
+		questRun.Id, questRun.QuestName, questRun.PlayerName, questRun.Server, questRun.UserName)
 	return nil
 }

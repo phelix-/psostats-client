@@ -56,9 +56,7 @@ func (cui *ConsoleUI) DrawScreen(
 	cui.drawRecording(gameState)
 	cui.DrawHP(playerData)
 	cui.DrawLocation(floorName, playerData, gameState)
-	if gameState.QuestStarted && gameState.AllowQuestStart {
-		cui.drawQuestInfo(currentQuest, playerData)
-	}
+	cui.drawQuestInfo(gameState, currentQuest, playerData)
 	return nil
 }
 
@@ -69,20 +67,15 @@ func (cui *ConsoleUI) SetConnectionStatus(connected bool, statusString string) {
 
 func (cui *ConsoleUI) drawLogo() {
 	logo := widgets.NewParagraph()
-//	logo1 := `
-// ██▓███    ██████  ▒█████    ██████ ▄▄▄█████▓ ▄▄▄     ▄▄▄█████▓  ██████
-//▓██░  ██▒▒██    ▒ ▒██▒  ██▒▒██    ▒ ▓  ██▒ ▓▒▒████▄   ▓  ██▒ ▓▒▒██    ▒
-//▓██░ ██▓▒░ ▓██▄   ▒██░  ██▒░ ▓██▄   ▒ ▓██░ ▒░▒██  ▀█▄ ▒ ▓██░ ▒░░ ▓██▄
-//▒██▄█▓▒ ▒  ▒   ██▒▒██   ██░  ▒   ██▒░ ▓██▓ ░ ░██▄▄▄▄██░ ▓██▓ ░   ▒   ██▒
-//▒██▒ ░  ░▒██████▒▒░ ████▓▒░▒██████▒▒  ▒██▒ ░  ▓█   ▓██▒ ▒██▒ ░ ▒██████▒▒
-//▒▓▒░ ░  ░▒ ▒▓▒ ▒ ░░ ▒░▒░▒░ ▒ ▒▓▒ ▒ ░  ▒ ░░    ▒▒   ▓▒█░ ▒ ░░   ▒ ▒▓▒ ▒ ░
-//░▒ ░     ░ ░▒  ░ ░  ░ ▒ ▒░ ░ ░▒  ░ ░    ░      ▒   ▒▒ ░   ░    ░ ░▒  ░ ░
-//░░       ░  ░  ░  ░ ░ ░ ▒  ░  ░  ░    ░        ░   ▒    ░      ░  ░  ░
-//               ░      ░ ░        ░                 ░  ░              ░
-//`
-	logo.Text = fmt.Sprintf("PSOStats %v", cui.data.Version)
+	logo1 := ` ▄▄▄·.▄▄ ·       .▄▄ · ▄▄▄▄▄ ▄▄▄· ▄▄▄▄▄.▄▄ · 
+▐█ ▄█▐█ ▀. ▪     ▐█ ▀. •██  ▐█ ▀█ •██  ▐█ ▀. 
+ ██▀·▄▀▀▀█▄ ▄█▀▄ ▄▀▀▀█▄ ▐█.▪▄█▀▀█  ▐█.▪▄▀▀▀█▄
+▐█▪·•▐█▄▪▐█▐█▌.▐▌▐█▄▪▐█ ▐█▌·▐█ ▪▐▌ ▐█▌·▐█▄▪▐█
+.▀    ▀▀▀▀  ▀█▄▀▪ ▀▀▀▀  ▀▀▀  ▀  ▀  ▀▀▀  ▀▀▀▀ 
+                                       v%v`
+	logo.Text = fmt.Sprintf(logo1, cui.data.Version)
 	logo.Border = false
-	logo.SetRect(0, 0, 50, 1)
+	logo.SetRect(0, 0, 130, 8)
 	logo.TextStyle.Fg = ui.ColorCyan
 	ui.Render(logo)
 }
@@ -96,7 +89,7 @@ func (cui *ConsoleUI) drawConnection() {
 		connection.TextStyle.Fg = ui.ColorRed
 	}
 	connection.Border = false
-	connection.SetRect(0, 1, 80, 2)
+	connection.SetRect(0, 8, 80, 9)
 	ui.Render(connection)
 }
 
@@ -119,7 +112,7 @@ func (cui *ConsoleUI) drawRecording(gameState *pso.GameState) {
 		recording.Text = "[[ Waiting for Quest Start ]] "
 	}
 	recording.Border = false
-	recording.SetRect(0, 2, 50, 3)
+	recording.SetRect(0, 9, 50, 10)
 	ui.Render(recording)
 }
 
@@ -127,7 +120,7 @@ func (cui *ConsoleUI) DrawHP(playerData *player.BasePlayerInfo) {
 	playerInfo := widgets.NewParagraph()
 	playerInfo.Text = fmt.Sprintf("%v - %v (gc: %v)", playerData.Class, playerData.Name, playerData.GuildCard)
 	playerInfo.Border = false
-	playerInfo.SetRect(0, 3, 80, 4)
+	playerInfo.SetRect(0, 10, 80, 11)
 	ui.Render(playerInfo)
 
 	hpChart := widgets.NewGauge()
@@ -139,7 +132,7 @@ func (cui *ConsoleUI) DrawHP(playerData *player.BasePlayerInfo) {
 	hpChart.Percent = percentHp
 	hpChart.Label = fmt.Sprintf("%v/%v", playerData.HP, playerData.MaxHP)
 	hpChart.Border = false
-	hpChart.SetRect(0, 4, 50, 7)
+	hpChart.SetRect(0, 11, 50, 14)
 	ui.Render(hpChart)
 }
 
@@ -153,28 +146,32 @@ func (cui *ConsoleUI) DrawLocation(floorName string, playerData *player.BasePlay
 		gameState.Difficulty,
 		gameState.Episode, floorName, warpingText, playerData.Room)
 	floor.Border = false
-	floor.SetRect(0, 6, 80, 9)
+	floor.SetRect(0, 14, 80, 15)
 	ui.Render(floor)
 }
 
-func (cui *ConsoleUI) drawQuestInfo(quest *pso.QuestRun, playerData *player.BasePlayerInfo) {
+func (cui *ConsoleUI) drawQuestInfo(gameState *pso.GameState, quest *pso.QuestRun, playerData *player.BasePlayerInfo) {
 	list := widgets.NewList()
-	list.Title = "[[ " + quest.QuestName + " ]]"
-	list.Rows = []string{
-		formatQuestComplete(quest),
-		formatCategory(quest),
-		formatQuestTime(quest),
-		formatMesetaCharged(quest),
-		formatDeaths(quest),
-		formatMonstersAlive(quest),
-		formatMonstersKilled(quest),
+	if len(gameState.QuestName) > 0 && gameState.QuestName != "No Active Quest" {
+		list.Title = "[[ " + gameState.QuestName + " ]]"
 	}
-	if playerData.MaxTP > 0 {
-		list.Rows = append(list.Rows, formatTpUsed(quest))
-	} else {
-		list.Rows = append(list.Rows, formatTrapsUsed(quest))
+	if gameState.QuestStarted {
+		list.Rows = []string{
+			formatQuestComplete(quest),
+			formatCategory(quest),
+			formatQuestTime(quest),
+			formatMesetaCharged(quest),
+			formatDeaths(quest),
+			formatMonstersAlive(quest),
+			formatMonstersKilled(quest),
+		}
+		if playerData.MaxTP > 0 {
+			list.Rows = append(list.Rows, formatTpUsed(quest))
+		} else {
+			list.Rows = append(list.Rows, formatTrapsUsed(quest))
+		}
 	}
-	list.SetRect(0, 9, 80, 22)
+	list.SetRect(0, 16, 80, 30)
 	list.Border = false
 	ui.Render(list)
 }

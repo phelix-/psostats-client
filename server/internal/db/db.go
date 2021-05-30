@@ -475,6 +475,24 @@ func GetGamesForMonth(month string, dynamoClient *dynamodb.DynamoDB) ([]model.Ga
 	return games, err
 }
 
+func GetFullGame(gameId string, dynamoClient *dynamodb.DynamoDB) (*model.Game, error) {
+	game := model.Game{}
+	primaryKey := dynamodb.AttributeValue{
+		S: aws.String(gameId),
+	}
+	getItem := dynamodb.GetItemInput{
+		TableName: aws.String(GamesByIdTable),
+		Key:       map[string]*dynamodb.AttributeValue{"Id": &primaryKey},
+	}
+	item, err := dynamoClient.GetItem(&getItem)
+	if err != nil || item.Item == nil {
+		return nil, err
+	}
+
+	err = dynamodbattribute.UnmarshalMap(item.Item, &game)
+	return &game, err
+}
+
 func GetGame(gameId string, dynamoClient *dynamodb.DynamoDB) (*model.QuestRun, error) {
 	questRun := model.QuestRun{}
 	game := model.Game{}

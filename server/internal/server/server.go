@@ -1,12 +1,15 @@
 package server
 
 import (
+	"bytes"
+	"compress/gzip"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/phelix-/psostats/v2/server/internal/db"
 	"github.com/phelix-/psostats/v2/server/internal/userdb"
+	"io"
 	"log"
 	"net/url"
 	"os"
@@ -51,7 +54,7 @@ func (s *Server) Run() {
 	s.app.Static("/static/", "./static/", fiber.Static{})
 	// UI
 	s.app.Get("/", s.Index)
-	s.app.Get("/game/:gameId", s.GamePage)
+	s.app.Get("/game/:gameId/:gem?", s.GamePage)
 	s.app.Get("/info", s.InfoPage)
 	s.app.Get("/download", s.DownloadPage)
 	s.app.Get("/records", s.RecordsV2Page)
@@ -86,17 +89,17 @@ func (s *Server) Index(c *fiber.Ctx) error {
 		c.Status(500)
 		return err
 	}
-	for i, game := range games {
-		addFormattedFields(&game)
-		games[i] = game
-	}
-	model := struct {
-		Games []model.Game
+	recentGamesModel := struct {
+		Games []model.FormattedGame
 	}{
-		Games: games,
+		Games: make([]model.FormattedGame, len(games)),
+	}
+	for i, game := range games {
+		formattedGame := getFormattedGame(game)
+		recentGamesModel.Games[i] = formattedGame
 	}
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
-	err = t.ExecuteTemplate(c.Response().BodyWriter(), "index", model)
+	err = t.ExecuteTemplate(c.Response().BodyWriter(), "index", recentGamesModel)
 	return err
 }
 func (s *Server) InfoPage(c *fiber.Ctx) error {
@@ -123,18 +126,44 @@ func (s *Server) DownloadPage(c *fiber.Ctx) error {
 
 func (s *Server) GamePage(c *fiber.Ctx) error {
 	gameId := c.Params("gameId")
-	game, err := db.GetGame(gameId, s.dynamoClient)
+	gem := c.Params("gem")
+	fullGame, err := db.GetFullGame(gameId, s.dynamoClient)
 	if err != nil {
 		return err
 	}
+	var gameGzip []byte
+	if fullGame != nil {
+		if len(gem) > 0 {
+			gemNum, err := strconv.Atoi(gem)
+			if err == nil {
+				switch gemNum + 1 {
+				case 1:
+					gameGzip = fullGame.P1Gzip
+				case 2:
+					gameGzip = fullGame.P2Gzip
+				case 3:
+					gameGzip = fullGame.P3Gzip
+				case 4:
+					gameGzip = fullGame.P4Gzip
+				}
+			}
+		}
+		if gameGzip == nil {
+			gameGzip = fullGame.GameGzip
+		}
+	}
 
-	if game == nil {
+	if gameGzip == nil {
 		t, err := template.ParseFiles("./server/internal/templates/gameNotFound.gohtml")
 		if err != nil {
 			return err
 		}
-		err = t.ExecuteTemplate(c.Response().BodyWriter(), "gameNotFound", game)
+		err = t.ExecuteTemplate(c.Response().BodyWriter(), "gameNotFound", nil)
 	} else {
+		game, err := parseGameGzip(gameGzip)
+		if err != nil {
+			return err
+		}
 		duration, err := time.ParseDuration(game.QuestDuration)
 		if err != nil {
 			return err
@@ -195,6 +224,25 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 	return err
 }
 
+func parseGameGzip(gameBytes []byte) (*model.QuestRun, error) {
+	questRun := model.QuestRun{}
+	buffer := bytes.NewBuffer(gameBytes)
+	reader, err := gzip.NewReader(buffer)
+	if err != nil {
+		return nil, err
+	}
+	jsonBytes, err := io.ReadAll(reader)
+	if err != io.ErrUnexpectedEOF {
+		return nil, err
+	}
+	err = json.Unmarshal(jsonBytes, &questRun)
+	if err != nil {
+		return nil, err
+	}
+
+	return &questRun, err
+}
+
 func formatDuration(d time.Duration) string {
 	d = d.Round(time.Millisecond)
 	minutes := d / time.Minute
@@ -202,7 +250,7 @@ func formatDuration(d time.Duration) string {
 	seconds := d / time.Second
 	d -= seconds * time.Second
 	milliseconds := d / time.Millisecond
-	return fmt.Sprintf("%d:%d.%03d", minutes, seconds, milliseconds)
+	return fmt.Sprintf("%d:%02d.%03d", minutes, seconds, milliseconds)
 }
 
 func convertIntToXY(values []int) map[int]int {
@@ -362,14 +410,14 @@ func getFormattedGame(game model.Game) model.FormattedGame {
 		}
 	}
 	return model.FormattedGame{
-		Id:               game.Id,
-		Players:          players,
-		PbRun:            pbRun == "p",
-		NumPlayers:       numPlayers,
-		Episode:          game.Episode,
-		Quest:            game.Quest,
-		Time:             formatDuration(game.Time),
-		Date:             game.Timestamp.In(location).Format("15:04 01/02/2006"),
+		Id:         game.Id,
+		Players:    players,
+		PbRun:      pbRun == "p",
+		NumPlayers: numPlayers,
+		Episode:    game.Episode,
+		Quest:      game.Quest,
+		Time:       formatDuration(game.Time),
+		Date:       game.Timestamp.In(location).Format("15:04 01/02/2006"),
 	}
 }
 

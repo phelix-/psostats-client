@@ -476,6 +476,11 @@ func (pso *PSO) RefreshData() error {
 				return err
 			}
 			questConfig, exists := pso.questTypes.GetQuestConfig(int(pso.GameState.Episode), questName)
+			if exists {
+				questName = questConfig.Name
+			} else {
+				questName = fmt.Sprintf("%v (Missing Config)", questName)
+			}
 			pso.GameState.QuestName = questName
 			pso.GameState.CmodeStage = questConfig.GetCmodeStage()
 
@@ -657,11 +662,11 @@ func (pso *PSO) getQuestName(questDataPtr uintptr) (string, error) {
 	return questName, nil
 }
 
-func (pso *PSO) checkQuestStartConditions(questConfig Quest) (bool, error) {
+func (pso *PSO) checkQuestStartConditions(questConfig quest.Quest) (bool, error) {
 	questStart := false
 	if questConfig.StartsOnRegister() {
 		registerPointer := quest.GetQuestRegisterPointer(pso.handle)
-		registerSet, err := quest.IsRegisterSet(pso.handle, *questConfig.StartTrigger.Register, registerPointer)
+		registerSet, err := quest.IsRegisterSet(pso.handle, *questConfig.Start.Register, registerPointer)
 		if err != nil {
 			return false, err
 		}
@@ -675,7 +680,7 @@ func (pso *PSO) checkQuestStartConditions(questConfig Quest) (bool, error) {
 			questStart = registerSet
 		}
 	} else if questConfig.TerminalQuest() {
-		switchSet, err := pso.getFloorSwitch(questConfig.StartTrigger.Switch, questConfig.StartTrigger.Floor)
+		switchSet, err := pso.getFloorSwitch(questConfig.Start.Switch, questConfig.Start.Floor)
 		if err != nil {
 			return false, err
 		}
@@ -695,13 +700,13 @@ func (pso *PSO) checkQuestStartConditions(questConfig Quest) (bool, error) {
 	return questStart, nil
 }
 
-func (pso *PSO) checkQuestEndConditions(questConfig Quest) (bool, error) {
+func (pso *PSO) checkQuestEndConditions(questConfig quest.Quest) (bool, error) {
 	if questConfig.EndsOnRegister() {
-		return quest.IsRegisterSet(pso.handle, *questConfig.EndTrigger.Register, pso.GameState.questRegisterPointer)
-	} else if questConfig.EndTrigger.Floor != 0 {
-		return pso.getFloorSwitch(questConfig.EndTrigger.Switch, questConfig.EndTrigger.Floor)
+		return quest.IsRegisterSet(pso.handle, *questConfig.End.Register, pso.GameState.questRegisterPointer)
+	} else if questConfig.End.Floor != 0 {
+		return pso.getFloorSwitch(questConfig.End.Switch, questConfig.End.Floor)
 	} else {
-		return false, errors.New(fmt.Sprintf("Quest %v ends on neither switch nor register", questConfig.QuestName))
+		return false, errors.New(fmt.Sprintf("Quest %v ends on neither switch nor register", questConfig.Name))
 	}
 }
 

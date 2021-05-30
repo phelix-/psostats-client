@@ -3,6 +3,7 @@ package pso
 import (
 	"fmt"
 	"github.com/phelix-/psostats/v2/client/internal/pso/inventory"
+	"github.com/phelix-/psostats/v2/client/internal/pso/quest"
 	"log"
 	"syscall"
 	"time"
@@ -20,7 +21,7 @@ const (
 
 type PSO struct {
 	completeGame      chan QuestRun
-	questTypes        Quests
+	questTypes        quest.Quests
 	connected         bool
 	connectedStatus   string
 	server            string
@@ -92,7 +93,7 @@ type PlayerData struct {
 func New(completeGameChannel chan QuestRun) *PSO {
 	return &PSO{
 		completeGame: completeGameChannel,
-		questTypes:   NewQuests(),
+		questTypes:   quest.NewQuests(),
 		MonsterNames: make(map[uint32]string),
 	}
 }

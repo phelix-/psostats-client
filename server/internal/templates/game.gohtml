@@ -66,9 +66,9 @@
                 </ul>
                 <ul class="list-group list-group-flush" style="margin-bottom: 4px;">
                     {{$outer := .Game}}
-                    {{ range .Game.AllPlayers }}
+                    {{ range $index, $player := .Game.AllPlayers }}
 
-                        <li class="list-group-item{{ if eq .GuildCard $outer.GuildCard }} current-player{{ end }}">{{ .Class }} (Lv.{{ .Level }}) {{ .Name }}</li>
+                        <a href="/game/{{ $outer.Id }}/{{ $index }}" class="list-group-item{{ if eq $player.GuildCard $outer.GuildCard }} current-player{{ end }}">{{ $player.Class }} (Lv.{{ $player.Level }}) {{ $player.Name }}</a>
                     {{ end }}
 
                 </ul>

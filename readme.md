@@ -6,18 +6,6 @@ Configure `config.yaml` if desired.
 
 `q` - quit
 
-# Features
-
-### Run Categorization
-
-Runs will be marked as PB Category if any preparation has been done before starting the quest. Examples include:
-* Mylla & Youlla (Twins PB) has been used before quest start
-* Players have over 5% PB charged
-* In quests without a starting console (eg. Mop-up and Sweep-up series)
-    - Any player is below 95% HP
-    - Shifta/Deband has been cast
-
-
 # To Do
 
 * Detect solo mode
@@ -30,7 +18,6 @@ Runs will be marked as PB Category if any preparation has been done before start
   - overall
 * ep4 boss trainwreck
 * multiple units being combined
-* pb graph
 * death gunners https://discord.com/channels/209828685052641281/810649151058214963/848266650251952138
 
 # Package Structure
