@@ -96,6 +96,7 @@ type QuestRun struct {
 	DeathCount               int
 	HP                       []uint16
 	TP                       []uint16
+	PB                       []float32
 	Meseta                   []uint32
 	MesetaCharged            []int
 	Room                     []uint16
@@ -171,6 +172,7 @@ func (pso *PSO) StartNewQuest(questName string, terminalQuest bool) {
 		DeathCount:               0,
 		HP:                       make([]uint16, 0),
 		TP:                       make([]uint16, 0),
+		PB:                       make([]float32, 0),
 		Meseta:                   make([]uint32, 0),
 		MesetaCharged:            make([]int, 0),
 		Room:                     make([]uint16, 0),
@@ -251,6 +253,7 @@ func (pso *PSO) consolidateFrame() {
 		currentQuestRun.previousMesetaCharged = mesetaCharged
 		currentQuestRun.HP = append(currentQuestRun.HP, pso.CurrentPlayerData.HP)
 		currentQuestRun.TP = append(currentQuestRun.TP, pso.CurrentPlayerData.TP)
+		currentQuestRun.PB = append(currentQuestRun.PB, pso.CurrentPlayerData.PB)
 		currentQuestRun.Room = append(currentQuestRun.Room, pso.CurrentPlayerData.Room)
 		currentQuestRun.ShiftaLvl = append(currentQuestRun.ShiftaLvl, pso.CurrentPlayerData.ShiftaLvl)
 		currentQuestRun.DebandLvl = append(currentQuestRun.DebandLvl, pso.CurrentPlayerData.DebandLvl)

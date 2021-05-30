@@ -51,12 +51,8 @@ func WriteGameById(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) (s
 	if err != nil {
 		return "", err
 	}
+	questRun.Id = fmt.Sprintf("%d", gameId)
 	gameGzip, err := compressGame(questRun)
-	if err != nil {
-		return "", err
-	}
-	category := getCategoryFromQuest(questRun)
-	duration, err := time.ParseDuration(questRun.QuestDuration)
 	if err != nil {
 		return "", err
 	}
@@ -66,17 +62,9 @@ func WriteGameById(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) (s
 		players[player.GuildCard] = player.Class
 	}
 
-	game := model.Game{
-		Id:        fmt.Sprintf("%d", gameId),
-		Player:    questRun.GuildCard,
-		Players:   players,
-		Category:  category,
-		Quest:     questRun.QuestName,
-		Time:      duration,
-		Timestamp: questRun.QuestStartTime,
-		Episode:   int(questRun.Episode),
-		GameGzip:  gameGzip,
-	}
+	game := summaryFromQuestRun(questRun)
+	game.GameGzip = gameGzip
+
 	marshalled, err := dynamodbattribute.MarshalMap(game)
 	if err != nil {
 		return "", err
@@ -325,9 +313,20 @@ func summaryFromQuestRun(questRun *model.QuestRun) model.Game {
 		log.Printf("Failed parsing duration gameId %v", questRun.Id)
 	}
 	questAndCategory := fmt.Sprintf("%v+%v", questRun.QuestName, category)
+	playerNames := make([]string, 4)
+	playerClasses := make([]string, 4)
+	playerGcs := make([]string, 4)
+	for i, basePlayerInfo := range questRun.AllPlayers {
+		playerNames[i] = basePlayerInfo.Name
+		playerClasses[i] = basePlayerInfo.Class
+		playerGcs[i] = basePlayerInfo.GuildCard
+	}
 	return model.Game{
 		Id:               questRun.Id,
-		Player:           questRun.GuildCard,
+		Player:           questRun.UserName,
+		PlayerNames:      playerNames,
+		PlayerClasses:    playerClasses,
+		PlayerGcs:        playerGcs,
 		Category:         category,
 		Quest:            questRun.QuestName,
 		QuestAndCategory: questAndCategory,
@@ -370,11 +369,22 @@ func incrementAndGetGameId(dynamoClient *dynamodb.DynamoDB) (int, error) {
 func GetRecentGames(dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
 	thisMonth := time.Now().UTC().Format("01/2006")
 	lastMonth := time.Now().UTC().AddDate(0, -1, 0).Format("01/2006")
-	thisMonthGames, err := GetGamesForMonth(thisMonth, dynamoClient)
-	lastMonthGames, err := GetGamesForMonth(lastMonth, dynamoClient)
-	games := append(thisMonthGames, lastMonthGames...)
+	games, err := GetGamesForMonth(thisMonth, dynamoClient)
+	if err != nil {
+		return nil, err
+	}
+	if len(games) < 30 {
+		lastMonthGames, err := GetGamesForMonth(lastMonth, dynamoClient)
+		if err != nil {
+			return nil, err
+		}
+		games = append(games, lastMonthGames...)
+	}
 
 	sort.Slice(games, func(i, j int) bool { return games[i].Timestamp.After(games[j].Timestamp) })
+	if len(games) > 30 {
+		games = games[0:30]
+	}
 	return games, err
 }
 

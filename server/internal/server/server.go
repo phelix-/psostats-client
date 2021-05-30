@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"text/template"
 	"time"
@@ -54,6 +55,7 @@ func (s *Server) Run() {
 	s.app.Get("/info", s.InfoPage)
 	s.app.Get("/download", s.DownloadPage)
 	s.app.Get("/records", s.RecordsPage)
+	s.app.Get("/recordsV2", s.RecordsV2Page)
 	s.app.Get("/players/:player", s.PlayerPage)
 	s.app.Get("/gc/:gc", s.GcRedirect)
 	// API
@@ -102,7 +104,7 @@ func (s *Server) InfoPage(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	infoModel := struct {}{}
+	infoModel := struct{}{}
 	err = t.ExecuteTemplate(c.Response().BodyWriter(), "info", infoModel)
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
@@ -113,7 +115,7 @@ func (s *Server) DownloadPage(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	downloadModel := struct {}{}
+	downloadModel := struct{}{}
 	err = t.ExecuteTemplate(c.Response().BodyWriter(), "download", downloadModel)
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
@@ -160,6 +162,7 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 			InvincibleRanges     map[int]int
 			HpRanges             map[int]uint16
 			TpRanges             map[int]uint16
+			PbRanges             map[int]float32
 			MonstersAliveRanges  map[int]int
 			MonstersKilledRanges map[int]int
 			MesetaChargedRanges  map[int]int
@@ -173,6 +176,7 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 			InvincibleRanges:     invincibleRanges,
 			HpRanges:             convertU16ToXY(game.HP),
 			TpRanges:             convertU16ToXY(game.TP),
+			PbRanges:             convertF32ToXY(game.PB),
 			MonstersAliveRanges:  convertIntToXY(game.MonsterCount),
 			MonstersKilledRanges: convertIntToXY(game.MonstersKilledCount),
 			MesetaChargedRanges:  convertIntToXY(game.MesetaCharged),
@@ -227,6 +231,19 @@ func convertU16ToXY(values []uint16) map[int]uint16 {
 	return converted
 }
 
+func convertF32ToXY(values []float32) map[int]float32 {
+	converted := make(map[int]float32)
+	previousValue := float32(0)
+	for i, value := range values {
+		if i == 0 || value != previousValue {
+			converted[i] = value
+			previousValue = value
+		}
+	}
+	converted[len(values)-1] = previousValue
+	return converted
+}
+
 func convertToXY(values []int16) map[int]int16 {
 	converted := make(map[int]int16)
 	previousValue := int16(0)
@@ -238,6 +255,37 @@ func convertToXY(values []int16) map[int]int16 {
 	}
 	converted[len(values)-1] = previousValue
 	return converted
+}
+
+func (s *Server) RecordsV2Page(c *fiber.Ctx) error {
+	t, err := template.ParseFiles("./server/internal/templates/recordsV2.gohtml")
+	if err != nil {
+		return err
+	}
+
+	games, err := db.GetQuestRecords(s.dynamoClient)
+	if err != nil {
+		return err
+	}
+	recordModel := make(map[int]map[string]map[string]model.FormattedGame)
+	for _, game := range games {
+		formattedGame := getFormattedGame(game)
+		questsForEpisode := recordModel[game.Episode]
+		if questsForEpisode == nil {
+			questsForEpisode = make(map[string]map[string]model.FormattedGame)
+		}
+		gamesForQuest := questsForEpisode[game.Quest]
+		if gamesForQuest == nil {
+			gamesForQuest = make(map[string]model.FormattedGame)
+		}
+		gamesForQuest[game.Category] = formattedGame
+		questsForEpisode[game.Quest] = gamesForQuest
+		recordModel[game.Episode] = questsForEpisode
+	}
+
+	err = t.ExecuteTemplate(c.Response().BodyWriter(), "index", recordModel)
+	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
+	return err
 }
 
 func (s *Server) RecordsPage(c *fiber.Ctx) error {
@@ -277,9 +325,7 @@ func (s *Server) RecordsPage(c *fiber.Ctx) error {
 }
 
 func addFormattedFields(game *model.Game) {
-	minutes := game.Time / time.Minute
-	seconds := (game.Time % time.Minute) / time.Second
-	game.FormattedTime = fmt.Sprintf("%01d:%02d", minutes, seconds)
+	game.FormattedTime = formatDuration(game.Time)
 	shortCategory := game.Category
 	numPlayers := string(shortCategory[0])
 	pbRun := string(shortCategory[1])
@@ -293,6 +339,38 @@ func addFormattedFields(game *model.Game) {
 		log.Fatalf("Couldn't find time zone America/Chicago")
 	}
 	game.FormattedDate = game.Timestamp.In(location).Format("15:04 01/02/2006")
+}
+
+func getFormattedGame(game model.Game) model.FormattedGame {
+	shortCategory := game.Category
+	numPlayers, err := strconv.Atoi(string(shortCategory[0]))
+	if err != nil {
+		log.Fatalf("Couldn't atoi")
+	}
+	pbRun := string(shortCategory[1])
+	location, err := time.LoadLocation("America/Chicago")
+	if err != nil {
+		log.Fatalf("Couldn't find time zone America/Chicago")
+	}
+	players := make([]model.BasePlayerInfo, 4)
+	for i := range game.PlayerNames {
+		players[i] = model.BasePlayerInfo{
+			Name:      game.PlayerNames[i],
+			GuildCard: game.PlayerGcs[i],
+			Level:     0,
+			Class:     game.PlayerClasses[i],
+		}
+	}
+	return model.FormattedGame{
+		Id:               game.Id,
+		Players:          players,
+		PbRun:            pbRun == "p",
+		NumPlayers:       numPlayers,
+		Episode:          game.Episode,
+		Quest:            game.Quest,
+		Time:             formatDuration(game.Time),
+		Date:             game.Timestamp.In(location).Format("15:04 01/02/2006"),
+	}
 }
 
 func (s *Server) PlayerPage(c *fiber.Ctx) error {
@@ -356,85 +434,6 @@ func (s *Server) GcRedirect(c *fiber.Ctx) error {
 	return c.Redirect(fmt.Sprintf("/players/%v", playerName))
 }
 
-func (s *Server) PostGame(c *fiber.Ctx) error {
-	user, pass, err := s.getUserFromBasicAuth(c.Request().Header.Peek("Authorization"))
-	if err != nil {
-		c.Status(401)
-		return nil
-	}
-	userObject, err := s.userDb.GetUser(user)
-	if err != nil {
-		c.Status(401)
-		return nil
-	}
-	if passwordsMatch := DoPasswordsMatch(userObject.Password, pass); !passwordsMatch {
-		c.Status(401)
-		return nil
-	}
-	var questRun model.QuestRun
-	if err := c.BodyParser(&questRun); err != nil {
-		log.Printf("body parser")
-		c.Status(400)
-		return err
-	}
-	questDuration, err := time.ParseDuration(questRun.QuestDuration)
-	if err != nil {
-		c.Status(400)
-		return err
-	}
-	questRun.GuildCard = user
-	gameId, err := db.WriteGameById(&questRun, s.dynamoClient)
-	if err != nil {
-		log.Printf("write game %v", err)
-		c.Status(500)
-		return err
-	}
-	questRun.Id = gameId
-
-	for _, recentGame := range s.recentGames {
-		if gamesMatch(recentGame, questRun) {
-			log.Printf("game[%v] matched game[%v]", questRun.Id, recentGame.Id)
-		}
-	}
-	s.recentGames[s.recentGamesCount%s.recentGamesSize] = questRun
-	s.recentGamesCount++
-
-	if isLeaderboardCandidate(questRun) {
-		numPlayers := len(questRun.AllPlayers)
-		topRun, err := db.GetQuestRecord(questRun.QuestName, numPlayers, questRun.PbCategory, s.dynamoClient)
-		if err != nil {
-			log.Printf("failed to get top quest runs for gameId:%v - %v", gameId, err)
-		} else if topRun == nil || topRun.Time > questDuration {
-			log.Printf("new record for %v %vp pb:%v - %v",
-				questRun.QuestName, numPlayers, questRun.PbCategory, gameId)
-			if err = db.WriteGameByQuestRecord(&questRun, s.dynamoClient); err != nil {
-				log.Printf("failed to update leaderboard for game %v - %v", gameId, err)
-			}
-		}
-		if err = db.WriteGameByQuest(&questRun, s.dynamoClient); err != nil {
-			log.Printf("failed to update games by quest for game %v - %v", gameId, err)
-		}
-		playerPb, err := db.GetPlayerPB(questRun.QuestName, user, numPlayers, questRun.PbCategory, s.dynamoClient)
-		if err != nil {
-			log.Printf("failed to get player pb for gameId:%v - %v", gameId, err)
-		} else if playerPb == nil || playerPb.Time > questDuration {
-			log.Printf("new pb for %v %v %vp pb:%v - %v",
-				user, questRun.QuestName, numPlayers, questRun.PbCategory, gameId)
-			if err = db.WritePlayerPb(&questRun, s.dynamoClient); err != nil {
-				log.Printf("failed to update pb for game %v - %v", gameId, err)
-			}
-		}
-	}
-	if err = db.WriteGameByPlayer(&questRun, s.dynamoClient); err != nil {
-		log.Printf("failed to update games by player for game %v - %v", gameId, err)
-	}
-
-	c.Response().AppendBodyString(gameId)
-	log.Printf("got quest: %v %v, %v, %v, %v",
-		gameId, questRun.QuestName, questRun.PlayerName, questRun.Server, questRun.GuildCard)
-	return nil
-}
-
 func (s *Server) GetGame(c *fiber.Ctx) error {
 	gameId := c.Params("gameId")
 	game, err := db.GetGame(gameId, s.dynamoClient)
@@ -492,6 +491,9 @@ func gamesMatch(a, b model.QuestRun) bool {
 		return false
 	}
 	if a.GuildCard == b.GuildCard {
+		return false
+	}
+	if a.UserName == b.UserName {
 		return false
 	}
 	if a.QuestStartTime.Add(time.Second*-30).After(b.QuestStartTime) &&

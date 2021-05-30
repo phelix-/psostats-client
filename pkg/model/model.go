@@ -16,6 +16,7 @@ type QuestRun struct {
 	PlayerName          string
 	PlayerClass         string
 	GuildCard           string
+	UserName            string
 	AllPlayers          []BasePlayerInfo
 	Id                  string
 	Difficulty          string
@@ -29,6 +30,7 @@ type QuestRun struct {
 	DeathCount          int
 	HP                  []uint16
 	TP                  []uint16
+	PB                  []float32
 	Meseta              []uint32
 	MesetaCharged       []int
 	Room                []uint16
@@ -81,7 +83,9 @@ type Event struct {
 type Game struct {
 	Id               string
 	Player           string
-	Players          map[string]string
+	PlayerNames      []string
+	PlayerClasses    []string
+	PlayerGcs        []string
 	Category         string
 	Episode          int
 	Quest            string
@@ -91,4 +95,18 @@ type Game struct {
 	FormattedTime    string
 	FormattedDate    string
 	GameGzip         []byte
+	P2Gzip           []byte
+	P3Gzip           []byte
+	P4Gzip           []byte
+}
+
+type FormattedGame struct {
+	Id               string
+	Players          []BasePlayerInfo
+	PbRun            bool
+	NumPlayers       int
+	Episode          int
+	Quest            string
+	Time             string
+	Date             string
 }

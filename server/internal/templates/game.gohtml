@@ -10,10 +10,16 @@
     <style>
         .psostats-chart {
             background-color: #444;
-            margin-bottom: 16px;
+            margin-bottom: 4px;
         }
         .psostats-equipment {
             padding: 8px 16px;
+        }
+        .current-player {
+            font-weight: bold;
+        }
+        .row {
+            margin-bottom: 16px;
         }
     </style>
     <body>
@@ -47,10 +53,10 @@
         </div>
         <div class="row psostats-questbasics">
             <div class="col-12 col-lg-6">
-                <ul class="list-group list-group-flush" style="margin-bottom: 16px;">
+                <ul class="list-group list-group-flush" style="margin-bottom: 4px;">
                     <li class="list-group-item">Category: <span style="float: right">{{ len .Game.AllPlayers }}p {{ if .Game.PbCategory}}PB{{else}}No-PB{{end}}</span></li>
                     <li class="list-group-item">Difficulty: <span style="float: right">{{ .Game.Difficulty }}</span></li>
-                    <a class="list-group-item" href="/players/{{ .Game.GuildCard }}">Player: <span style="float: right">{{ .Game.GuildCard }}</span></a>
+                    <a class="list-group-item" href="/players/{{ .Game.UserName }}">Player: <span style="float: right">{{ .Game.UserName }}</span></a>
                     <li class="list-group-item">Deaths: <span style="float: right">{{ .Game.DeathCount }}</span></li>
                     <li class="list-group-item">Enemies Killed: <span style="float: right">{{ .Game.MonstersDead }}</span></li>
                     {{ if gt .Game.FTUsed 0 }}<li class="list-group-item">FT Used: <span style="float: right">{{ .Game.FTUsed }}</span></li> {{ end }}
@@ -58,23 +64,26 @@
                     {{ if gt .Game.CTUsed 0 }}<li class="list-group-item">CT Used: <span style="float: right">{{ .Game.CTUsed }}</span></li> {{ end }}
                     {{ if gt .Game.TPUsed 0 }}<li class="list-group-item">TP Used: <span style="float: right">{{ .Game.TPUsed }}</span></li> {{ end }}
                 </ul>
-                <ul class="list-group list-group-flush" style="margin-bottom: 16px;">
+                <ul class="list-group list-group-flush" style="margin-bottom: 4px;">
                     {{$outer := .Game}}
-                    {{ range .Game.AllPlayers }} <li class="list-group-item">{{ .Class }} (Lv.{{ .Level }}) {{ .Name }}</li> {{ end }}
+                    {{ range .Game.AllPlayers }}
+
+                        <li class="list-group-item{{ if eq .Name $outer.PlayerName }} current-player{{ end }}">{{ .Class }} (Lv.{{ .Level }}) {{ .Name }}</li>
+                    {{ end }}
 
                 </ul>
             </div>
             <div class="col-12 col-lg-6">
                 <div class="psostats-chart">
-                    <h4 class="psostats-equipment">Equipment</h4>
+                    <h4 class="psostats-equipment">{{ .Game.PlayerName}}'s Equipment</h4>
                     {{ if .Game.EquipmentUsedTime.Weapon}}
-                    <div id="weapon-donut" ></div>
-                    <div class="psostats-equipment">
-                        {{ range $key, $value := .Game.EquipmentUsedTime.Frame }} <div><img alt="Frame" src="/static/Frame_icon.png"/> {{ $key }}</div>{{ end}}
-                        {{ range $key, $value := .Game.EquipmentUsedTime.Unit }} <div><img alt="Unit" src="/static/Unit_icon.png" style="margin-left: 16px;"/> {{ $key }}</div> {{ end}}
-                        {{ range $key, $value := .Game.EquipmentUsedTime.Barrier }} <div><img alt="Barrier" src="/static/Shield_icon.png"/> {{ $key }}</div> {{ end}}
-                        {{ range $key, $value := .Game.EquipmentUsedTime.Mag }} <div><img alt="Mag" src="/static/Mag_icon.png"/> {{ $key }}</div> {{ end}}
-                    </div>
+                        <div id="weapon-donut" ></div>
+                        <div class="psostats-equipment">
+                            {{ range $key, $value := .Game.EquipmentUsedTime.Frame }} <div><img alt="Frame" src="/static/Frame_icon.png"/> {{ $key }}</div>{{ end}}
+                            {{ range $key, $value := .Game.EquipmentUsedTime.Unit }} <div><img alt="Unit" src="/static/Unit_icon.png" style="margin-left: 16px;"/> {{ $key }}</div> {{ end}}
+                            {{ range $key, $value := .Game.EquipmentUsedTime.Barrier }} <div><img alt="Barrier" src="/static/Shield_icon.png"/> {{ $key }}</div> {{ end}}
+                            {{ range $key, $value := .Game.EquipmentUsedTime.Mag }} <div><img alt="Mag" src="/static/Mag_icon.png"/> {{ $key }}</div> {{ end}}
+                        </div>
                     {{ end }}
                 </div>
             </div>
@@ -105,6 +114,11 @@
                     <div id="sd-chart"></div>
                 </div>
             </div>
+            <div class="col-12">
+                <div class="psostats-chart">
+                    <div id="pb-chart"></div>
+                </div>
+            </div>
 
             <div class="col-12">
                 <div class="psostats-chart">
@@ -112,311 +126,345 @@
                 </div>
             </div>
             {{ if gt .Game.FTUsed 0 }}
-            <div class="col-12">
-                <div class="psostats-chart">
-                    <div id="ft-chart"></div>
+                <div class="col-12">
+                    <div class="psostats-chart">
+                        <div id="ft-chart"></div>
+                    </div>
                 </div>
-            </div>
             {{ end }}
         </div>
     </div>
     </body>
     </html>
-        <script>
-            window.Apex = {
-                chart: {
-                    foreColor: '#ccc',
-                    toolbar: {
-                        show: false
-                    },
-                    width: "100%",
-                    height: 230,
+    <script>
+        window.Apex = {
+            chart: {
+                foreColor: '#ccc',
+                toolbar: {
+                    show: false
                 },
-                tooltip: {
-                    theme: 'dark'
-                },
-                stroke: {
-                    curve: 'stepline',
-                    width: 2
-                },
-                xaxis: { tickAmount: 10 },
-                yaxis: {
-                    labels: {
-                        minWidth: 40
-                    }
-                },
-            };
+                width: "100%",
+                height: 230,
+            },
+            tooltip: {
+                theme: 'dark'
+            },
+            stroke: {
+                curve: 'stepline',
+                width: 2
+            },
+            xaxis: { tickAmount: 10 },
+            yaxis: {
+                labels: {
+                    minWidth: 40
+                }
+            },
+        };
 
-            const options = {
-                title: {
-                    text: 'HP'
-                },
-                chart: {
-                    id: 'hptp',
-                    type: 'line',
-                    group: "group1",
-                },
-                stroke: {
-                    width: 3
-                },
-                series: [{
-                    name: 'HP',
-                    data: [{{ range $key, $val := .HpRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
-                    color: '#a43a3a'
-                }{{if gt .Game.TPUsed 0}},{
-                    name: 'TP',
-                    data: [{{ range $key, $val := .TpRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
-                    color: '#64bcf2'
-                } {{end}}],
-                annotations: {
-                    xaxis: [
-                        {{ range .Game.Events }}
-                        {x: {{ .Second }}, label: { text: '{{ .Description }}', borderWidth: 0, style: { color: '#333' } }},
-                        {{ end }}
+        const options = {
+            title: {
+                text: 'HP'
+            },
+            chart: {
+                id: 'hptp',
+                type: 'line',
+                group: "group1",
+            },
+            stroke: {
+                width: 3
+            },
+            series: [{
+                name: 'HP',
+                data: [{{ range $key, $val := .HpRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
+                color: '#a43a3a'
+            }{{if gt .Game.TPUsed 0}},{
+                name: 'TP',
+                data: [{{ range $key, $val := .TpRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
+                color: '#64bcf2'
+            } {{end}}],
+            annotations: {
+                xaxis: [
+                    {{ range .Game.Events }}
+                    {x: {{ .Second }}, label: { text: '{{ .Description }}', borderWidth: 0, style: { color: '#333' } }},
+                    {{ end }}
                         {{ range $key, $value := .InvincibleRanges }}{x: {{ $key }}, x2: {{ $value }}, opacity: 0.6, fillColor: '#ffd412'},{{ end }}
-                    ]
-                }
-            };
-            const monstersAliveOptions = {
-                title: {
-                    text: 'Monsters Alive'
-                },
-                chart: {
-                    id: 'monstersAlive',
-                    type: 'area',
-                    group: "group1",
-                },
-                stroke: {
-                    curve: 'stepline',
-                },
-                series: [{
-                    name: 'Monsters Alive',
-                    data: [{{ range $key, $val := .MonstersAliveRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
-                    color: '#ccc'
-                }],
-                fill: {
-                    opacity: 1,
-                    type: 'solid',
-                },
-                dataLabels: {
-                    enabled: false
-                },
-                annotations: {
-                    xaxis: [
-                        {{ range .Game.Events }}
-                        {{ if ne .Description "Died"}}
-                        {x: {{ .Second }}, label: { text: '{{ .Description }}', borderWidth: 0, style: { color: '#333' } }},
-                        {{ end }}
-                        {{ end }}
-                    ]
-                }
+                ]
             }
-            const monsterHpPoolOptions = {
-                title: {
-                    text: 'Total Monster HP'
-                },
-                chart: {
-                    id: 'monsterHpPool',
-                    type: 'area',
-                    group: "group1",
-                },
-                series: [{
-                    name: 'Total Monster HP',
-                    data: [{{ range $key, $val := .HpPoolRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
-                }],
-                fill: {
-                    opacity: 1,
-                    type: 'solid',
-                },
-                colors: ['#ccc'],
-                dataLabels: {
-                    enabled: false
-                },
-                annotations: {
-                    xaxis: [
-                        {{ range .Game.Events }}
-                        {{ if ne .Description "Died"}}
-                        {x: {{ .Second }}, label: { text: '{{ .Description }}', borderWidth: 0, style: { color: '#333' } }},
-                        {{ end }}
-                        {{ end }}
-                    ]
-                }
+        };
+        const monstersAliveOptions = {
+            title: {
+                text: 'Monsters Alive'
+            },
+            chart: {
+                id: 'monstersAlive',
+                type: 'area',
+                group: "group1",
+            },
+            stroke: {
+                curve: 'stepline',
+            },
+            series: [{
+                name: 'Monsters Alive',
+                data: [{{ range $key, $val := .MonstersAliveRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
+                color: '#ccc'
+            }],
+            fill: {
+                opacity: 1,
+                type: 'solid',
+            },
+            dataLabels: {
+                enabled: false
+            },
+            annotations: {
+                xaxis: [
+                    {{ range .Game.Events }}
+                    {{ if ne .Description "Died"}}
+                    {x: {{ .Second }}, label: { text: '{{ .Description }}', borderWidth: 0, style: { color: '#333' } }},
+                    {{ end }}
+                    {{ end }}
+                ]
             }
-            const monstersKilledOptions = {
-                title: {
-                    text: 'Monsters Killed'
-                },
-                chart: {
-                    id: 'monstersKilled',
-                    type: 'area',
-                    group: "group1",
-                },
-                stroke: {
-                    curve: 'stepline',
-                },
-                series: [{
-                    name: 'Monsters Killed',
-                    data: [{{ range $key, $val := .MonstersKilledRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
-                    color: '#ccc'
-                }],
-                fill: {
-                    opacity: 1,
-                    type: 'solid',
-                },
-                dataLabels: {
-                    enabled: false
-                },
-                annotations: {
-                    xaxis: [
-                        {{ range .Game.Events }}
-                        {{ if ne .Description "Died"}}
-                        {x: {{ .Second }}, label: { text: '{{ .Description }}', borderWidth: 0, style: { color: '#333' } }},
-                        {{ end }}
-                        {{ end }}
-                    ]
-                }
+        }
+        const monsterHpPoolOptions = {
+            title: {
+                text: 'Total Monster HP'
+            },
+            chart: {
+                id: 'monsterHpPool',
+                type: 'area',
+                group: "group1",
+            },
+            series: [{
+                name: 'Total Monster HP',
+                data: [{{ range $key, $val := .HpPoolRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
+            }],
+            fill: {
+                opacity: 1,
+                type: 'solid',
+            },
+            colors: ['#ccc'],
+            dataLabels: {
+                enabled: false
+            },
+            annotations: {
+                xaxis: [
+                    {{ range .Game.Events }}
+                    {{ if ne .Description "Died"}}
+                    {x: {{ .Second }}, label: { text: '{{ .Description }}', borderWidth: 0, style: { color: '#333' } }},
+                    {{ end }}
+                    {{ end }}
+                ]
             }
-            const sdOptions = {
-                title: {
-                    text: 'Shifta/Deband'
-                },
-                chart: {
-                    id: 'sd',
-                    type: 'area',
-                    group: "group1",
-                },
-                stroke: {
-                    curve: 'stepline',
-                },
-                series: [{
-                    name: 'Deband',
-                    data: [{{ range $key, $val := .DebandRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
-                    color: '#64bcf2'
-                },{
-                    name: 'Shifta',
-                    data: [{{ range $key, $val := .ShiftaRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
-                    color: '#a43a3a'
-                }],
-                fill: {
-                    opacity: .4,
-                    type: 'solid',
-                },
-                dataLabels: {
-                    enabled: false
-                },
-                annotations: {
-                    xaxis: [
-                        {{ range .Game.Events }}
-                        {{ if ne .Description "Died"}}
-                        {x: {{ .Second }}, label: { text: '{{ .Description }}', borderWidth: 0, style: { color: '#333' } }},
-                        {{ end }}
-                        {{ end }}
-                    ]
-                }
+        }
+        const monstersKilledOptions = {
+            title: {
+                text: 'Monsters Killed'
+            },
+            chart: {
+                id: 'monstersKilled',
+                type: 'area',
+                group: "group1",
+            },
+            stroke: {
+                curve: 'stepline',
+            },
+            series: [{
+                name: 'Monsters Killed',
+                data: [{{ range $key, $val := .MonstersKilledRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
+                color: '#ccc'
+            }],
+            fill: {
+                opacity: 1,
+                type: 'solid',
+            },
+            dataLabels: {
+                enabled: false
+            },
+            annotations: {
+                xaxis: [
+                    {{ range .Game.Events }}
+                    {{ if ne .Description "Died"}}
+                    {x: {{ .Second }}, label: { text: '{{ .Description }}', borderWidth: 0, style: { color: '#333' } }},
+                    {{ end }}
+                    {{ end }}
+                ]
             }
-            const mesetaOptions = {
-                title: {
-                    text: 'Meseta Charged'
-                },
-                chart: {
-                    id: 'meseta',
-                    type: 'area',
-                    group: "group1",
-                },
-                stroke: {
-                    curve: 'stepline',
-                },
-                series: [{
-                    name: 'Meseta Charged',
-                    data: [{{ range $key, $val := .MesetaChargedRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
-                    color: '#b08313'
-                }],
-                fill: {
-                    opacity: .4,
-                    type: 'solid',
-                },
-                dataLabels: {
-                    enabled: false
-                },
-                annotations: {
-                    xaxis: [
-                        {{ range .Game.Events }}
-                        {{ if ne .Description "Died"}}
-                        {x: {{ .Second }}, label: { text: '{{ .Description }}', borderWidth: 0, style: { color: '#333' } }},
-                        {{ end }}
-                        {{ end }}
-                    ]
-                }
+        }
+        const sdOptions = {
+            title: {
+                text: 'Shifta/Deband'
+            },
+            chart: {
+                id: 'sd',
+                type: 'area',
+                group: "group1",
+            },
+            stroke: {
+                curve: 'stepline',
+            },
+            series: [{
+                name: 'Deband',
+                data: [{{ range $key, $val := .DebandRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
+                color: '#64bcf2'
+            },{
+                name: 'Shifta',
+                data: [{{ range $key, $val := .ShiftaRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
+                color: '#a43a3a'
+            }],
+            fill: {
+                opacity: .4,
+                type: 'solid',
+            },
+            dataLabels: {
+                enabled: false
+            },
+            annotations: {
+                xaxis: [
+                    {{ range .Game.Events }}
+                    {{ if ne .Description "Died"}}
+                    {x: {{ .Second }}, label: { text: '{{ .Description }}', borderWidth: 0, style: { color: '#333' } }},
+                    {{ end }}
+                    {{ end }}
+                ]
             }
-            const hpChart = new ApexCharts(document.querySelector("#hp-chart"), options);
-            hpChart.render();
-            const monstersAliveChart = new ApexCharts(document.querySelector("#monsters-alive-chart"), monstersAliveOptions);
-            monstersAliveChart.render();
-            const monsterHpPoolChart = new ApexCharts(document.querySelector("#monsters-hp-chart"), monsterHpPoolOptions);
-            monsterHpPoolChart.render();
-            const monstersKilledChart = new ApexCharts(document.querySelector("#monsters-killed-chart"), monstersKilledOptions);
-            monstersKilledChart.render();
-            const sdChart = new ApexCharts(document.querySelector("#sd-chart"), sdOptions);
-            sdChart.render();
-            const mesetaChart = new ApexCharts(document.querySelector("#meseta-chart"), mesetaOptions);
-            mesetaChart.render();
-            {{ if gt .Game.FTUsed 0 }}
-            const ftOptions = {
-                title: {
-                    text: 'Freeze Traps'
-                },
-                chart: {
-                    id: 'ft',
-                    type: 'line',
-                    group: "group1",
-                },
-                stroke: {
-                    width: 3
-                },
-                series: [{
-                    name: 'FT',
-                    data: [{{ range $key, $val := .FreezeTrapRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
-                    color: '#64bcf2'
-                }],
-                xaxis: { tickAmount: 10 },
-                annotations: {
-                    xaxis: [
-                        {{ range .Game.Events }}
-                        {{ if ne .Description "Died"}}
-                        {x: {{ .Second }}, label: { text: '{{ .Description }}', borderWidth: 0, style: { color: '#333' } }},
-                        {{ end }}
-                        {{ end }}
-                    ]
-                }
-            }
-            const ftChart = new ApexCharts(document.querySelector("#ft-chart"), ftOptions);
-            ftChart.render();
-            {{ end }}
+        }
 
-            const weaponDonutOptions = {
-                series: [ {{ range $key, $value := .Game.EquipmentUsedTime.Weapon }} {{ $value }}, {{ end }}],
-                labels: [ {{ range $key, $value := .Game.EquipmentUsedTime.Weapon }} "{{ $key }}", {{ end }}],
-                chart: {
-                    type: 'donut',
-                },
-                theme: {
-                    palette: 'palette3'
-                },
-                responsive: [{
-                    breakpoint: 480,
-                    options: {
-                        chart: {
-                            width: 200
-                        },
-                        legend: {
-                            position: 'bottom'
-                        }
+        const pbOptions = {
+            title: {
+                text: 'Photon Blast'
+            },
+            chart: {
+                id: 'pb',
+                type: 'area',
+                group: "group1",
+            },
+            stroke: {
+                curve: 'stepline',
+            },
+            series: [{
+                name: 'PB',
+                data: [{{ range $key, $val := .PbRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
+                color: '#ccc'
+            }],
+            fill: {
+                opacity: .4,
+                type: 'solid',
+            },
+            annotations: {
+                xaxis: [
+                    {{ range .Game.Events }}
+                    {{ if ne .Description "Died"}}
+                    {x: {{ .Second }}, label: { text: '{{ .Description }}', borderWidth: 0, style: { color: '#333' } }},
+                    {{ end }}
+                    {{ end }}
+                ]
+            }
+        }
+        const mesetaOptions = {
+            title: {
+                text: 'Meseta Charged'
+            },
+            chart: {
+                id: 'meseta',
+                type: 'area',
+                group: "group1",
+            },
+            stroke: {
+                curve: 'stepline',
+            },
+            series: [{
+                name: 'Meseta Charged',
+                data: [{{ range $key, $val := .MesetaChargedRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
+                color: '#b08313'
+            }],
+            fill: {
+                opacity: .4,
+                type: 'solid',
+            },
+            dataLabels: {
+                enabled: false
+            },
+            annotations: {
+                xaxis: [
+                    {{ range .Game.Events }}
+                    {{ if ne .Description "Died"}}
+                    {x: {{ .Second }}, label: { text: '{{ .Description }}', borderWidth: 0, style: { color: '#333' } }},
+                    {{ end }}
+                    {{ end }}
+                ]
+            }
+        }
+        const hpChart = new ApexCharts(document.querySelector("#hp-chart"), options);
+        hpChart.render();
+        const monstersAliveChart = new ApexCharts(document.querySelector("#monsters-alive-chart"), monstersAliveOptions);
+        monstersAliveChart.render();
+        const monsterHpPoolChart = new ApexCharts(document.querySelector("#monsters-hp-chart"), monsterHpPoolOptions);
+        monsterHpPoolChart.render();
+        const monstersKilledChart = new ApexCharts(document.querySelector("#monsters-killed-chart"), monstersKilledOptions);
+        monstersKilledChart.render();
+        const sdChart = new ApexCharts(document.querySelector("#sd-chart"), sdOptions);
+        sdChart.render();
+        const pbChart = new ApexCharts(document.querySelector("#pb-chart"), pbOptions);
+        pbChart.render();
+        const mesetaChart = new ApexCharts(document.querySelector("#meseta-chart"), mesetaOptions);
+        mesetaChart.render();
+        {{ if gt .Game.FTUsed 0 }}
+        const ftOptions = {
+            title: {
+                text: 'Freeze Traps'
+            },
+            chart: {
+                id: 'ft',
+                type: 'line',
+                group: "group1",
+            },
+            stroke: {
+                width: 3
+            },
+            series: [{
+                name: 'FT',
+                data: [{{ range $key, $val := .FreezeTrapRanges }} [{{ $key }}, {{ $val}}], {{ end }}],
+                color: '#64bcf2'
+            }],
+            xaxis: { tickAmount: 10 },
+            annotations: {
+                xaxis: [
+                    {{ range .Game.Events }}
+                    {{ if ne .Description "Died"}}
+                    {x: {{ .Second }}, label: { text: '{{ .Description }}', borderWidth: 0, style: { color: '#333' } }},
+                    {{ end }}
+                    {{ end }}
+                ]
+            }
+        }
+        const ftChart = new ApexCharts(document.querySelector("#ft-chart"), ftOptions);
+        ftChart.render();
+        {{ end }}
+
+        const weaponDonutOptions = {
+            series: [ {{ range $key, $value := .Game.EquipmentUsedTime.Weapon }} {{ $value }}, {{ end }}],
+            labels: [ {{ range $key, $value := .Game.EquipmentUsedTime.Weapon }} "{{ $key }}", {{ end }}],
+            chart: {
+                type: 'donut',
+            },
+            theme: {
+                palette: 'palette3'
+            },
+            responsive: [{
+                breakpoint: 480,
+                options: {
+                    chart: {
+                        width: 200
+                    },
+                    legend: {
+                        position: 'bottom'
                     }
-                }]
-            };
+                }
+            }]
+        };
 
-            const weaponDonutChart = new ApexCharts(document.querySelector("#weapon-donut"), weaponDonutOptions);
-            weaponDonutChart.render();
+        const weaponDonutChart = new ApexCharts(document.querySelector("#weapon-donut"), weaponDonutOptions);
+        weaponDonutChart.render();
 
-        </script>
+    </script>
 {{end}}
