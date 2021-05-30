@@ -1,6 +1,7 @@
 {{define "game"}}
     <html lang="en">
     <head>
+        <meta name="viewport" content="width=device-width">
         <title>PSOStats</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
         <link href="/main.css" rel="stylesheet" type="text/css">
@@ -153,6 +154,9 @@
                 curve: 'stepline',
                 width: 2
             },
+            dataLabels: {
+                enabled: false
+            },
             xaxis: { tickAmount: 10 },
             yaxis: {
                 labels: {
@@ -212,9 +216,6 @@
                 opacity: 1,
                 type: 'solid',
             },
-            dataLabels: {
-                enabled: false
-            },
             annotations: {
                 xaxis: [
                     {{ range .Game.Events }}
@@ -243,9 +244,6 @@
                 type: 'solid',
             },
             colors: ['#ccc'],
-            dataLabels: {
-                enabled: false
-            },
             annotations: {
                 xaxis: [
                     {{ range .Game.Events }}
@@ -276,9 +274,6 @@
             fill: {
                 opacity: 1,
                 type: 'solid',
-            },
-            dataLabels: {
-                enabled: false
             },
             annotations: {
                 xaxis: [
@@ -314,9 +309,6 @@
             fill: {
                 opacity: .4,
                 type: 'solid',
-            },
-            dataLabels: {
-                enabled: false
             },
             annotations: {
                 xaxis: [
@@ -380,9 +372,6 @@
             fill: {
                 opacity: .4,
                 type: 'solid',
-            },
-            dataLabels: {
-                enabled: false
             },
             annotations: {
                 xaxis: [
