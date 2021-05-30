@@ -68,7 +68,7 @@
                     {{$outer := .Game}}
                     {{ range .Game.AllPlayers }}
 
-                        <li class="list-group-item{{ if eq .Name $outer.PlayerName }} current-player{{ end }}">{{ .Class }} (Lv.{{ .Level }}) {{ .Name }}</li>
+                        <li class="list-group-item{{ if eq .GuildCard $outer.GuildCard }} current-player{{ end }}">{{ .Class }} (Lv.{{ .Level }}) {{ .Name }}</li>
                     {{ end }}
 
                 </ul>

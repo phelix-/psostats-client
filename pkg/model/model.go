@@ -95,18 +95,19 @@ type Game struct {
 	FormattedTime    string
 	FormattedDate    string
 	GameGzip         []byte
+	P1Gzip           []byte
 	P2Gzip           []byte
 	P3Gzip           []byte
 	P4Gzip           []byte
 }
 
 type FormattedGame struct {
-	Id               string
-	Players          []BasePlayerInfo
-	PbRun            bool
-	NumPlayers       int
-	Episode          int
-	Quest            string
-	Time             string
-	Date             string
+	Id         string
+	Players    []BasePlayerInfo
+	PbRun      bool
+	NumPlayers int
+	Episode    int
+	Quest      string
+	Time       string
+	Date       string
 }

@@ -53,7 +53,10 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 	}
 
 	if matchingGame != nil {
-
+		err := db.AttachGameToId(questRun, matchingGame.Id, s.dynamoClient)
+		if err != nil {
+			log.Printf("%v", err)
+		}
 	} else {
 		s.recentGames[s.recentGamesCount%s.recentGamesSize] = questRun
 		s.recentGamesCount++
@@ -61,14 +64,16 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 
 	if isLeaderboardCandidate(questRun) {
 		numPlayers := len(questRun.AllPlayers)
-		topRun, err := db.GetQuestRecord(questRun.QuestName, numPlayers, questRun.PbCategory, s.dynamoClient)
-		if err != nil {
-			log.Printf("failed to get top quest runs for gameId:%v - %v", gameId, err)
-		} else if topRun == nil || topRun.Time > questDuration {
-			log.Printf("new record for %v %vp pb:%v - %v",
-				questRun.QuestName, numPlayers, questRun.PbCategory, gameId)
-			if err = db.WriteGameByQuestRecord(&questRun, s.dynamoClient); err != nil {
-				log.Printf("failed to update leaderboard for game %v - %v", gameId, err)
+		if matchingGame == nil {
+			topRun, err := db.GetQuestRecord(questRun.QuestName, numPlayers, questRun.PbCategory, s.dynamoClient)
+			if err != nil {
+				log.Printf("failed to get top quest runs for gameId:%v - %v", gameId, err)
+			} else if topRun == nil || topRun.Time > questDuration {
+				log.Printf("new record for %v %vp pb:%v - %v",
+					questRun.QuestName, numPlayers, questRun.PbCategory, gameId)
+				if err = db.WriteGameByQuestRecord(&questRun, s.dynamoClient); err != nil {
+					log.Printf("failed to update leaderboard for game %v - %v", gameId, err)
+				}
 			}
 		}
 		if err = db.WriteGameByQuest(&questRun, s.dynamoClient); err != nil {
