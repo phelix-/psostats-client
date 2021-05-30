@@ -108,7 +108,9 @@
                                 </div>
                                 <div class="col-7">
                                     {{ range $game.Players }}
-                                        <div><span style="width:85px; display: inline-block">{{ index .Class }}</span>{{ .Name }}</div>
+                                        {{ if gt (len .Name) 0 }}
+                                        <div><a href="/game/{{ $game.Id }}"><span style="width:85px; display: inline-block">{{ index .Class }}</span>{{ .Name }}</a></div>
+                                        {{ end }}
                                     {{ end }}
                                 </div>
                             </div>

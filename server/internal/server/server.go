@@ -54,8 +54,8 @@ func (s *Server) Run() {
 	s.app.Get("/game/:gameId", s.GamePage)
 	s.app.Get("/info", s.InfoPage)
 	s.app.Get("/download", s.DownloadPage)
-	s.app.Get("/records", s.RecordsPage)
-	s.app.Get("/recordsV2", s.RecordsV2Page)
+	s.app.Get("/records", s.RecordsV2Page)
+	s.app.Get("/recordsV2", s.RecordsPage)
 	s.app.Get("/players/:player", s.PlayerPage)
 	s.app.Get("/gc/:gc", s.GcRedirect)
 	// API
