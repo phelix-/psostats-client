@@ -47,7 +47,6 @@ func New(dynamo *dynamodb.DynamoDB) *Server {
 }
 
 func (s *Server) Run() {
-	s.app.Static("/main.css", "./static/main.css", fiber.Static{})
 	s.app.Static("/favicon.ico", "./static/favicon.ico", fiber.Static{})
 	s.app.Static("/static/", "./static/", fiber.Static{})
 	// UI
@@ -58,11 +57,12 @@ func (s *Server) Run() {
 	s.app.Get("/records", s.RecordsV2Page)
 	s.app.Get("/recordsV2", s.RecordsPage)
 	s.app.Get("/players/:player", s.PlayerPage)
+	s.app.Get("/playersV2", s.PlayerV2Page)
 	s.app.Get("/gc/:gc", s.GcRedirect)
 	// API
 	s.app.Post("/api/game", s.PostGame)
 	s.app.Get("/api/game/:gameId", s.GetGame)
-	s.app.Get("/api/motd", s.GetMotd)
+	s.app.Post("/api/motd", s.PostMotd)
 
 	if certLocation, found := os.LookupEnv("CERT"); found {
 		keyLocation := os.Getenv("KEY")
@@ -108,6 +108,17 @@ func (s *Server) InfoPage(c *fiber.Ctx) error {
 	}
 	infoModel := struct{}{}
 	err = t.ExecuteTemplate(c.Response().BodyWriter(), "info", infoModel)
+	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
+	return err
+}
+
+func (s *Server) PlayerV2Page(c *fiber.Ctx) error {
+	t, err := template.ParseFiles("./server/internal/templates/playerV2.gohtml")
+	if err != nil {
+		return err
+	}
+	infoModel := struct{}{}
+	err = t.ExecuteTemplate(c.Response().BodyWriter(), "player", infoModel)
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
 }
@@ -527,14 +538,21 @@ func (s *Server) GetGame(c *fiber.Ctx) error {
 	}
 }
 
-func (s *Server) GetMotd(c *fiber.Ctx) error {
-	authorized, _ := s.verifyAuth(&c.Request().Header)
-	motd := struct {
-		Authorized bool
-		Message    string
-	}{
+func (s *Server) PostMotd(c *fiber.Ctx) error {
+	authorized, user := s.verifyAuth(&c.Request().Header)
+	var clientInfo model.ClientInfo
+	if err := c.BodyParser(&clientInfo); err != nil {
+		log.Printf("body parser")
+		c.Status(400)
+		return err
+	}
+	message := fmt.Sprintf("Logged in as %v, up to date", user)
+	if clientInfo.VersionMajor < 0 || clientInfo.VersionMinor < 7 || clientInfo.VersionPatch < 1 {
+		message = "Version 0.7.1 available! Head to https://psostats.com/download to update"
+	}
+	motd := model.MessageOfTheDay{
 		Authorized: authorized,
-		Message:    "Message of the day test",
+		Message:    message,
 	}
 	jsonBytes, err := json.Marshal(motd)
 	if err != nil {

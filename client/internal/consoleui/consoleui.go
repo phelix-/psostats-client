@@ -4,6 +4,8 @@ package consoleui
 import (
 	"fmt"
 	"github.com/phelix-/psostats/v2/client/internal/client/config"
+	"github.com/phelix-/psostats/v2/pkg/model"
+	"strings"
 	"time"
 
 	ui "github.com/gizak/termui/v3"
@@ -13,29 +15,31 @@ import (
 )
 
 type Data struct {
-	Version   string
-	Connected bool
-	Status    string
+	clientInfo model.ClientInfo
+	Connected  bool
+	Status     string
 }
 
 type ConsoleUI struct {
 	data Data
+	Motd string
 }
 
-func New(version string) (*ConsoleUI, error) {
+func New(clientInfo model.ClientInfo) (*ConsoleUI, error) {
 	err := ui.Init()
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize termui: %w", err)
 	}
 
 	data := Data{
-		Connected: false,
-		Status:    "Initializing",
-		Version:   version,
+		Connected:  false,
+		Status:     "Initializing",
+		clientInfo: clientInfo,
 	}
 
 	return &ConsoleUI{
 		data,
+		"",
 	}, nil
 }
 
@@ -54,6 +58,7 @@ func (cui *ConsoleUI) DrawScreen(
 	floorName string,
 ) error {
 	cui.drawLogo()
+	cui.drawMotd()
 	cui.drawConnection()
 	cui.drawRecording(gameState)
 	cui.DrawHP(playerData)
@@ -74,12 +79,28 @@ func (cui *ConsoleUI) drawLogo() {
  ██▀·▄▀▀▀█▄ ▄█▀▄ ▄▀▀▀█▄ ▐█.▪▄█▀▀█  ▐█.▪▄▀▀▀█▄
 ▐█▪·•▐█▄▪▐█▐█▌.▐▌▐█▄▪▐█ ▐█▌·▐█ ▪▐▌ ▐█▌·▐█▄▪▐█
 .▀    ▀▀▀▀  ▀█▄▀▪ ▀▀▀▀  ▀▀▀  ▀  ▀  ▀▀▀  ▀▀▀▀ 
-                                       v%v`
-	logo.Text = fmt.Sprintf(logo1, cui.data.Version)
+                                       v%v.%v.%v`
+	logo.Text = fmt.Sprintf(logo1, cui.data.clientInfo.VersionMajor, cui.data.clientInfo.VersionMinor,
+		cui.data.clientInfo.VersionPatch)
 	logo.Border = false
 	logo.SetRect(0, 0, 130, 8)
 	logo.TextStyle.Fg = ui.ColorCyan
 	ui.Render(logo)
+}
+
+func (cui *ConsoleUI) drawMotd() {
+	paragraph := widgets.NewParagraph()
+	paragraph.Text = cui.Motd
+	if strings.Contains(cui.Motd, "Invalid credentials") {
+		paragraph.TextStyle.Fg = ui.ColorRed
+	} else if strings.Contains(cui.Motd, "psostats.com/download") {
+		paragraph.TextStyle.Fg = ui.ColorYellow
+	} else {
+		paragraph.TextStyle.Fg = ui.ColorWhite
+	}
+	paragraph.Border = false
+	paragraph.SetRect(0, 8, 130, 9)
+	ui.Render(paragraph)
 }
 
 func (cui *ConsoleUI) drawConnection() {
@@ -91,7 +112,7 @@ func (cui *ConsoleUI) drawConnection() {
 		connection.TextStyle.Fg = ui.ColorRed
 	}
 	connection.Border = false
-	connection.SetRect(0, 8, 80, 9)
+	connection.SetRect(0, 9, 80, 10)
 	ui.Render(connection)
 }
 
@@ -114,7 +135,7 @@ func (cui *ConsoleUI) drawRecording(gameState *pso.GameState) {
 		recording.Text = "[[ Waiting for Quest Start ]] "
 	}
 	recording.Border = false
-	recording.SetRect(0, 9, 50, 10)
+	recording.SetRect(0, 10, 50, 11)
 	ui.Render(recording)
 }
 
@@ -122,7 +143,7 @@ func (cui *ConsoleUI) DrawHP(playerData *player.BasePlayerInfo) {
 	playerInfo := widgets.NewParagraph()
 	playerInfo.Text = fmt.Sprintf("%v - %v (gc: %v)", playerData.Class, playerData.Name, playerData.GuildCard)
 	playerInfo.Border = false
-	playerInfo.SetRect(0, 10, 80, 11)
+	playerInfo.SetRect(0, 11, 80, 12)
 	ui.Render(playerInfo)
 
 	hpChart := widgets.NewGauge()
@@ -134,7 +155,7 @@ func (cui *ConsoleUI) DrawHP(playerData *player.BasePlayerInfo) {
 	hpChart.Percent = percentHp
 	hpChart.Label = fmt.Sprintf("%v/%v", playerData.HP, playerData.MaxHP)
 	hpChart.Border = false
-	hpChart.SetRect(0, 11, 50, 14)
+	hpChart.SetRect(0, 12, 50, 15)
 	ui.Render(hpChart)
 }
 
@@ -148,7 +169,7 @@ func (cui *ConsoleUI) DrawLocation(floorName string, playerData *player.BasePlay
 		gameState.Difficulty,
 		gameState.Episode, floorName, warpingText, playerData.Room)
 	floor.Border = false
-	floor.SetRect(0, 14, 80, 15)
+	floor.SetRect(0, 15, 80, 16)
 	ui.Render(floor)
 }
 
@@ -169,7 +190,7 @@ func (cui *ConsoleUI) drawQuestInfo(
 			formatQuestTime(quest),
 		}
 		if config.GetQuestSplitsEnabled() {
-			for _,split := range quest.Splits {
+			for _, split := range quest.Splits {
 				if !split.Start.IsZero() {
 					list.Rows = append(list.Rows, formatSplitTime(split, quest))
 				}
@@ -185,7 +206,7 @@ func (cui *ConsoleUI) drawQuestInfo(
 			list.Rows = append(list.Rows, formatTrapsUsed(quest))
 		}
 	}
-	list.SetRect(0, 16, 80, 31)
+	list.SetRect(0, 17, 80, 40)
 	list.Border = false
 	ui.Render(list)
 }

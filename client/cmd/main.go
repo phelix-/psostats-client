@@ -2,6 +2,7 @@
 package main
 
 import (
+	"github.com/phelix-/psostats/v2/pkg/model"
 	"log"
 	"os"
 
@@ -15,7 +16,11 @@ func main() {
 	}
 
 	defer file.Close()
-	version := "0.7.0"
+	version := model.ClientInfo{
+		VersionMajor: 0,
+		VersionMinor: 7,
+		VersionPatch: 1,
+	}
 
 	log.SetOutput(file)
 	log.Printf("Starting Up version %v", version)

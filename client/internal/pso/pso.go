@@ -66,6 +66,7 @@ func (state *GameState) ClearQuest() {
 	state.QuestName = "No Active Quest"
 	state.questRegisterPointer = 0
 	state.questPointer = 0
+	state.CurrentSplit = QuestRunSplit{}
 }
 
 func (state *GameState) Clear() {

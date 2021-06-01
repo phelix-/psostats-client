@@ -29,6 +29,10 @@ func HashPassword(password string) string {
 // Check if two passwords match using Bcrypt's CompareHashAndPassword
 // which return nil on success and an error on failure.
 func DoPasswordsMatch(hashedPassword, currPassword string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(currPassword))
-	return err != nil
+	hashedPasswordBytes, err := base64.URLEncoding.DecodeString(hashedPassword)
+	if err != nil {
+		return false
+	}
+	err = bcrypt.CompareHashAndPassword(hashedPasswordBytes, []byte(currPassword))
+	return err == nil
 }

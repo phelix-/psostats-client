@@ -4,8 +4,25 @@
     <meta name="viewport" content="width=device-width">
     <title>Download - PSOStats</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
-    <link href="/main.css" rel="stylesheet" type="text/css">
+    <link href="/static/main2.css" rel="stylesheet" type="text/css">
 </head>
+<style>
+    h1 {
+        background-color: #222;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+        padding: 8px;
+        margin-top: 8px;
+        margin-bottom: 0;
+    }
+    h4 {
+        margin-left: 16px;
+    }
+    .psostats-download-content {
+        background-color: #444;
+        padding: 8px;
+    }
+</style>
 <body>
 <div class="container">
     <div class="row psostats-nav">
@@ -31,7 +48,13 @@
     </div>
     <div class="row">
         <div class="col">
-            <h1>Coming Soon</h1>
+            <h1><a href="/static/psostats_071.7z" download>First Public Release</a></h1>
+            <div class="psostats-download-content">
+                <h4>0.7.1 - June 01, 2021</h4>
+                <p>Extract the archive (<a href="https://www.7-zip.org/">7-zip</a>) and run the exe. If this is your first
+                    time running PSOStats you will need a config file to submit games.<br/>
+                    Contact phelix in the Ephinea discord and I will get you set up.</p>
+            </div>
         </div>
     </div>
 </div>

@@ -5,6 +5,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/phelix-/psostats/v2/pkg/model"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -18,7 +20,7 @@ import (
 
 type Client struct {
 	pso           *pso.PSO
-	version       string
+	clientInfo       model.ClientInfo
 	httpClient    http.Client
 	config        *config.Config
 	uiRefreshRate time.Duration
@@ -29,8 +31,8 @@ type Client struct {
 	completeGame  chan pso.QuestRun
 }
 
-func New(version string) (*Client, error) {
-	ui, err := consoleui.New(version)
+func New(clientInfo model.ClientInfo) (*Client, error) {
+	ui, err := consoleui.New(clientInfo)
 	if err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
@@ -40,7 +42,7 @@ func New(version string) (*Client, error) {
 
 	return &Client{
 		pso:           pso,
-		version:       version,
+		clientInfo:       clientInfo,
 		httpClient:    http.Client{},
 		config:        clientConfig,
 		uiRefreshRate: clientConfig.GetUiRefreshRate(),
@@ -53,6 +55,10 @@ func New(version string) (*Client, error) {
 
 func (c *Client) Run() error {
 	defer c.ui.Close()
+
+	if err := c.getMotd(); err != nil {
+		c.ui.Motd = fmt.Sprintf("Error getting message of the day %v", err)
+	}
 
 	c.pso.StartPersistentConnection(c.errChan)
 	go c.runUI()
@@ -146,4 +152,37 @@ func (c *Client) runUI() {
 			return
 		}
 	}
+}
+
+func (c *Client) getMotd() error {
+	jsonBytes, err := json.Marshal(c.clientInfo)
+	if err != nil {
+		return err
+	}
+	buf := bytes.NewBuffer(jsonBytes)
+	request, err := http.NewRequest("POST", c.config.GetServerBaseUrl()+"/api/motd", buf)
+	if err != nil {
+		return err
+	}
+	request.Header.Set("Content-Type", "application/json")
+	request.SetBasicAuth(*c.config.User, *c.config.Password)
+	response, err := c.httpClient.Do(request)
+	if err != nil {
+		return err
+	}
+	responseBytes, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+	motd := model.MessageOfTheDay{}
+	if err := json.Unmarshal(responseBytes, &motd); err != nil {
+		return err
+	}
+
+	if !motd.Authorized {
+		c.ui.Motd = "Invalid credentials"
+	} else {
+		c.ui.Motd = motd.Message
+	}
+	return nil
 }

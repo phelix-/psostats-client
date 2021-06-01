@@ -7,6 +7,6 @@ import (
 )
 
 func Test_hashPassword(t *testing.T) {
-	passwordIn := "test"
+	passwordIn := "Pb7*6uzfW&VJ!v"
 	log.Printf("%v - %v", passwordIn, server.HashPassword(passwordIn))
 }

@@ -112,3 +112,14 @@ type FormattedGame struct {
 	Date         string
 	RelativeDate string
 }
+
+type ClientInfo struct {
+	VersionMajor int
+	VersionMinor int
+	VersionPatch int
+}
+
+type MessageOfTheDay struct {
+	Authorized bool
+	Message    string
+}
