@@ -14,11 +14,13 @@ const (
 )
 
 type Config struct {
-	ServerBaseUrl *string `yaml:"serverBaseUrl"`
-	UiFps         *int    `yaml:"uiFps"`
-	User          *string `yaml:"user"`
-	Password      *string `yaml:"password"`
-	AutoUpload    *bool   `yaml:"autoUpload"`
+	ServerBaseUrl        *string `yaml:"serverBaseUrl"`
+	UiFps                *int    `yaml:"uiFps"`
+	User                 *string `yaml:"user"`
+	Password             *string `yaml:"password"`
+	AutoUpload           *bool   `yaml:"autoUpload"`
+	QuestSplitsEnabled   *bool   `yaml:"questSplitsEnabled"`
+	QuestSplitsCompareTo *string `yaml:"questSplitsCompareTo"`
 }
 
 func (config *Config) GetUiRefreshRate() time.Duration {
@@ -57,4 +59,16 @@ func ReadFromFile(fileLocation string) *Config {
 
 func (config *Config) AutoUploadEnabled() bool {
 	return config.AutoUpload == nil || *config.AutoUpload
+}
+
+func (config *Config) GetQuestSplitsEnabled() bool {
+	return config.QuestSplitsEnabled == nil || *config.QuestSplitsEnabled
+}
+
+func (config *Config) GetQuestSplitsCompareTo() string {
+	compareTo := "Local"
+	if config.QuestSplitsCompareTo != nil {
+		compareTo = *config.QuestSplitsCompareTo
+	}
+	return compareTo
 }

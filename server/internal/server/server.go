@@ -3,9 +3,7 @@ package server
 import (
 	"bytes"
 	"compress/gzip"
-	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/phelix-/psostats/v2/server/internal/db"
 	"github.com/phelix-/psostats/v2/server/internal/userdb"
@@ -64,6 +62,7 @@ func (s *Server) Run() {
 	// API
 	s.app.Post("/api/game", s.PostGame)
 	s.app.Get("/api/game/:gameId", s.GetGame)
+	s.app.Get("/api/motd", s.GetMotd)
 
 	if certLocation, found := os.LookupEnv("CERT"); found {
 		keyLocation := os.Getenv("KEY")
@@ -409,15 +408,40 @@ func getFormattedGame(game model.Game) model.FormattedGame {
 			Class:     game.PlayerClasses[i],
 		}
 	}
+	var formattedRelativeDate string
+	relativeDate := time.Now().Sub(game.Timestamp)
+	if relativeDate > time.Hour*24 {
+		daysAgo := relativeDate / (time.Hour * 24)
+		if daysAgo > 1 {
+			formattedRelativeDate = fmt.Sprintf("%d days ago", daysAgo)
+		} else {
+			formattedRelativeDate = "A day ago"
+		}
+	} else if relativeDate > time.Hour {
+		hoursAgo := relativeDate / time.Hour
+		if hoursAgo > 1 {
+			formattedRelativeDate = fmt.Sprintf("%d hours ago", hoursAgo)
+		} else {
+			formattedRelativeDate = "An hour ago"
+		}
+	} else {
+		minutesAgo := relativeDate / time.Minute
+		if minutesAgo > 2 {
+			formattedRelativeDate = fmt.Sprintf("%d minutes ago", minutesAgo)
+		} else {
+			formattedRelativeDate = "Just now"
+		}
+	}
 	return model.FormattedGame{
-		Id:         game.Id,
-		Players:    players,
-		PbRun:      pbRun == "p",
-		NumPlayers: numPlayers,
-		Episode:    game.Episode,
-		Quest:      game.Quest,
-		Time:       formatDuration(game.Time),
-		Date:       game.Timestamp.In(location).Format("15:04 01/02/2006"),
+		Id:           game.Id,
+		Players:      players,
+		PbRun:        pbRun == "p",
+		NumPlayers:   numPlayers,
+		Episode:      game.Episode,
+		Quest:        game.Quest,
+		Time:         formatDuration(game.Time),
+		RelativeDate: formattedRelativeDate,
+		Date:         game.Timestamp.In(location).Format("15:04 01/02/2006"),
 	}
 }
 
@@ -503,26 +527,27 @@ func (s *Server) GetGame(c *fiber.Ctx) error {
 	}
 }
 
+func (s *Server) GetMotd(c *fiber.Ctx) error {
+	authorized, _ := s.verifyAuth(&c.Request().Header)
+	motd := struct {
+		Authorized bool
+		Message    string
+	}{
+		Authorized: authorized,
+		Message:    "Message of the day test",
+	}
+	jsonBytes, err := json.Marshal(motd)
+	if err != nil {
+		return err
+	}
+	c.Response().AppendBody(jsonBytes)
+	c.Response().Header.Set("Content-Type", "application/json")
+	return nil
+}
+
 func isLeaderboardCandidate(questRun model.QuestRun) bool {
 	allowedDifficulty := questRun.Difficulty == "Ultimate" || strings.HasPrefix(questRun.QuestName, "Stage")
 	return allowedDifficulty && questRun.QuestComplete && !questRun.IllegalShifta
-}
-
-func (s *Server) getUserFromBasicAuth(headerBytes []byte) (string, string, error) {
-	headerString := string(headerBytes)
-	if len(headerString) > 0 && strings.HasPrefix(headerString, "Basic ") {
-		authBase64 := strings.TrimPrefix(headerString, "Basic ")
-		decoded, err := base64.StdEncoding.DecodeString(authBase64)
-		if err != nil {
-			return "", "", err
-		}
-		auth := string(decoded)
-		authSplit := strings.SplitN(auth, ":", 2)
-
-		return authSplit[0], authSplit[1], nil
-	} else {
-		return "", "", errors.New("missing basic auth header")
-	}
 }
 
 func gamesMatch(a, b model.QuestRun) bool {

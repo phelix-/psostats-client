@@ -9,6 +9,10 @@
   "RT_MANIFEST": {
     "#1": {
       "0409": {
+        "identity": {
+          "name": "PSOStats",
+          "version": "v0.7.0"
+        },
         "description": "PSOStats Client",
         "minimum-os": "vista",
         "ui-access": false,
@@ -34,13 +38,13 @@
             "Comments": "",
             "CompanyName": "",
             "FileDescription": "",
-            "FileVersion": "v0.6.2",
+            "FileVersion": "v0.7.0",
             "InternalName": "",
             "LegalCopyright": "",
             "LegalTrademarks": "",
             "OriginalFilename": "psostats.exe",
             "PrivateBuild": "",
-            "ProductName": "psostats",
+            "ProductName": "PSOStats",
             "ProductVersion": "v0.6.2",
             "SpecialBuild": ""
           }

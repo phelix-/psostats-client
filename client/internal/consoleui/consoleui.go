@@ -3,6 +3,7 @@ package consoleui
 
 import (
 	"fmt"
+	"github.com/phelix-/psostats/v2/client/internal/client/config"
 	"time"
 
 	ui "github.com/gizak/termui/v3"
@@ -49,6 +50,7 @@ func (cui *ConsoleUI) DrawScreen(
 	playerData *player.BasePlayerInfo,
 	gameState *pso.GameState,
 	currentQuest *pso.QuestRun,
+	config *config.Config,
 	floorName string,
 ) error {
 	cui.drawLogo()
@@ -56,7 +58,7 @@ func (cui *ConsoleUI) DrawScreen(
 	cui.drawRecording(gameState)
 	cui.DrawHP(playerData)
 	cui.DrawLocation(floorName, playerData, gameState)
-	cui.drawQuestInfo(gameState, currentQuest, playerData)
+	cui.drawQuestInfo(gameState, currentQuest, playerData, config)
 	return nil
 }
 
@@ -150,7 +152,12 @@ func (cui *ConsoleUI) DrawLocation(floorName string, playerData *player.BasePlay
 	ui.Render(floor)
 }
 
-func (cui *ConsoleUI) drawQuestInfo(gameState *pso.GameState, quest *pso.QuestRun, playerData *player.BasePlayerInfo) {
+func (cui *ConsoleUI) drawQuestInfo(
+	gameState *pso.GameState,
+	quest *pso.QuestRun,
+	playerData *player.BasePlayerInfo,
+	config *config.Config,
+) {
 	list := widgets.NewList()
 	if len(gameState.QuestName) > 0 && gameState.QuestName != "No Active Quest" {
 		list.Title = "[[ " + gameState.QuestName + " ]]"
@@ -160,18 +167,25 @@ func (cui *ConsoleUI) drawQuestInfo(gameState *pso.GameState, quest *pso.QuestRu
 			formatQuestComplete(quest),
 			formatCategory(quest),
 			formatQuestTime(quest),
-			formatMesetaCharged(quest),
-			formatDeaths(quest),
-			formatMonstersAlive(quest),
-			formatMonstersKilled(quest),
 		}
+		if config.GetQuestSplitsEnabled() {
+			for _,split := range quest.Splits {
+				if !split.Start.IsZero() {
+					list.Rows = append(list.Rows, formatSplitTime(split, quest))
+				}
+			}
+		}
+		list.Rows = append(list.Rows, formatMesetaCharged(quest))
+		list.Rows = append(list.Rows, formatDeaths(quest))
+		list.Rows = append(list.Rows, formatMonstersAlive(quest))
+		list.Rows = append(list.Rows, formatMonstersKilled(quest))
 		if playerData.MaxTP > 0 {
 			list.Rows = append(list.Rows, formatTpUsed(quest))
 		} else {
 			list.Rows = append(list.Rows, formatTrapsUsed(quest))
 		}
 	}
-	list.SetRect(0, 16, 80, 30)
+	list.SetRect(0, 16, 80, 31)
 	list.Border = false
 	ui.Render(list)
 }
@@ -229,6 +243,20 @@ func formatQuestTime(quest *pso.QuestRun) string {
 		questDuration = time.Now().Sub(quest.QuestStartTime)
 	}
 	return fmt.Sprintf("Quest Duration:  %v", questDuration.Truncate(time.Millisecond*100))
+}
+
+func formatSplitTime(split pso.QuestRunSplit, quest *pso.QuestRun) string {
+	questDuration := time.Duration(0)
+	if !split.Start.IsZero() {
+		if !split.End.IsZero() {
+			questDuration = split.End.Sub(split.Start)
+		} else if quest.QuestComplete {
+			questDuration = quest.QuestEndTime.Sub(split.Start)
+		} else {
+			questDuration = time.Now().Sub(split.Start)
+		}
+	}
+	return fmt.Sprintf("%14v:  %v", split.Name, questDuration.Truncate(time.Millisecond*100))
 }
 
 func formatQuestComplete(quest *pso.QuestRun) string {

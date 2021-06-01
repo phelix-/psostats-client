@@ -43,7 +43,7 @@
         {{ $game := .}}
         <div class="row quest-row">
             <div class="col-8 col-md-4">
-                <h5>{{ .Quest }}</h5>
+                <h5>{{ .Quest }}</h5><h6 class="text-muted" title="{{ .Date }}">{{ .RelativeDate }}</h6>
             </div>
             <div class="col-4 col-md-2 col-xl-1">
                 <span class="quest-category">{{ .NumPlayers }}P

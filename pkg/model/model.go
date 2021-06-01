@@ -102,12 +102,13 @@ type Game struct {
 }
 
 type FormattedGame struct {
-	Id         string
-	Players    []BasePlayerInfo
-	PbRun      bool
-	NumPlayers int
-	Episode    int
-	Quest      string
-	Time       string
-	Date       string
+	Id           string
+	Players      []BasePlayerInfo
+	PbRun        bool
+	NumPlayers   int
+	Episode      int
+	Quest        string
+	Time         string
+	Date         string
+	RelativeDate string
 }

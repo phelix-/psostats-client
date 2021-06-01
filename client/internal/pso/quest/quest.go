@@ -5,8 +5,6 @@ import (
 	"github.com/TheTitanrain/w32"
 	"github.com/phelix-/psostats/v2/client/internal/numbers"
 	"log"
-	"strconv"
-	"strings"
 )
 
 func GetQuestPointer(handle w32.HANDLE) uintptr {
@@ -34,12 +32,12 @@ func IsRegisterSet(handle w32.HANDLE, registerId uint16, questRegisterAddress ui
 }
 
 func warpIn() Trigger {
-	return Trigger{ WarpIn: true }
+	return Trigger{WarpIn: true}
 }
 
 func register(register int) Trigger {
 	registerU16 := uint16(register)
-	return Trigger{ Register: &registerU16 }
+	return Trigger{Register: &registerU16}
 }
 
 func floorSwitch(floor int, switchId int) Trigger {
@@ -51,19 +49,26 @@ func remap(questName string) *string {
 }
 
 type Trigger struct {
-	Register *uint16 `yaml:"register"`
-	Floor    uint16  `yaml:"floor"`
-	Switch   uint16  `yaml:"switch"`
-	WarpIn   bool    `yaml:"warpIn"`
+	Register *uint16
+	Floor    uint16
+	Switch   uint16
+	WarpIn   bool
 }
 
 type Quest struct {
-	Episode int
+	Episode    int
+	Name       string
+	Ignore     bool
+	Remap      *string
+	CmodeStage int
+	Start      Trigger
+	End        Trigger
+	Splits     []Split
+}
+
+type Split struct {
 	Name    string
-	Ignore  bool    `yaml:"ignore"`
-	Remap   *string `yaml:"remap"`
-	Start   Trigger `yaml:"start"`
-	End     Trigger `yaml:"end"`
+	Trigger Trigger
 }
 
 type Quests struct {
@@ -126,10 +131,8 @@ func (q *Quest) EndsOnRegister() bool {
 }
 
 func (q *Quest) GetCmodeStage() int {
-	if strings.HasPrefix(q.Name, "Stage") {
-		stageNumber := strings.TrimPrefix(q.Name, "Stage")
-		num, _ := strconv.Atoi(stageNumber)
-		return num
+	if q.CmodeStage > 0 {
+		return q.CmodeStage
 	} else {
 		return -1
 	}

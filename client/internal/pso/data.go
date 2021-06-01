@@ -74,6 +74,13 @@ type Event struct {
 	Description string
 }
 
+type QuestRunSplit struct {
+	Name string
+	Index int
+	Start time.Time
+	End time.Time
+}
+
 type QuestRun struct {
 	Server                   string
 	PlayerName               string
@@ -108,6 +115,7 @@ type QuestRun struct {
 	DebandLvl                []int16
 	Invincible               []bool
 	Events                   []Event
+	Splits                   []QuestRunSplit
 	Monsters                 map[int]Monster
 	Bosses                   map[string]model.BossData
 	MonsterCount             []int
@@ -127,8 +135,8 @@ type QuestRun struct {
 	TPUsed                   uint16
 }
 
-func (pso *PSO) StartNewQuest(questName string, terminalQuest bool) {
-	log.Printf("Starting new quest: %v", questName)
+func (pso *PSO) StartNewQuest(questConfig quest.Quest) {
+	log.Printf("Starting new quest: %v", questConfig.Name)
 
 	allPlayers, err := pso.getOtherPlayers()
 	if err != nil {
@@ -149,7 +157,7 @@ func (pso *PSO) StartNewQuest(questName string, terminalQuest bool) {
 	pbShifta := currentShifta > maxPartySupplyableShifta
 	pbCharged := pso.CurrentPlayerData.PB > 5.0
 	pbCategory := pbShifta || pbCharged
-	if !terminalQuest {
+	if !questConfig.TerminalQuest() {
 		lowered := pso.CurrentPlayerData.IsLowered()
 		shiftaCast := currentShifta > 0
 		pbCategory = pbCategory || lowered || shiftaCast
@@ -165,7 +173,7 @@ func (pso *PSO) StartNewQuest(questName string, terminalQuest bool) {
 		Episode:                  pso.GameState.Episode,
 		QuestStartTime:           questStartTime,
 		QuestStartDate:           questStartTime.Format("15:04 01/02/2006"),
-		QuestName:                questName,
+		QuestName:                questConfig.Name,
 		lastRecordedSecond:       -1,
 		previousMesetaCharged:    0,
 		previousMeseta:           -1,
@@ -184,6 +192,7 @@ func (pso *PSO) StartNewQuest(questName string, terminalQuest bool) {
 		PbCategory:               pbCategory,
 		Invincible:               make([]bool, 0),
 		Events:                   make([]Event, 0),
+		Splits:                   make([]QuestRunSplit, len(questConfig.Splits)),
 		Monsters:                 make(map[int]Monster),
 		Bosses:                   make(map[string]model.BossData),
 		MonsterCount:             make([]int, 0),
@@ -307,6 +316,27 @@ func (pso *PSO) consolidateFrame() {
 		currentQuestRun.QuestDuration = time.Now().Sub(currentQuestRun.QuestStartTime).String()
 	}
 	pso.CurrentQuest = currentQuestRun
+}
+
+func (pso *PSO) updateCurrentSplit(questConfig quest.Quest) {
+	currentQuestRun := pso.CurrentQuest
+	currentSplit := pso.GameState.CurrentSplit
+	if currentSplit.Index < len(questConfig.Splits) {
+		currentSplitCfg := questConfig.Splits[pso.GameState.CurrentSplit.Index]
+		switched, err := pso.getFloorSwitch(currentSplitCfg.Trigger.Switch, currentSplitCfg.Trigger.Floor)
+		if err == nil && switched {
+			currentSplit.End = time.Now()
+			currentQuestRun.Splits[currentSplit.Index] = currentSplit
+			currentSplit = QuestRunSplit{Index: currentSplit.Index + 1}
+			pso.GameState.CurrentSplit = currentSplit
+		}
+	}
+	if currentSplit.Start.IsZero() && currentSplit.Index < len(questConfig.Splits) {
+		currentSplit.Start = time.Now()
+		currentSplit.Name = questConfig.Splits[pso.GameState.CurrentSplit.Index].Name
+		currentQuestRun.Splits[currentSplit.Index] = currentSplit
+		pso.GameState.CurrentSplit = currentSplit
+	}
 }
 
 func (pso *PSO) consolidateMonsterState(monsters []Monster) {
@@ -494,7 +524,7 @@ func (pso *PSO) RefreshData() error {
 				if questStartConditionsMet && pso.GameState.AllowQuestStart {
 					rngSeed := pso.getRngSeed()
 					pso.GameState.RngSeed = rngSeed
-					pso.StartNewQuest(pso.GameState.QuestName, exists && questConfig.TerminalQuest())
+					pso.StartNewQuest(questConfig)
 				}
 			} else if !pso.GameState.QuestComplete {
 				if exists {
@@ -507,7 +537,7 @@ func (pso *PSO) RefreshData() error {
 						pso.GameState.QuestEndTime = time.Now()
 					} else {
 						if pso.GameState.CmodeStage > 0 && pso.GameState.Floor == 0 {
-							// Back to lobby, cmode failed
+							// Back to pioneer2, cmode failed
 							pso.GameState.ClearQuest()
 						} else {
 							rngSeed := pso.getRngSeed()
@@ -521,6 +551,7 @@ func (pso *PSO) RefreshData() error {
 			}
 			if pso.GameState.QuestStarted {
 				pso.consolidateFrame()
+				pso.updateCurrentSplit(questConfig)
 				pso.consolidateMonsterState(monsters)
 			}
 		} else {

@@ -53,6 +53,7 @@ type GameState struct {
 	Floor                uint16
 	questPointer         uintptr
 	questRegisterPointer uintptr
+	CurrentSplit         QuestRunSplit
 }
 
 func (state *GameState) ClearQuest() {

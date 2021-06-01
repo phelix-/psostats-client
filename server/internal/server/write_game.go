@@ -1,28 +1,56 @@
 package server
 
 import (
+	"encoding/base64"
+	"errors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/phelix-/psostats/v2/pkg/model"
 	"github.com/phelix-/psostats/v2/server/internal/db"
+	"github.com/valyala/fasthttp"
 	"log"
+	"strings"
 	"time"
 )
 
-func (s *Server) PostGame(c *fiber.Ctx) error {
-	user, pass, err := s.getUserFromBasicAuth(c.Request().Header.Peek("Authorization"))
-	if err != nil {
-		c.Status(401)
-		return nil
+
+
+func getUserFromBasicAuth(headerBytes []byte) (string, string, error) {
+	headerString := string(headerBytes)
+	if len(headerString) > 0 && strings.HasPrefix(headerString, "Basic ") {
+		authBase64 := strings.TrimPrefix(headerString, "Basic ")
+		decoded, err := base64.StdEncoding.DecodeString(authBase64)
+		if err != nil {
+			return "", "", err
+		}
+		auth := string(decoded)
+		authSplit := strings.SplitN(auth, ":", 2)
+
+		return authSplit[0], authSplit[1], nil
+	} else {
+		return "", "", errors.New("missing basic auth header")
+	}
+}
+
+func (s *Server) verifyAuth(header *fasthttp.RequestHeader) (bool, string) {
+	user, pass, err := getUserFromBasicAuth(header.Peek("Authorization"))
+	if err != nil || len(user) < 1 {
+		return false, ""
 	}
 	userObject, err := s.userDb.GetUser(user)
 	if err != nil {
+		return false, ""
+	}
+	passwordsMatch := DoPasswordsMatch(userObject.Password, pass)
+	return passwordsMatch, user
+}
+
+func (s *Server) PostGame(c *fiber.Ctx) error {
+	authorized, user := s.verifyAuth(&c.Request().Header)
+	if !authorized {
 		c.Status(401)
 		return nil
 	}
-	if passwordsMatch := DoPasswordsMatch(userObject.Password, pass); !passwordsMatch {
-		c.Status(401)
-		return nil
-	}
+
 	var questRun model.QuestRun
 	if err := c.BodyParser(&questRun); err != nil {
 		log.Printf("body parser")
