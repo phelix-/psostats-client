@@ -10,14 +10,16 @@ Configure `config.yaml` if desired.
 
 * Detect solo mode
 * new player registration
-* merge multiplayer games
 * detect non-vanilla weapons
 * quest splits?
 * aggregate stats
   - player
   - overall
-* ep4 boss trainwreck
+* boss graphs
 * multiple units being combined
+* highlight which players actually have stats
+* top 10 by quest
+* filter by class comp
 * death gunners https://discord.com/channels/209828685052641281/810649151058214963/848266650251952138
 
 # Package Structure

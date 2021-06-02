@@ -11,9 +11,9 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"regexp"
 	"sort"
 	"strconv"
-	"strings"
 	"text/template"
 	"time"
 
@@ -197,6 +197,7 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 		}
 		model := struct {
 			Game                 model.QuestRun
+			HasPov               map[int]bool
 			FormattedQuestTime   string
 			InvincibleRanges     map[int]int
 			HpRanges             map[int]uint16
@@ -210,7 +211,13 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 			DebandRanges         map[int]int16
 			HpPoolRanges         map[int]int
 		}{
-			Game:                 *game,
+			Game: *game,
+			HasPov: map[int]bool{
+				0: fullGame.P1Gzip != nil,
+				1: fullGame.P2Gzip != nil,
+				2: fullGame.P3Gzip != nil,
+				3: fullGame.P4Gzip != nil,
+			},
 			FormattedQuestTime:   formatDuration(duration),
 			InvincibleRanges:     invincibleRanges,
 			HpRanges:             convertU16ToXY(game.HP),
@@ -563,8 +570,9 @@ func (s *Server) PostMotd(c *fiber.Ctx) error {
 	return nil
 }
 
-func isLeaderboardCandidate(questRun model.QuestRun) bool {
-	allowedDifficulty := questRun.Difficulty == "Ultimate" || strings.HasPrefix(questRun.QuestName, "Stage")
+func IsLeaderboardCandidate(questRun model.QuestRun) bool {
+	cmodeRegex := regexp.MustCompile("[12]c\\d")
+	allowedDifficulty := questRun.Difficulty == "Ultimate" || cmodeRegex.MatchString(questRun.QuestName)
 	return allowedDifficulty && questRun.QuestComplete && !questRun.IllegalShifta
 }
 

@@ -22,6 +22,9 @@
         .row {
             margin-bottom: 16px;
         }
+        a.list-group-item {
+            color: #abcdff;
+        }
     </style>
     <body>
     <div class="container">
@@ -66,10 +69,15 @@
                     {{ if gt .Game.TPUsed 0 }}<li class="list-group-item">TP Used: <span style="float: right">{{ .Game.TPUsed }}</span></li> {{ end }}
                 </ul>
                 <ul class="list-group list-group-flush" style="margin-bottom: 4px;">
-                    {{$outer := .Game}}
+                    {{$game := .Game}}
+                    {{ $root := . }}
                     {{ range $index, $player := .Game.AllPlayers }}
+                        {{ if index $root.HasPov $index}}
+                            <a href="/game/{{ $game.Id }}/{{ $index }}" class="list-group-item{{ if eq $player.GuildCard $game.GuildCard }} current-player{{ end }}">{{ $player.Class }} (Lv.{{ $player.Level }}) {{ $player.Name }}</a>
+                        {{ else }}
+                            <li class="list-group-item">{{ $player.Class }} (Lv.{{ $player.Level }}) {{ $player.Name }}</li>
+                        {{ end }}
 
-                        <a href="/game/{{ $outer.Id }}/{{ $index }}" class="list-group-item{{ if eq $player.GuildCard $outer.GuildCard }} current-player{{ end }}">{{ $player.Class }} (Lv.{{ $player.Level }}) {{ $player.Name }}</a>
                     {{ end }}
 
                 </ul>

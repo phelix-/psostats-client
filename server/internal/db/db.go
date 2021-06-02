@@ -70,12 +70,16 @@ func WriteGameById(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) (s
 	switch playerIndex {
 	case 1:
 		game.P1Gzip = gameGzip
+		game.P1HasStats = true
 	case 2:
 		game.P2Gzip = gameGzip
+		game.P2HasStats = true
 	case 3:
 		game.P3Gzip = gameGzip
+		game.P3HasStats = true
 	case 4:
 		game.P4Gzip = gameGzip
+		game.P4HasStats = true
 	}
 
 	marshalled, err := dynamodbattribute.MarshalMap(game)
@@ -118,10 +122,12 @@ func AttachGameToId(questRun model.QuestRun, id string, dynamoClient *dynamodb.D
 	gzipAttribute := dynamodb.AttributeValue{B: gameGzip}
 	values := make(map[string]*dynamodb.AttributeValue)
 	values[":g"] = &gzipAttribute
+	trueAttribute := dynamodb.AttributeValue{BOOL: aws.Bool(true)}
+	values[":h"] = &trueAttribute
 
 	putItemInput := dynamodb.UpdateItemInput{
 		Key: key,
-		UpdateExpression: aws.String(fmt.Sprintf("SET P%dGzip = :g", playerIndex)),
+		UpdateExpression: aws.String(fmt.Sprintf("SET P%dGzip = :g, P%dHasStats = :h", playerIndex, playerIndex)),
 		ExpressionAttributeValues: values,
 		TableName: aws.String(GamesByIdTable),
 	}

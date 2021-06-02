@@ -91,7 +91,7 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 		s.recentGamesCount++
 	}
 
-	if isLeaderboardCandidate(questRun) {
+	if IsLeaderboardCandidate(questRun) {
 		numPlayers := len(questRun.AllPlayers)
 		if matchingGame == nil {
 			topRun, err := db.GetQuestRecord(questRun.QuestName, numPlayers, questRun.PbCategory, s.dynamoClient)

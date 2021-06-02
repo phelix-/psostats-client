@@ -96,9 +96,13 @@ type Game struct {
 	FormattedDate    string
 	GameGzip         []byte
 	P1Gzip           []byte
+	P1HasStats       bool
 	P2Gzip           []byte
+	P2HasStats       bool
 	P3Gzip           []byte
+	P3HasStats       bool
 	P4Gzip           []byte
+	P4HasStats       bool
 }
 
 type FormattedGame struct {

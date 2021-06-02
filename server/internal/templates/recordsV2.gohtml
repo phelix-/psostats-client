@@ -77,12 +77,16 @@
                                         {{ end }}</span>
                                 </div>
                                 <div class="col-3">
-                                    <span class="quest-time">{{ $game.Time }}</span>
+                                    {{ if lt (len (index $game.Players 0).Name) 1}}
+                                        <a href="/game/{{ $game.Id }}" class="quest-time">{{ $game.Time}}</a>
+                                    {{ else }}
+                                        <span class="quest-time">{{ $game.Time }}</span>
+                                    {{ end }}
                                 </div>
                                 <div class="col-9 col-md-6 col-xl-7 offset-3 offset-md-0">
-                                    {{ range $game.Players }}
+                                    {{ range $index,$player := $game.Players }}
                                         {{ if gt (len .Name) 0 }}
-                                        <div><a href="/game/{{ $game.Id }}"><span style="width:85px; display: inline-block">{{ index .Class }}</span>{{ .Name }}</a></div>
+                                        <div><a href="/game/{{ $game.Id }}/{{ $index }}"><span style="width:85px; display: inline-block">{{ index $player.Class }}</span>{{ $player.Name }}</a></div>
                                         {{ end }}
                                     {{ end }}
                                 </div>
