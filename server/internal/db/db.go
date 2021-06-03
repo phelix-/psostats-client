@@ -132,6 +132,27 @@ func AttachGameToId(questRun model.QuestRun, id string, dynamoClient *dynamodb.D
 		TableName: aws.String(GamesByIdTable),
 	}
 	_, err = dynamoClient.UpdateItem(&putItemInput)
+	if err != nil {
+		return err
+	}
+
+	month := questRun.QuestStartTime.UTC().Format("01/2006")
+	monthAttribute := dynamodb.AttributeValue{S: aws.String(month)}
+	byMonthKey := map[string]*dynamodb.AttributeValue{
+		"Id": &idAttribute,
+		"Month": &monthAttribute,
+	}
+	values = map[string]*dynamodb.AttributeValue{
+		":h": &trueAttribute,
+	}
+
+	putItemInput = dynamodb.UpdateItemInput{
+		Key: byMonthKey,
+		UpdateExpression: aws.String(fmt.Sprintf("SET P%dHasStats = :h", playerIndex)),
+		ExpressionAttributeValues: values,
+		TableName: aws.String(RecentGamesByMonth),
+	}
+	_, err = dynamoClient.UpdateItem(&putItemInput)
 	return err
 }
 

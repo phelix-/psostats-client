@@ -59,7 +59,13 @@
             <div class="col-8 col-md-4 col-xl-5">
                 {{ range $index, $player := .Players }}
                     {{ if gt (len .Name) 0 }}
-                        <div><a href="/game/{{ $game.Id }}/{{ $index }}"><span style="width:85px; display: inline-block">{{ index .Class }}</span>{{ .Name }}</a></div>
+                        <div>
+                        {{ if $player.HasPov}}
+                            <a href="/game/{{ $game.Id }}/{{ $index }}"><span style="width:85px; display: inline-block">{{ index .Class }}</span>{{ .Name }}</a>
+                        {{ else }}
+                            <span style="width:85px; display: inline-block">{{ index .Class }}</span>{{ .Name }}
+                        {{ end }}
+                        </div>
                     {{ end }}
                 {{ end }}
             </div>

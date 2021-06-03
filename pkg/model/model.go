@@ -105,9 +105,16 @@ type Game struct {
 	P4HasStats       bool
 }
 
+type FormattedPlayerInfo struct {
+	Name      string
+	GuildCard string
+	HasPov    bool
+	Class     string
+}
+
 type FormattedGame struct {
 	Id           string
-	Players      []BasePlayerInfo
+	Players      []FormattedPlayerInfo
 	PbRun        bool
 	NumPlayers   int
 	Episode      int

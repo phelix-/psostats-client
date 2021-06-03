@@ -417,12 +417,23 @@ func getFormattedGame(game model.Game) model.FormattedGame {
 	if err != nil {
 		log.Fatalf("Couldn't find time zone America/Chicago")
 	}
-	players := make([]model.BasePlayerInfo, 4)
+	players := make([]model.FormattedPlayerInfo, 4)
 	for i := range game.PlayerNames {
-		players[i] = model.BasePlayerInfo{
+		var hasPov bool
+		switch i {
+		case 0:
+			hasPov = game.P1HasStats
+		case 1:
+			hasPov = game.P2HasStats
+		case 2:
+			hasPov = game.P3HasStats
+		case 3:
+			hasPov = game.P4HasStats
+		}
+		players[i] = model.FormattedPlayerInfo{
 			Name:      game.PlayerNames[i],
 			GuildCard: game.PlayerGcs[i],
-			Level:     0,
+			HasPov:    hasPov,
 			Class:     game.PlayerClasses[i],
 		}
 	}
