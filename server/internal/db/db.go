@@ -111,7 +111,7 @@ func getPlayerIndex(questRun model.QuestRun) (int, error) {
 	if playerIndex <= 0 || playerIndex > 4 {
 		return -1, errors.New(fmt.Sprintf("player index was out of bounds: %d", playerIndex))
 	}
-	return playerIndex,nil
+	return playerIndex, nil
 }
 
 func AttachGameToId(questRun model.QuestRun, id string, dynamoClient *dynamodb.DynamoDB) error {
@@ -133,10 +133,10 @@ func AttachGameToId(questRun model.QuestRun, id string, dynamoClient *dynamodb.D
 	values[":h"] = &trueAttribute
 
 	putItemInput := dynamodb.UpdateItemInput{
-		Key: key,
-		UpdateExpression: aws.String(fmt.Sprintf("SET P%dGzip = :g, P%dHasStats = :h", playerIndex, playerIndex)),
+		Key:                       key,
+		UpdateExpression:          aws.String(fmt.Sprintf("SET P%dGzip = :g, P%dHasStats = :h", playerIndex, playerIndex)),
 		ExpressionAttributeValues: values,
-		TableName: aws.String(GamesByIdTable),
+		TableName:                 aws.String(GamesByIdTable),
 	}
 	_, err = dynamoClient.UpdateItem(&putItemInput)
 	if err != nil {
@@ -146,7 +146,7 @@ func AttachGameToId(questRun model.QuestRun, id string, dynamoClient *dynamodb.D
 	month := questRun.QuestStartTime.UTC().Format("01/2006")
 	monthAttribute := dynamodb.AttributeValue{S: aws.String(month)}
 	byMonthKey := map[string]*dynamodb.AttributeValue{
-		"Id": &idAttribute,
+		"Id":    &idAttribute,
 		"Month": &monthAttribute,
 	}
 	values = map[string]*dynamodb.AttributeValue{
@@ -154,10 +154,10 @@ func AttachGameToId(questRun model.QuestRun, id string, dynamoClient *dynamodb.D
 	}
 
 	putItemInput = dynamodb.UpdateItemInput{
-		Key: byMonthKey,
-		UpdateExpression: aws.String(fmt.Sprintf("SET P%dHasStats = :h", playerIndex)),
+		Key:                       byMonthKey,
+		UpdateExpression:          aws.String(fmt.Sprintf("SET P%dHasStats = :h", playerIndex)),
 		ExpressionAttributeValues: values,
-		TableName: aws.String(RecentGamesByMonth),
+		TableName:                 aws.String(RecentGamesByMonth),
 	}
 	_, err = dynamoClient.UpdateItem(&putItemInput)
 	return err
@@ -172,7 +172,7 @@ func AddPovToRecord(questRun model.QuestRun, dynamoClient *dynamodb.DynamoDB) er
 	questName := dynamodb.AttributeValue{S: aws.String(gameSummary.Quest)}
 	category := dynamodb.AttributeValue{S: aws.String(gameSummary.Category)}
 	key := map[string]*dynamodb.AttributeValue{
-		"Quest": &questName,
+		"Quest":    &questName,
 		"Category": &category,
 	}
 	trueAttribute := dynamodb.AttributeValue{BOOL: aws.Bool(true)}
@@ -447,12 +447,17 @@ func summaryFromQuestRun(questRun model.QuestRun) model.Game {
 		playerClasses[i] = basePlayerInfo.Class
 		playerGcs[i] = basePlayerInfo.GuildCard
 	}
+	playerIndex, _ := getPlayerIndex(questRun)
 	return model.Game{
 		Id:               questRun.Id,
 		Player:           questRun.UserName,
 		PlayerNames:      playerNames,
 		PlayerClasses:    playerClasses,
 		PlayerGcs:        playerGcs,
+		P1HasStats:       playerIndex == 1,
+		P2HasStats:       playerIndex == 2,
+		P3HasStats:       playerIndex == 3,
+		P4HasStats:       playerIndex == 4,
 		Category:         category,
 		Quest:            questRun.QuestName,
 		QuestAndCategory: questAndCategory,

@@ -140,9 +140,9 @@ func (c *Client) uploadGame(game pso.QuestRun) {
 		} else {
 			gameUrl := fmt.Sprintf("Last game: %v/%v", c.config.GetServerBaseUrl(), postResponse.Id)
 			if postResponse.Record {
-				gameUrl = fmt.Sprintf("%v [NEW RECORD]", gameUrl)
+				gameUrl = fmt.Sprintf("%v - RECORD", gameUrl)
 			} else if postResponse.Pb {
-				gameUrl = fmt.Sprintf("%v [NEW PB]", gameUrl)
+				gameUrl = fmt.Sprintf("%v - PB", gameUrl)
 			}
 			c.ui.Motd = gameUrl
 		}

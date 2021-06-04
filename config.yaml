@@ -4,9 +4,17 @@
 # Console UI frames per second, must be between 1 and 30
 # uiFps: 5
 
-#serverBaseUrl: https://psostats.com
+#serverBaseUrl: http://localhost
 #autoUpload: true
 
+# Configures quest splits. Set to true (default) to show quest splits, false to hide
+#questSplitsEnabled: true
+
+# Enables comparing your current run to saved quest splits. Possible options are
+# Local - compare current split time to the times in a splits.json file
+# None - show the current split time but no comparison
+#questSplitsCompareTo: Local
+
 # Add your credentials here
-user: ''
-password: ''
+user: 'phelix'
+password: 'Pb7*6uzfW&VJ!v'
