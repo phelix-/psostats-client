@@ -67,7 +67,7 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 
 	var matchingGame *model.QuestRun = nil
 	for _, recentGame := range s.recentGames {
-		if gamesMatch(recentGame, questRun) {
+		if GamesMatch(recentGame, questRun) {
 			log.Printf("matched game[%v]", recentGame.Id)
 			matchingGame = &recentGame
 			break

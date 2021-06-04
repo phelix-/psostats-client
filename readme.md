@@ -17,7 +17,6 @@ Configure `config.yaml` if desired.
   - overall
 * boss graphs
 * multiple units being combined
-* highlight which players actually have stats - records
 * top 10 by quest
 * filter by class comp
 * death gunners https://discord.com/channels/209828685052641281/810649151058214963/848266650251952138

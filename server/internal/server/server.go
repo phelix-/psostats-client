@@ -587,7 +587,7 @@ func IsLeaderboardCandidate(questRun model.QuestRun) bool {
 	return allowedDifficulty && questRun.QuestComplete && !questRun.IllegalShifta
 }
 
-func gamesMatch(a, b model.QuestRun) bool {
+func GamesMatch(a, b model.QuestRun) bool {
 	if a.QuestName != b.QuestName {
 		return false
 	}
@@ -606,11 +606,11 @@ func gamesMatch(a, b model.QuestRun) bool {
 	if a.UserName == b.UserName {
 		return false
 	}
-	if a.QuestStartTime.Add(time.Second*-30).After(b.QuestStartTime) &&
+	if a.QuestStartTime.Add(time.Second*-30).After(b.QuestStartTime) ||
 		a.QuestStartTime.Add(time.Second*30).Before(b.QuestStartTime) {
 		return false
 	}
-	if a.QuestEndTime.Add(time.Second*-30).After(b.QuestEndTime) &&
+	if a.QuestEndTime.Add(time.Second*-30).After(b.QuestEndTime) ||
 		a.QuestEndTime.Add(time.Second*30).Before(b.QuestEndTime) {
 		return false
 	}

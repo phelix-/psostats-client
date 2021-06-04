@@ -5,11 +5,29 @@ import (
 	"github.com/phelix-/psostats/v2/server/internal/server"
 	"log"
 	"testing"
+	"time"
 )
 
 func Test_hashPassword(t *testing.T) {
-	passwordIn := "2T3ytF^iP2&1UP!YHxPn"
+	passwordIn := "test"
 	log.Printf("%v - %v", passwordIn, server.HashPassword(passwordIn))
+}
+
+func Test_gamesMatch(t *testing.T) {
+	a := model.QuestRun{GuildCard: "u1", UserName: "u1", QuestStartTime: time.Now()}
+	b := model.QuestRun{GuildCard: "u2", UserName: "u2", QuestStartTime: time.Now()}
+
+	if !server.GamesMatch(a, b) {
+		t.Error("match")
+	}
+	b.QuestStartTime = time.Now().Add(45 * time.Second)
+	if server.GamesMatch(a, b) {
+		t.Error("match")
+	}
+	b.QuestStartTime = time.Now().Add(-45 * time.Second)
+	if server.GamesMatch(a, b) {
+		t.Error("match")
+	}
 }
 
 func Test_cmodeRegex(t *testing.T) {
