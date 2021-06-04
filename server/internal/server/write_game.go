@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/phelix-/psostats/v2/pkg/model"
@@ -91,27 +92,35 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 		s.recentGamesCount++
 	}
 
+	record := false
+	pb := false
 	if IsLeaderboardCandidate(questRun) {
 		numPlayers := len(questRun.AllPlayers)
-		if matchingGame == nil {
-			topRun, err := db.GetQuestRecord(questRun.QuestName, numPlayers, questRun.PbCategory, s.dynamoClient)
-			if err != nil {
-				log.Printf("failed to get top quest runs for gameId:%v - %v", questRun.Id, err)
-			} else if topRun == nil || topRun.Time > questDuration {
-				log.Printf("new record for %v %vp pb:%v - %v",
-					questRun.QuestName, numPlayers, questRun.PbCategory, questRun.Id)
-				if err = db.WriteGameByQuestRecord(&questRun, s.dynamoClient); err != nil {
-					log.Printf("failed to update leaderboard for game %v - %v", questRun.Id, err)
-				}
+		topRun, err := db.GetQuestRecord(questRun.QuestName, numPlayers, questRun.PbCategory, s.dynamoClient)
+		if err != nil {
+			log.Printf("failed to get top quest runs for gameId:%v - %v", questRun.Id, err)
+		} else if matchingGame != nil {
+			record = matchingGame.Id == topRun.Id
+			if err := db.AddPovToRecord(questRun, s.dynamoClient); err != nil {
+				log.Printf("failed to add pov to record")
 			}
-			if err = db.WriteGameByQuest(&questRun, s.dynamoClient); err != nil {
-				log.Printf("failed to update games by quest for game %v - %v", questRun.Id, err)
+		} else if topRun == nil || topRun.Time > questDuration {
+			record = true
+			log.Printf("new record for %v %vp pb:%v - %v",
+				questRun.QuestName, numPlayers, questRun.PbCategory, questRun.Id)
+			if err = db.WriteGameByQuestRecord(&questRun, s.dynamoClient); err != nil {
+				log.Printf("failed to update leaderboard for game %v - %v", questRun.Id, err)
 			}
 		}
+		if err = db.WriteGameByQuest(&questRun, s.dynamoClient); err != nil {
+			log.Printf("failed to update games by quest for game %v - %v", questRun.Id, err)
+		}
+
 		playerPb, err := db.GetPlayerPB(questRun.QuestName, user, numPlayers, questRun.PbCategory, s.dynamoClient)
 		if err != nil {
 			log.Printf("failed to get player pb for gameId:%v - %v", questRun.Id, err)
 		} else if playerPb == nil || playerPb.Time > questDuration {
+			pb = true
 			log.Printf("new pb for %v %v %vp pb:%v - %v",
 				user, questRun.QuestName, numPlayers, questRun.PbCategory, questRun.Id)
 			if err = db.WritePlayerPb(&questRun, s.dynamoClient); err != nil {
@@ -123,7 +132,17 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 		log.Printf("failed to update games by player for game %v - %v", questRun.Id, err)
 	}
 
-	c.Response().AppendBodyString(questRun.Id)
+	jsonBytes, err := json.Marshal(model.PostGameResponse{
+		Pb:     pb,
+		Record: record,
+		Id:     questRun.Id,
+	})
+	if err != nil {
+		return err
+	}
+	c.Response().AppendBody(jsonBytes)
+	c.Response().Header.Set("Content-Type", "application/json")
+
 	log.Printf("got quest: %v %v, %v, %v, %v",
 		questRun.Id, questRun.QuestName, questRun.PlayerName, questRun.Server, questRun.UserName)
 	return nil

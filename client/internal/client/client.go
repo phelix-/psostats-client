@@ -129,6 +129,23 @@ func (c *Client) uploadGame(game pso.QuestRun) {
 		log.Printf("Got response status %v: %v", response.StatusCode, response.Body)
 	} else {
 		c.pso.GameState.UploadSuccessful = true
+		responseBytes, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			log.Printf("Error reading response from server %v", err)
+		}
+		postResponse := model.PostGameResponse{}
+		err = json.Unmarshal(responseBytes, &postResponse)
+		if err != nil {
+			log.Printf("Error reading response from server %v", err)
+		} else {
+			gameUrl := fmt.Sprintf("Last game: %v/%v", c.config.GetServerBaseUrl(), postResponse.Id)
+			if postResponse.Record {
+				gameUrl = fmt.Sprintf("%v [NEW RECORD]", gameUrl)
+			} else if postResponse.Pb {
+				gameUrl = fmt.Sprintf("%v [NEW PB]", gameUrl)
+			}
+			c.ui.Motd = gameUrl
+		}
 	}
 }
 

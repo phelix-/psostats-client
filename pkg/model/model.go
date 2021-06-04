@@ -134,3 +134,9 @@ type MessageOfTheDay struct {
 	Authorized bool
 	Message    string
 }
+
+type PostGameResponse struct {
+	Pb     bool
+	Record bool
+	Id     string
+}

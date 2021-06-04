@@ -33,7 +33,7 @@ type PsoStatsDb struct {
 	dynamoClient *dynamodb.DynamoDB
 }
 
-func getCategoryFromQuest(questRun *model.QuestRun) string {
+func getCategoryFromQuest(questRun model.QuestRun) string {
 	return getCategoryString(len(questRun.AllPlayers), questRun.PbCategory)
 }
 
@@ -65,7 +65,7 @@ func WriteGameById(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) (s
 		}
 	}
 
-	game := summaryFromQuestRun(questRun)
+	game := summaryFromQuestRun(*questRun)
 	game.GameGzip = gameGzip
 	switch playerIndex {
 	case 1:
@@ -101,11 +101,7 @@ func WriteGameById(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) (s
 	return game.Id, err
 }
 
-func AttachGameToId(questRun model.QuestRun, id string, dynamoClient *dynamodb.DynamoDB) error {
-	gameGzip, err := compressGame(&questRun)
-	if err != nil {
-		return err
-	}
+func getPlayerIndex(questRun model.QuestRun) (int, error) {
 	playerIndex := -1
 	for i, player := range questRun.AllPlayers {
 		if player.GuildCard == questRun.GuildCard {
@@ -113,9 +109,20 @@ func AttachGameToId(questRun model.QuestRun, id string, dynamoClient *dynamodb.D
 		}
 	}
 	if playerIndex <= 0 || playerIndex > 4 {
-		return errors.New(fmt.Sprintf("player index was out of bounds: %d", playerIndex))
+		return -1, errors.New(fmt.Sprintf("player index was out of bounds: %d", playerIndex))
 	}
+	return playerIndex,nil
+}
 
+func AttachGameToId(questRun model.QuestRun, id string, dynamoClient *dynamodb.DynamoDB) error {
+	gameGzip, err := compressGame(&questRun)
+	if err != nil {
+		return err
+	}
+	playerIndex, err := getPlayerIndex(questRun)
+	if err != nil {
+		return err
+	}
 	key := make(map[string]*dynamodb.AttributeValue)
 	idAttribute := dynamodb.AttributeValue{S: aws.String(id)}
 	key["Id"] = &idAttribute
@@ -153,6 +160,33 @@ func AttachGameToId(questRun model.QuestRun, id string, dynamoClient *dynamodb.D
 		TableName: aws.String(RecentGamesByMonth),
 	}
 	_, err = dynamoClient.UpdateItem(&putItemInput)
+	return err
+}
+
+func AddPovToRecord(questRun model.QuestRun, dynamoClient *dynamodb.DynamoDB) error {
+	gameSummary := summaryFromQuestRun(questRun)
+	playerIndex, err := getPlayerIndex(questRun)
+	if err != nil {
+		return err
+	}
+	questName := dynamodb.AttributeValue{S: aws.String(gameSummary.Quest)}
+	category := dynamodb.AttributeValue{S: aws.String(gameSummary.Category)}
+	key := map[string]*dynamodb.AttributeValue{
+		"Quest": &questName,
+		"Category": &category,
+	}
+	trueAttribute := dynamodb.AttributeValue{BOOL: aws.Bool(true)}
+	values := map[string]*dynamodb.AttributeValue{
+		":h": &trueAttribute,
+	}
+
+	updateItemInput := dynamodb.UpdateItemInput{
+		Key:                       key,
+		UpdateExpression:          aws.String(fmt.Sprintf("SET P%dHasStats = :h", playerIndex)),
+		ExpressionAttributeValues: values,
+		TableName:                 aws.String(QuestRecordsTable),
+	}
+	_, err = dynamoClient.UpdateItem(&updateItemInput)
 	return err
 }
 
@@ -201,7 +235,7 @@ func compressGame(questRun *model.QuestRun) ([]byte, error) {
 }
 
 func WriteGameByQuest(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) error {
-	gameSummary := summaryFromQuestRun(questRun)
+	gameSummary := summaryFromQuestRun(*questRun)
 	marshalledSummary, err := dynamodbattribute.MarshalMap(gameSummary)
 	delete(marshalledSummary, "GameGzip")
 	delete(marshalledSummary, "P1Gzip")
@@ -222,7 +256,7 @@ func WriteGameByQuest(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB)
 }
 
 func WriteGameByQuestRecord(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) error {
-	gameSummary := summaryFromQuestRun(questRun)
+	gameSummary := summaryFromQuestRun(*questRun)
 	marshalledSummary, err := dynamodbattribute.MarshalMap(gameSummary)
 	delete(marshalledSummary, "GameGzip")
 	delete(marshalledSummary, "P1Gzip")
@@ -357,7 +391,7 @@ func GetPlayerPB(quest, player string, numPlayers int, pbCategory bool, dynamoCl
 }
 
 func WritePlayerPb(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) error {
-	gameSummary := summaryFromQuestRun(questRun)
+	gameSummary := summaryFromQuestRun(*questRun)
 	marshalledSummary, err := dynamodbattribute.MarshalMap(gameSummary)
 	if err != nil {
 		return err
@@ -378,7 +412,7 @@ func WritePlayerPb(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) er
 }
 
 func WriteGameByPlayer(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) error {
-	gameSummary := summaryFromQuestRun(questRun)
+	gameSummary := summaryFromQuestRun(*questRun)
 	marshalledSummary, err := dynamodbattribute.MarshalMap(gameSummary)
 	delete(marshalledSummary, "GameGzip")
 	delete(marshalledSummary, "P1Gzip")
@@ -398,7 +432,7 @@ func WriteGameByPlayer(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB
 	return err
 }
 
-func summaryFromQuestRun(questRun *model.QuestRun) model.Game {
+func summaryFromQuestRun(questRun model.QuestRun) model.Game {
 	category := getCategoryFromQuest(questRun)
 	duration, err := time.ParseDuration(questRun.QuestDuration)
 	if err != nil {
