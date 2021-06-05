@@ -85,13 +85,13 @@
             <div class="col-12 col-lg-6">
                 <div class="psostats-chart">
                     <h4 class="psostats-equipment">{{ .Game.PlayerName}}'s Equipment</h4>
-                    {{ if .Game.EquipmentUsedTime.Weapon}}
+                    {{ if gt (len .Weapons) 0 }}
                         <div id="weapon-donut" ></div>
                         <div class="psostats-equipment">
-                            {{ range $key, $value := .Game.EquipmentUsedTime.Frame }} <div><img alt="Frame" src="/static/Frame_icon.png"/> {{ $key }}</div>{{ end}}
-                            {{ range $key, $value := .Game.EquipmentUsedTime.Unit }} <div><img alt="Unit" src="/static/Unit_icon.png" style="margin-left: 16px;"/> {{ $key }}</div> {{ end}}
-                            {{ range $key, $value := .Game.EquipmentUsedTime.Barrier }} <div><img alt="Barrier" src="/static/Shield_icon.png"/> {{ $key }}</div> {{ end}}
-                            {{ range $key, $value := .Game.EquipmentUsedTime.Mag }} <div><img alt="Mag" src="/static/Mag_icon.png"/> {{ $key }}</div> {{ end}}
+                            {{ range .Frames }} <div><img alt="Frame" src="/static/Frame_icon.png"/> {{ .Display }}</div>{{ end}}
+                            {{ range .Units }} <div><img alt="Unit" src="/static/Unit_icon.png" style="margin-left: 16px;"/> {{ .Display }}</div> {{ end}}
+                            {{ range .Barriers }} <div><img alt="Barrier" src="/static/Shield_icon.png"/> {{ .Display }}</div> {{ end}}
+                            {{ range .Mags }} <div><img alt="Mag" src="/static/Mag_icon.png"/> {{ .Display }}</div> {{ end}}
                         </div>
                     {{ end }}
                 </div>
@@ -439,8 +439,8 @@
         {{ end }}
 
         const weaponDonutOptions = {
-            series: [ {{ range $key, $value := .Game.EquipmentUsedTime.Weapon }} {{ $value }}, {{ end }}],
-            labels: [ {{ range $key, $value := .Game.EquipmentUsedTime.Weapon }} "{{ $key }}", {{ end }}],
+            series: [ {{ range .Weapons }} {{ .SecondsEquipped }}, {{ end }}],
+            labels: [ {{ range .Weapons }} "{{ .Display }}", {{ end }}],
             chart: {
                 type: 'donut',
             },

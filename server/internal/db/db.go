@@ -305,7 +305,9 @@ func GetQuestRecord(quest string, numPlayers int, pbCategory bool, dynamoClient 
 
 func GetQuestRecords(dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
 	scanInput := dynamodb.ScanInput{
-		AttributesToGet: aws.StringSlice([]string{"Id", "Category", "Episode", "Quest", "Time", "Player", "Timestamp", "PlayerNames", "PlayerClasses", "PlayerGcs"}),
+		AttributesToGet: aws.StringSlice([]string{"Id", "Category", "Episode", "Quest",
+			"Time", "Player", "Timestamp", "PlayerNames", "PlayerClasses", "PlayerGcs",
+			"P1HasStats", "P2HasStats", "P3HasStats", "P4HasStats"}),
 		Limit:           aws.Int64(1000),
 		TableName:       aws.String(QuestRecordsTable),
 	}

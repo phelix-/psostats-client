@@ -75,10 +75,10 @@ type Event struct {
 }
 
 type QuestRunSplit struct {
-	Name string
+	Name  string
 	Index int
 	Start time.Time
-	End time.Time
+	End   time.Time
 }
 
 type QuestRun struct {
@@ -122,8 +122,7 @@ type QuestRun struct {
 	MonstersKilledCount      []int
 	MonsterHpPool            []int
 	MonstersDead             int
-	WeaponsUsed              map[string]string
-	EquipmentUsedTime        map[string]map[string]int
+	Weapons                  map[string]model.Equipment
 	FreezeTraps              []uint16
 	previousFt               uint16
 	previousDt               uint16
@@ -198,23 +197,16 @@ func (pso *PSO) StartNewQuest(questConfig quest.Quest) {
 		MonsterCount:             make([]int, 0),
 		MonstersKilledCount:      make([]int, 0),
 		MonsterHpPool:            make([]int, 0),
-		WeaponsUsed:              make(map[string]string),
-		EquipmentUsedTime: map[string]map[string]int{
-			"Weapon":  make(map[string]int),
-			"Frame":   make(map[string]int),
-			"Barrier": make(map[string]int),
-			"Unit":    make(map[string]int),
-			"Mag":     make(map[string]int),
-		},
-		FreezeTraps: make([]uint16, 0),
-		previousDt:  0,
-		previousFt:  0,
-		previousCt:  0,
-		FTUsed:      0,
-		DTUsed:      0,
-		CTUsed:      0,
-		previousTp:  0,
-		TPUsed:      0,
+		Weapons:                  make(map[string]model.Equipment),
+		FreezeTraps:              make([]uint16, 0),
+		previousDt:               0,
+		previousFt:               0,
+		previousCt:               0,
+		FTUsed:                   0,
+		DTUsed:                   0,
+		CTUsed:                   0,
+		previousTp:               0,
+		TPUsed:                   0,
 	}
 	pso.GameState.QuestStarted = true
 }
@@ -274,16 +266,33 @@ func (pso *PSO) consolidateFrame() {
 		currentQuestRun.Invincible = append(currentQuestRun.Invincible, pso.CurrentPlayerData.InvincibilityFrames > 0)
 		weaponFound := false
 		for _, equipment := range pso.Equipment {
-			currentQuestRun.WeaponsUsed[equipment.Display] = equipment.Display
-			usageTime := currentQuestRun.EquipmentUsedTime[equipment.Type][equipment.Display]
-			currentQuestRun.EquipmentUsedTime[equipment.Type][equipment.Display] = usageTime + 1
-			if equipment.Type == inventory.EquipmentTypeWeapon {
+			if equipment.Type == model.EquipmentTypeWeapon {
 				weaponFound = true
 			}
+			storedEquipment, exists := currentQuestRun.Weapons[equipment.Id]
+			if !exists {
+				storedEquipment = model.Equipment{
+					Id:              equipment.Id,
+					Type:            equipment.Type,
+					Display:         equipment.Display,
+					SecondsEquipped: 0,
+				}
+			}
+			storedEquipment.SecondsEquipped += 1
+			currentQuestRun.Weapons[equipment.Id] = storedEquipment
 		}
 		if !weaponFound {
-			usageTime := currentQuestRun.EquipmentUsedTime[inventory.EquipmentTypeWeapon][inventory.WeaponBareHanded]
-			currentQuestRun.EquipmentUsedTime[inventory.EquipmentTypeWeapon][inventory.WeaponBareHanded] = usageTime + 1
+			storedEquipment, exists := currentQuestRun.Weapons[model.WeaponBareHanded]
+			if !exists {
+				storedEquipment = model.Equipment{
+					Id:              model.WeaponBareHanded,
+					Type:            model.EquipmentTypeWeapon,
+					Display:         model.WeaponBareHanded,
+					SecondsEquipped: 0,
+				}
+			}
+			storedEquipment.SecondsEquipped += 1
+			currentQuestRun.Weapons[model.WeaponBareHanded] = storedEquipment
 		}
 		if pso.CurrentPlayerData.ShiftaLvl > currentQuestRun.maxPartyPbShifta {
 			currentQuestRun.IllegalShifta = true

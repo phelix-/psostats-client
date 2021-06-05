@@ -210,6 +210,11 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 			ShiftaRanges         map[int]int16
 			DebandRanges         map[int]int16
 			HpPoolRanges         map[int]int
+			Weapons              []model.Equipment
+			Barriers             []model.Equipment
+			Frames               []model.Equipment
+			Units                []model.Equipment
+			Mags                 []model.Equipment
 		}{
 			Game: *game,
 			HasPov: map[int]bool{
@@ -230,6 +235,11 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 			ShiftaRanges:         convertToXY(game.ShiftaLvl),
 			DebandRanges:         convertToXY(game.DebandLvl),
 			HpPoolRanges:         convertIntToXY(game.MonsterHpPool),
+			Weapons:              getEquipment(game, model.EquipmentTypeWeapon),
+			Barriers:             getEquipment(game, model.EquipmentTypeBarrier),
+			Frames:               getEquipment(game, model.EquipmentTypeFrame),
+			Units:                getEquipment(game, model.EquipmentTypeUnit),
+			Mags:                 getEquipment(game, model.EquipmentTypeMag),
 		}
 		t, err := template.ParseFiles("./server/internal/templates/game.gohtml")
 		if err != nil {
@@ -239,6 +249,23 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 	}
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
+}
+
+func getEquipment(game *model.QuestRun, equipmentType string) []model.Equipment {
+	equipmentOfType := make([]model.Equipment, 0)
+	if game.Weapons != nil && len(game.Weapons) > 0 {
+		for _, equipment := range game.Weapons {
+			if equipment.Type == equipmentType {
+				equipmentOfType = append(equipmentOfType, equipment)
+			}
+		}
+	} else if game.EquipmentUsedTime != nil && len(game.EquipmentUsedTime) > 0 {
+		equipmentUsed := game.EquipmentUsedTime[equipmentType]
+		for k, v := range equipmentUsed {
+			equipmentOfType = append(equipmentOfType, model.Equipment{Display: k, SecondsEquipped: v})
+		}
+	}
+	return equipmentOfType
 }
 
 func parseGameGzip(gameBytes []byte) (*model.QuestRun, error) {

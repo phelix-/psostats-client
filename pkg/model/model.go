@@ -4,6 +4,15 @@ import (
 	"time"
 )
 
+const (
+	WeaponBareHanded     = "Bare Handed"
+	EquipmentTypeWeapon  = "Weapon"
+	EquipmentTypeFrame   = "Frame"
+	EquipmentTypeBarrier = "Barrier"
+	EquipmentTypeUnit    = "Unit"
+	EquipmentTypeMag     = "Mag"
+)
+
 type BasePlayerInfo struct {
 	Name      string
 	GuildCard string
@@ -46,6 +55,7 @@ type QuestRun struct {
 	MonstersKilledCount []int
 	MonsterHpPool       []int
 	MonstersDead        int
+	Weapons             map[string]Equipment
 	WeaponsUsed         map[string]string
 	EquipmentUsedTime   map[string]map[string]int
 	FreezeTraps         []uint16
@@ -139,4 +149,11 @@ type PostGameResponse struct {
 	Pb     bool
 	Record bool
 	Id     string
+}
+
+type Equipment struct {
+	Id              string
+	Type            string
+	Display         string
+	SecondsEquipped int
 }
