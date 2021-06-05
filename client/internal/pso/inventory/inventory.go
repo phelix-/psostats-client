@@ -81,10 +81,10 @@ func ReadInventory(handle w32.HANDLE, playerIndex uint8) ([]Equipment, error) {
 					return equipment, errors.New("could not read item")
 				}
 				itemId := fmt.Sprintf("%04x%04x", itemBuffer[1], itemBuffer[0])
-				itemType := readU8(handle, uintptr(itemAddr+itemTypeOffset))
-				itemGroup := readU8(handle, uintptr(itemAddr+itemGroupOffset))
-				equipped := readU8(handle, uintptr(itemAddr+itemEquippedOffset))&0x01 == 1
-				itemOwner := readU8(handle, uintptr(itemAddr+itemOwnerOffset))
+				itemType := numbers.ReadU8(handle, uintptr(itemAddr+itemTypeOffset))
+				itemGroup := numbers.ReadU8(handle, uintptr(itemAddr+itemGroupOffset))
+				equipped := numbers.ReadU8(handle, uintptr(itemAddr+itemEquippedOffset))&0x01 == 1
+				itemOwner := numbers.ReadU8(handle, uintptr(itemAddr+itemOwnerOffset))
 				if itemOwner == playerIndex && equipped {
 					switch itemType {
 					case 0:
@@ -114,41 +114,25 @@ func ReadInventory(handle w32.HANDLE, playerIndex uint8) ([]Equipment, error) {
 	return equipment, nil
 }
 
-func readU8(handle w32.HANDLE, address uintptr) uint8 {
-	buf, _, ok := w32.ReadProcessMemory(handle, address, 1)
-	if !ok {
-		log.Fatalf("Error reading 0x%08x", address)
-	}
-	return uint8(buf[0])
-}
-
-func readU32(handle w32.HANDLE, address uintptr) uint32 {
-	buf, _, ok := w32.ReadProcessMemory(handle, address, 4)
-	if !ok {
-		log.Fatalf("Error reading 0x%08x", address)
-	}
-	return numbers.Uint32From16(buf[0:2])
-}
-
 func getWeaponIndex(handle w32.HANDLE, group uint8, index uint8, typeOffset uint8, sizeSomething uint32) uint32 {
 	weaponIndex := uint32(0)
-	pmtAddress := readU32(handle, 0x00a8dc94)
-	weaponAddress := readU32(handle, uintptr(pmtAddress+uint32(typeOffset)))
+	pmtAddress := numbers.ReadU32Unchecked(handle, 0x00a8dc94)
+	weaponAddress := numbers.ReadU32Unchecked(handle, uintptr(pmtAddress+uint32(typeOffset)))
 	if weaponAddress != 0 {
 		groupAddress := weaponAddress + (uint32(group) * 8)
-		itemAddress := readU32(handle, uintptr(groupAddress+4)) + (sizeSomething * uint32(index))
-		weaponIndex = readU32(handle, uintptr(itemAddress))
+		itemAddress := numbers.ReadU32Unchecked(handle, uintptr(groupAddress+4)) + (sizeSomething * uint32(index))
+		weaponIndex = numbers.ReadU32Unchecked(handle, uintptr(itemAddress))
 	}
 	return weaponIndex
 }
 
 func readItemName(handle w32.HANDLE, index int) string {
-	unitxtPointer := readU32(handle, 0x00a9cd50)
+	unitxtPointer := numbers.ReadU32Unchecked(handle, 0x00a9cd50)
 	if unitxtPointer == 0 {
 		return "?"
 	}
-	weaponIndex := readU32(handle, uintptr(unitxtPointer+4))
-	weaponNameAddress := readU32(handle, uintptr(weaponIndex+uint32(4*index)))
+	weaponIndex := numbers.ReadU32Unchecked(handle, uintptr(unitxtPointer+4))
+	weaponNameAddress := numbers.ReadU32Unchecked(handle, uintptr(weaponIndex+uint32(4*index)))
 
 	weaponName, err := numbers.ReadNullTerminatedString(handle, uintptr(weaponNameAddress))
 	if err != nil {
@@ -158,18 +142,18 @@ func readItemName(handle w32.HANDLE, index int) string {
 }
 
 func readWeapon(handle w32.HANDLE, itemAddr int, itemId string, itemGroup uint8) Weapon {
-	itemIndex := readU8(handle, uintptr(itemAddr+0xF4))
+	itemIndex := numbers.ReadU8(handle, uintptr(itemAddr+0xF4))
 	weaponIndex := getWeaponIndex(handle, itemGroup, itemIndex, 0x00, 44)
 	weapon := Weapon{
 		Id: itemId,
 	}
 	weapon.Name = readItemName(handle, int(weaponIndex))
-	weapon.Grind = readU8(handle, uintptr(itemAddr+itemWepGrind))
-	weapon.Special = readU8(handle, uintptr(itemAddr+itemWepSpecial))
+	weapon.Grind = numbers.ReadU8(handle, uintptr(itemAddr+itemWepGrind))
+	weapon.Special = numbers.ReadU8(handle, uintptr(itemAddr+itemWepSpecial))
 	weapon.SpecialName = getWeaponSpecial(weapon.Special)
 	for j := 0; j < 6; j += 2 {
-		area := readU8(handle, uintptr(itemAddr+itemWepStats+j))
-		percent := readU8(handle, uintptr(itemAddr+itemWepStats+j+1))
+		area := numbers.ReadU8(handle, uintptr(itemAddr+itemWepStats+j))
+		percent := numbers.ReadI8(handle, uintptr(itemAddr+itemWepStats+j+1))
 		switch area {
 		case 1:
 			weapon.Native = percent
@@ -192,11 +176,11 @@ type Weapon struct {
 	Grind       uint8
 	Special     uint8
 	SpecialName string
-	Native      uint8
-	ABeast      uint8
-	Machine     uint8
-	Dark        uint8
-	Hit         uint8
+	Native      int8
+	ABeast      int8
+	Machine     int8
+	Dark        int8
+	Hit         int8
 }
 
 func (w Weapon) String() string {
@@ -212,14 +196,14 @@ func (w Weapon) String() string {
 }
 
 func readFrame(handle w32.HANDLE, itemAddr int, itemId string, itemGroup uint8) Frame {
-	itemIndex := readU8(handle, uintptr(itemAddr+0xF4))
+	itemIndex := numbers.ReadU8(handle, uintptr(itemAddr+0xF4))
 	weaponIndex := getWeaponIndex(handle, itemGroup-1, itemIndex, 0x04, 32)
 	weapon := Frame{
 		Id:    itemId,
 		Name:  readItemName(handle, int(weaponIndex)),
-		Dfp:   readU8(handle, uintptr(itemAddr)+itemFrameDfp),
-		Evp:   readU8(handle, uintptr(itemAddr)+itemFrameEvp),
-		Slots: readU8(handle, uintptr(itemAddr)+itemArmSlots),
+		Dfp:   numbers.ReadU8(handle, uintptr(itemAddr)+itemFrameDfp),
+		Evp:   numbers.ReadU8(handle, uintptr(itemAddr)+itemFrameEvp),
+		Slots: numbers.ReadU8(handle, uintptr(itemAddr)+itemArmSlots),
 	}
 	return weapon
 }
@@ -233,7 +217,7 @@ type Frame struct {
 }
 
 func (f Frame) StringNoSlots() string {
-	// lazy reuse of the Frame struct
+	// lazy reuse of the Frame struct to handle barriers
 	return fmt.Sprintf("%v [%v|%v]", f.Name, f.Dfp, f.Evp)
 }
 
@@ -242,19 +226,19 @@ func (f Frame) String() string {
 }
 
 func readBarrier(handle w32.HANDLE, itemAddr int, itemId string, itemGroup uint8) Frame {
-	itemIndex := readU8(handle, uintptr(itemAddr+0xF4))
+	itemIndex := numbers.ReadU8(handle, uintptr(itemAddr+0xF4))
 	weaponIndex := getWeaponIndex(handle, itemGroup-1, itemIndex, 0x04, 32)
 	weapon := Frame{
 		Id:   itemId,
 		Name: readItemName(handle, int(weaponIndex)),
-		Dfp:  readU8(handle, uintptr(itemAddr+itemBarrierDfp)),
-		Evp:  readU8(handle, uintptr(itemAddr+itemBarrierEvp)),
+		Dfp:  numbers.ReadU8(handle, uintptr(itemAddr+itemBarrierDfp)),
+		Evp:  numbers.ReadU8(handle, uintptr(itemAddr+itemBarrierEvp)),
 	}
 	return weapon
 }
 
 func readUnit(handle w32.HANDLE, itemAddr int, itemId string) Frame {
-	itemIndex := readU8(handle, uintptr(itemAddr+0xF4))
+	itemIndex := numbers.ReadU8(handle, uintptr(itemAddr+0xF4))
 	weaponIndex := getWeaponIndex(handle, 0, itemIndex, 0x08, 20)
 	weapon := Frame{
 		Id:   itemId,
@@ -268,10 +252,10 @@ func readMag(handle w32.HANDLE, itemAddr int, itemId string, itemGroup uint8) Ma
 	return Mag{
 		Id:   itemId,
 		Name: readItemName(handle, int(weaponIndex)),
-		Def:  (int(readU8(handle, uintptr(itemAddr+itemMagStats+1)))<<8 + int(readU8(handle, uintptr(itemAddr+itemMagStats+0)))) / 100,
-		Pow:  (int(readU8(handle, uintptr(itemAddr+itemMagStats+3)))<<8 + int(readU8(handle, uintptr(itemAddr+itemMagStats+2)))) / 100,
-		Dex:  (int(readU8(handle, uintptr(itemAddr+itemMagStats+5)))<<8 + int(readU8(handle, uintptr(itemAddr+itemMagStats+4)))) / 100,
-		Mind: (int(readU8(handle, uintptr(itemAddr+itemMagStats+7)))<<8 + int(readU8(handle, uintptr(itemAddr+itemMagStats+6)))) / 100,
+		Def:  (int(numbers.ReadU8(handle, uintptr(itemAddr+itemMagStats+1)))<<8 + int(numbers.ReadU8(handle, uintptr(itemAddr+itemMagStats+0)))) / 100,
+		Pow:  (int(numbers.ReadU8(handle, uintptr(itemAddr+itemMagStats+3)))<<8 + int(numbers.ReadU8(handle, uintptr(itemAddr+itemMagStats+2)))) / 100,
+		Dex:  (int(numbers.ReadU8(handle, uintptr(itemAddr+itemMagStats+5)))<<8 + int(numbers.ReadU8(handle, uintptr(itemAddr+itemMagStats+4)))) / 100,
+		Mind: (int(numbers.ReadU8(handle, uintptr(itemAddr+itemMagStats+7)))<<8 + int(numbers.ReadU8(handle, uintptr(itemAddr+itemMagStats+6)))) / 100,
 	}
 }
 
