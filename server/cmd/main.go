@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	version := "0.6.0"
+	version := "0.6.2"
 
 	log.Printf("Starting Up PSOStats Server %v", version)
 

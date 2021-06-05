@@ -11,7 +11,7 @@
       "0409": {
         "identity": {
           "name": "PSOStats",
-          "version": "0.7.1"
+          "version": "0.7.2"
         },
         "description": "PSOStats Client",
         "minimum-os": "vista",
@@ -38,14 +38,14 @@
             "Comments": "",
             "CompanyName": "",
             "FileDescription": "",
-            "FileVersion": "v0.7.1",
+            "FileVersion": "v0.7.2",
             "InternalName": "",
             "LegalCopyright": "",
             "LegalTrademarks": "",
             "OriginalFilename": "psostats.exe",
             "PrivateBuild": "",
             "ProductName": "PSOStats",
-            "ProductVersion": "v0.7.1",
+            "ProductVersion": "v0.7.2",
             "SpecialBuild": ""
           }
         }

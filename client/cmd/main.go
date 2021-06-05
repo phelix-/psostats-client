@@ -19,7 +19,7 @@ func main() {
 	version := model.ClientInfo{
 		VersionMajor: 0,
 		VersionMinor: 7,
-		VersionPatch: 1,
+		VersionPatch: 2,
 	}
 
 	log.SetOutput(file)
