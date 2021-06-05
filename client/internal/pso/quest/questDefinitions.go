@@ -223,7 +223,7 @@ func getAllQuests() []Quest {
 		// The West Tower
 		{Episode: 2, Name: "Raid on Central Tower", Ignore: true}, // Quest crashes if you're too quick to kill Olga :)
 		{Episode: 2, Name: "The Military Strikes Back", Start: warpIn(), End: register(121)},
-		// Twilight Sanctuary
+		{Episode: 2, Name: "Twilight Sanctuary", Start: register(50), End: register(254)},
 
 		// ---- Shop ----
 		{Episode: 2, Name: "Gallon's Shop", Ignore: true},

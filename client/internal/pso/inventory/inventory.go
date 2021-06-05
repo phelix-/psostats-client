@@ -149,8 +149,14 @@ func readWeapon(handle w32.HANDLE, itemAddr int, itemId string, itemGroup uint8)
 	}
 	weapon.Name = readItemName(handle, int(weaponIndex))
 	weapon.Grind = numbers.ReadU8(handle, uintptr(itemAddr+itemWepGrind))
-	weapon.Special = numbers.ReadU8(handle, uintptr(itemAddr+itemWepSpecial))
-	weapon.SpecialName = getWeaponSpecial(weapon.Special)
+	isSRank := (itemGroup >= 0x70 && itemGroup < 0x89) || (itemGroup >= 0xA5 && itemGroup < 0xAA)
+	if isSRank {
+		weapon.Special = itemIndex
+		weapon.SpecialName = getSRankSpecial(weapon.Special)
+	} else {
+		weapon.Special = numbers.ReadU8(handle, uintptr(itemAddr+itemWepSpecial))
+		weapon.SpecialName = getWeaponSpecial(weapon.Special)
+	}
 	for j := 0; j < 6; j += 2 {
 		area := numbers.ReadU8(handle, uintptr(itemAddr+itemWepStats+j))
 		percent := numbers.ReadI8(handle, uintptr(itemAddr+itemWepStats+j+1))
@@ -270,6 +276,45 @@ type Mag struct {
 
 func (m Mag) String() string {
 	return fmt.Sprintf("%v [%v/%v/%v/%v]", m.Name, m.Def, m.Pow, m.Dex, m.Mind)
+}
+
+func getSRankSpecial(specialId uint8) string {
+	specialName := "?"
+	switch specialId {
+	case 1:
+		specialName = "Jellen"
+	case 2:
+		specialName = "Zalure"
+	case 3:
+		specialName = "HP Regeneration"
+	case 4:
+		specialName = "TP Regeneration"
+	case 5:
+		specialName = "Burning"
+	case 6:
+		specialName = "Tempest"
+	case 7:
+		specialName = "Blizzard"
+	case 8:
+		specialName = "Arrest"
+	case 9:
+		specialName = "Chaos"
+	case 10:
+		specialName = "Hell"
+	case 11:
+		specialName = "Spirit"
+	case 12:
+		specialName = "Berserk"
+	case 13:
+		specialName = "Demon's"
+	case 14:
+		specialName = "Gush"
+	case 15:
+		specialName = "Geist"
+	case 16:
+		specialName = "King's"
+	}
+	return specialName
 }
 
 func getWeaponSpecial(specialId uint8) string {
