@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
+	"sync"
 	"text/template"
 	"time"
 
@@ -29,6 +30,7 @@ type Server struct {
 	recentGames      []model.QuestRun
 	recentGamesCount int
 	recentGamesSize  int
+	recentGamesLock sync.Mutex
 }
 
 func New(dynamo *dynamodb.DynamoDB) *Server {

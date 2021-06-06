@@ -65,31 +65,32 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 	}
 	questRun.UserName = user
 
-	var matchingGame *model.QuestRun = nil
-	for _, recentGame := range s.recentGames {
-		if GamesMatch(recentGame, questRun) {
-			log.Printf("matched game[%v]", recentGame.Id)
-			matchingGame = &recentGame
-			break
-		}
-	}
+	matchingGame := s.findMatchingGame(questRun)
 
+	if matchingGame == nil {
+		s.recentGamesLock.Lock()
+		// Check again inside the lock
+		matchingGame = s.findMatchingGame(questRun)
+		if matchingGame == nil {
+			gameId, err := db.WriteGameById(&questRun, s.dynamoClient)
+			if err != nil {
+				log.Printf("write game %v", err)
+				c.Status(500)
+				s.recentGamesLock.Unlock()
+				return err
+			}
+			questRun.Id = gameId
+			s.recentGames[s.recentGamesCount%s.recentGamesSize] = questRun
+			s.recentGamesCount++
+		}
+		s.recentGamesLock.Unlock()
+	}
 	if matchingGame != nil {
 		questRun.Id = matchingGame.Id
 		err := db.AttachGameToId(questRun, matchingGame.Id, s.dynamoClient)
 		if err != nil {
 			log.Printf("%v", err)
 		}
-	} else {
-		gameId, err := db.WriteGameById(&questRun, s.dynamoClient)
-		if err != nil {
-			log.Printf("write game %v", err)
-			c.Status(500)
-			return err
-		}
-		questRun.Id = gameId
-		s.recentGames[s.recentGamesCount%s.recentGamesSize] = questRun
-		s.recentGamesCount++
 	}
 
 	record := false
@@ -146,4 +147,16 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 	log.Printf("got quest: %v %v, %v, %v, %v",
 		questRun.Id, questRun.QuestName, questRun.PlayerName, questRun.Server, questRun.UserName)
 	return nil
+}
+
+func (s *Server) findMatchingGame(questRun model.QuestRun) *model.QuestRun {
+	var matchingGame *model.QuestRun = nil
+	for _, recentGame := range s.recentGames {
+		if GamesMatch(recentGame, questRun) {
+			log.Printf("matched game[%v]", recentGame.Id)
+			matchingGame = &recentGame
+			break
+		}
+	}
+	return matchingGame
 }
