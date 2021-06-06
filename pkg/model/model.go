@@ -107,12 +107,16 @@ type Game struct {
 	GameGzip         []byte
 	P1Gzip           []byte
 	P1HasStats       bool
+	P1Video          string
 	P2Gzip           []byte
 	P2HasStats       bool
+	P2Video          string
 	P3Gzip           []byte
 	P3HasStats       bool
+	P3Video          string
 	P4Gzip           []byte
 	P4HasStats       bool
+	P4Video          string
 }
 
 type FormattedPlayerInfo struct {

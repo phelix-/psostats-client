@@ -142,6 +142,7 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 		return err
 	}
 	var gameGzip []byte
+	var videoUrl string
 	if fullGame != nil {
 		if len(gem) > 0 {
 			gemNum, err := strconv.Atoi(gem)
@@ -149,12 +150,16 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 				switch gemNum + 1 {
 				case 1:
 					gameGzip = fullGame.P1Gzip
+					videoUrl = fullGame.P1Video
 				case 2:
 					gameGzip = fullGame.P2Gzip
+					videoUrl = fullGame.P2Video
 				case 3:
 					gameGzip = fullGame.P3Gzip
+					videoUrl = fullGame.P3Video
 				case 4:
 					gameGzip = fullGame.P4Gzip
+					videoUrl = fullGame.P4Video
 				}
 			}
 		}
@@ -215,6 +220,7 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 			Frames               []model.Equipment
 			Units                []model.Equipment
 			Mags                 []model.Equipment
+			VideoUrl             string
 		}{
 			Game: *game,
 			HasPov: map[int]bool{
@@ -240,6 +246,7 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 			Frames:               getEquipment(game, model.EquipmentTypeFrame),
 			Units:                getEquipment(game, model.EquipmentTypeUnit),
 			Mags:                 getEquipment(game, model.EquipmentTypeMag),
+			VideoUrl:             videoUrl,
 		}
 		t, err := template.ParseFiles("./server/internal/templates/game.gohtml")
 		if err != nil {
