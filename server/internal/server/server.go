@@ -202,7 +202,7 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 			InvincibleRanges     map[int]int
 			HpRanges             map[int]uint16
 			TpRanges             map[int]uint16
-			PbRanges             map[int]float32
+			PbRanges             map[int]int
 			MonstersAliveRanges  map[int]int
 			MonstersKilledRanges map[int]int
 			MesetaChargedRanges  map[int]int
@@ -323,13 +323,14 @@ func convertU16ToXY(values []uint16) map[int]uint16 {
 	return converted
 }
 
-func convertF32ToXY(values []float32) map[int]float32 {
-	converted := make(map[int]float32)
-	previousValue := float32(0)
+func convertF32ToXY(values []float32) map[int]int {
+	converted := make(map[int]int)
+	previousValue := 0
 	for i, value := range values {
-		if i == 0 || value != previousValue {
-			converted[i] = value
-			previousValue = value
+		intValue := int(value)
+		if i == 0 || intValue != previousValue {
+			converted[i] = intValue
+			previousValue = intValue
 		}
 	}
 	converted[len(values)-1] = previousValue

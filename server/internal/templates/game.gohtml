@@ -123,11 +123,14 @@
                     <div id="sd-chart"></div>
                 </div>
             </div>
+            {{/* Some older games don't include PB */}}
+            {{ if gt (len .PbRanges) 2}}
             <div class="col-12">
                 <div class="psostats-chart">
                     <div id="pb-chart"></div>
                 </div>
             </div>
+            {{ end }}
 
             <div class="col-12">
                 <div class="psostats-chart">
