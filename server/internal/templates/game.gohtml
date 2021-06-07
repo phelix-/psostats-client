@@ -1,7 +1,10 @@
 {{define "game"}}
     <html lang="en">
     <head>
-        <meta name="viewport" content="width=device-width">
+        <meta name="viewport" content="width=device-width"/>
+        <meta property="og:site_name" content="PSOStats"/>
+        <meta property="og:title" content="{{ .Game.QuestName }} - {{ .FormattedQuestTime}}"/>
+        <meta property="og:description" content="Run by {{ range $index,$player := .Game.AllPlayers }}{{ if $index }}, {{ end }}{{ $player.Name }}({{ $player.Class }}){{ end }}"/>
         <title>PSOStats</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
         <link href="/static/main2.css" rel="stylesheet" type="text/css">

@@ -31,6 +31,7 @@ type Server struct {
 	recentGamesCount int
 	recentGamesSize  int
 	recentGamesLock sync.Mutex
+	webhookUrl string
 }
 
 func New(dynamo *dynamodb.DynamoDB) *Server {
@@ -38,6 +39,7 @@ func New(dynamo *dynamodb.DynamoDB) *Server {
 		// modify config
 	})
 	cacheSize := 500
+	webhookUrl, _ := os.LookupEnv("WEBHOOK_URL")
 	return &Server{
 		app:              f,
 		dynamoClient:     dynamo,
@@ -45,6 +47,7 @@ func New(dynamo *dynamodb.DynamoDB) *Server {
 		recentGames:      make([]model.QuestRun, cacheSize),
 		recentGamesCount: 0,
 		recentGamesSize:  cacheSize,
+		webhookUrl: webhookUrl,
 	}
 }
 

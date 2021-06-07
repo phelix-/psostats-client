@@ -1,14 +1,17 @@
 package server
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/phelix-/psostats/v2/pkg/model"
 	"github.com/phelix-/psostats/v2/server/internal/db"
 	"github.com/valyala/fasthttp"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 )
@@ -107,6 +110,7 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 			}
 		} else if topRun == nil || topRun.Time > questDuration {
 			record = true
+			s.QuestRecordWebhook(questRun)
 			log.Printf("new record for %v %vp pb:%v - %v",
 				questRun.QuestName, numPlayers, questRun.PbCategory, questRun.Id)
 			if err = db.WriteGameByQuestRecord(&questRun, s.dynamoClient); err != nil {
@@ -159,4 +163,49 @@ func (s *Server) findMatchingGame(questRun model.QuestRun) *model.QuestRun {
 		}
 	}
 	return matchingGame
+}
+
+func (s *Server) QuestRecordWebhook(questRun model.QuestRun) {
+	if len(s.webhookUrl) > 0 {
+		playersString := ""
+		classesString := ""
+		for _,player := range questRun.AllPlayers {
+			playersString = playersString + player.Name + "\n"
+			classesString = classesString + player.Class + "\n"
+		}
+		jsonBytes, err := json.Marshal(Webhook{Embeds: []Embed{
+			{
+				Title: questRun.QuestName,
+				Description: fmt.Sprintf("%v https://psostats.com/game/%v", questRun.QuestDuration, questRun.Id),
+				Fields: []Field{
+					{Name: "Players", Value: playersString, Inline: true},
+					{Name: "Classes", Value: classesString, Inline: true},
+				},
+			},
+		}})
+		if err != nil {
+			log.Printf("Failed to marshal data %v", err)
+		}
+		buf := bytes.NewBuffer(jsonBytes)
+
+		_, err = http.Post(s.webhookUrl, "application/json", buf)
+		if err != nil {
+			log.Printf("Failed to perform webhook %v", err)
+		}
+	}
+}
+
+type Webhook struct {
+	Embeds []Embed `json:"embeds"`
+}
+type Embed struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Fields      []Field `json:"fields"`
+}
+
+type Field struct {
+	Name   string `json:"name"`
+	Value  string `json:"value"`
+	Inline bool   `json:"inline"`
 }
