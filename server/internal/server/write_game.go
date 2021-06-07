@@ -170,10 +170,8 @@ func (s *Server) QuestRecordWebhook(questRun model.QuestRun) {
 		duration, err := time.ParseDuration(questRun.QuestDuration)
 		formattedDuration := formatDuration(duration)
 		playersString := ""
-		classesString := ""
 		for _,player := range questRun.AllPlayers {
-			playersString = playersString + player.Name + "\n"
-			classesString = classesString + player.Class + "\n"
+			playersString = fmt.Sprintf("%v%v - %v\n", playersString, player.Class, player.Name)
 		}
 		jsonBytes, err := json.Marshal(Webhook{Embeds: []Embed{
 			{
@@ -181,7 +179,6 @@ func (s *Server) QuestRecordWebhook(questRun model.QuestRun) {
 				Description: fmt.Sprintf("%v https://psostats.com/game/%v", formattedDuration, questRun.Id),
 				Fields: []Field{
 					{Name: "Players", Value: playersString, Inline: true},
-					{Name: "Classes", Value: classesString, Inline: true},
 				},
 			},
 		}})
