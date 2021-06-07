@@ -167,6 +167,8 @@ func (s *Server) findMatchingGame(questRun model.QuestRun) *model.QuestRun {
 
 func (s *Server) QuestRecordWebhook(questRun model.QuestRun) {
 	if len(s.webhookUrl) > 0 {
+		duration, err := time.ParseDuration(questRun.QuestDuration)
+		formattedDuration := formatDuration(duration)
 		playersString := ""
 		classesString := ""
 		for _,player := range questRun.AllPlayers {
@@ -176,7 +178,7 @@ func (s *Server) QuestRecordWebhook(questRun model.QuestRun) {
 		jsonBytes, err := json.Marshal(Webhook{Embeds: []Embed{
 			{
 				Title: questRun.QuestName,
-				Description: fmt.Sprintf("%v https://psostats.com/game/%v", questRun.QuestDuration, questRun.Id),
+				Description: fmt.Sprintf("%v https://psostats.com/game/%v", formattedDuration, questRun.Id),
 				Fields: []Field{
 					{Name: "Players", Value: playersString, Inline: true},
 					{Name: "Classes", Value: classesString, Inline: true},
