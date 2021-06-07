@@ -3,10 +3,11 @@ package pso
 import (
 	"errors"
 	"fmt"
-	"github.com/phelix-/psostats/v2/pkg/model"
 	"log"
 	"time"
 	"unicode/utf16"
+
+	"github.com/phelix-/psostats/v2/pkg/model"
 
 	"github.com/TheTitanrain/w32"
 	"github.com/phelix-/psostats/v2/client/internal/numbers"
@@ -484,7 +485,7 @@ func (pso *PSO) RefreshData() error {
 	pso.GameState.Difficulty = game.DifficultyString()
 
 	if address != 0 {
-		playerData, err := player.GetPlayerData(pso.handle, address)
+		playerData, err := player.GetPlayerData(pso.handle, address, pso.server)
 		if err != nil {
 			return err
 		}
@@ -636,7 +637,7 @@ func (pso *PSO) getOtherPlayers() ([]player.BasePlayerInfo, error) {
 	for i := 0; i < 12; i++ {
 		address := pso.getBaseCharacterAddress(uint8(i))
 		if address != 0 {
-			playerData, err := player.GetPlayerData(pso.handle, address)
+			playerData, err := player.GetPlayerData(pso.handle, address, pso.server)
 			if err != nil {
 				return nil, err
 			}
