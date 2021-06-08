@@ -5,12 +5,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/phelix-/psostats/v2/pkg/model"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/hishboy/gocommons/lang"
+
+	"github.com/phelix-/psostats/v2/pkg/model"
 
 	termui "github.com/gizak/termui/v3"
 	"github.com/phelix-/psostats/v2/client/internal/client/config"
@@ -20,7 +23,7 @@ import (
 
 type Client struct {
 	pso           *pso.PSO
-	clientInfo       model.ClientInfo
+	clientInfo    model.ClientInfo
 	httpClient    http.Client
 	config        *config.Config
 	uiRefreshRate time.Duration
@@ -29,6 +32,7 @@ type Client struct {
 	errChan       chan error
 	done          chan struct{}
 	completeGame  chan pso.QuestRun
+	gameQueue     *lang.Queue
 }
 
 func New(clientInfo model.ClientInfo) (*Client, error) {
@@ -42,7 +46,7 @@ func New(clientInfo model.ClientInfo) (*Client, error) {
 
 	return &Client{
 		pso:           pso,
-		clientInfo:       clientInfo,
+		clientInfo:    clientInfo,
 		httpClient:    http.Client{},
 		config:        clientConfig,
 		uiRefreshRate: clientConfig.GetUiRefreshRate(),
@@ -50,6 +54,7 @@ func New(clientInfo model.ClientInfo) (*Client, error) {
 		errChan:       make(chan error),
 		done:          make(chan struct{}),
 		completeGame:  completeGameChannel,
+		gameQueue:     lang.NewQueue(),
 	}, nil
 }
 
@@ -73,10 +78,25 @@ func (c *Client) Run() error {
 				return nil
 			case "w":
 				c.writeGameJson()
+			case "u":
+				for c.gameQueue.Len() > 0 {
+					game, ok := c.gameQueue.Poll().(*pso.QuestRun)
+					if ok {
+						c.uploadGame(*game)
+					} else {
+						log.Printf("Manual upload failed")
+						break
+					}
+
+				}
+				c.pso.GameState.AwaitingUpload = false
 			}
 		case game := <-c.completeGame:
 			if c.config.AutoUploadEnabled() {
 				c.uploadGame(game)
+			} else {
+				c.gameQueue.Push(&game)
+				c.pso.GameState.AwaitingUpload = true
 			}
 		case err := <-c.errChan:
 			close(c.done)

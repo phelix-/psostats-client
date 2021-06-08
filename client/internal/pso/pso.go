@@ -2,11 +2,12 @@ package pso
 
 import (
 	"fmt"
-	"github.com/phelix-/psostats/v2/client/internal/pso/inventory"
-	"github.com/phelix-/psostats/v2/client/internal/pso/quest"
 	"log"
 	"syscall"
 	"time"
+
+	"github.com/phelix-/psostats/v2/client/internal/pso/inventory"
+	"github.com/phelix-/psostats/v2/client/internal/pso/quest"
 
 	"github.com/TheTitanrain/w32"
 	"github.com/phelix-/psostats/v2/client/internal/pso/player"
@@ -42,6 +43,7 @@ type GameState struct {
 	QuestStarted         bool
 	Uploading            bool
 	UploadSuccessful     bool
+	AwaitingUpload       bool
 	QuestComplete        bool
 	QuestStartTime       time.Time
 	QuestEndTime         time.Time
@@ -60,6 +62,7 @@ func (state *GameState) ClearQuest() {
 	state.MonsterCount = 0
 	state.QuestStarted = false
 	state.QuestComplete = false
+	state.AwaitingUpload = false
 	state.Uploading = false
 	state.UploadSuccessful = false
 	state.CmodeStage = -1

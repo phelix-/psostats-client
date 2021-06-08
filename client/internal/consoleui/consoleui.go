@@ -3,10 +3,11 @@ package consoleui
 
 import (
 	"fmt"
-	"github.com/phelix-/psostats/v2/client/internal/client/config"
-	"github.com/phelix-/psostats/v2/pkg/model"
 	"strings"
 	"time"
+
+	"github.com/phelix-/psostats/v2/client/internal/client/config"
+	"github.com/phelix-/psostats/v2/pkg/model"
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
@@ -124,6 +125,9 @@ func (cui *ConsoleUI) drawRecording(gameState *pso.GameState) {
 	} else if gameState.Uploading {
 		recording.TextStyle.Fg = ui.ColorGreen
 		recording.Text = "[[ Uploading ]] "
+	} else if gameState.AwaitingUpload {
+		recording.TextStyle.Fg = ui.ColorYellow
+		recording.Text = "[[ Quest Ready For Upload: Press u to Upload ]] "
 	} else if gameState.QuestComplete {
 		recording.TextStyle.Fg = ui.ColorGreen
 		recording.Text = "[[ Quest Complete ]] "
