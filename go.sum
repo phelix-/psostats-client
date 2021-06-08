@@ -10,6 +10,8 @@ github.com/gizak/termui/v3 v3.1.0 h1:ZZmVDgwHl7gR7elfKf1xc4IudXZ5qqfDh4wExk4Iajc
 github.com/gizak/termui/v3 v3.1.0/go.mod h1:bXQEBkJpzxUAKf0+xq9MSWAvWZlE7c+aidmyFlkYTrY=
 github.com/gofiber/fiber/v2 v2.7.1 h1:CpzGXD+7VhmptQ6McU5qYyRFxZdQkP2Y32ySIid+BXQ=
 github.com/gofiber/fiber/v2 v2.7.1/go.mod h1:f8BRRIMjMdRyt2qmJ/0Sea3j3rwwfufPrh9WNBRiVZ0=
+github.com/hishboy/gocommons v0.0.0-20160108023425-89887b2ade6d h1:NE+XGwIkTgi/pIdEidbYhbUL/CeTLjDk00SwEVnrZzU=
+github.com/hishboy/gocommons v0.0.0-20160108023425-89887b2ade6d/go.mod h1:hLm3O94CK4wBXjq+fc6Xwva2B8VYmBa4Qgd4UbVWnas=
 github.com/jmespath/go-jmespath v0.4.0 h1:BEgLn5cpjn8UN1mAw4NjwDrS35OdebyEtFe+9YPoQUg=
 github.com/jmespath/go-jmespath v0.4.0/go.mod h1:T8mJZnbsbmF+m6zOOFylbeCJqk5+pHWvzYPziyZiYoo=
 github.com/jmespath/go-jmespath/internal/testify v1.5.1 h1:shLQSRRSCCPj3f2gpwzGwWFoC7ycTf1rcQZHOlsJ6N8=

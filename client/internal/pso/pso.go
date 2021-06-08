@@ -45,6 +45,7 @@ type GameState struct {
 	QuestStarted         bool
 	Uploading            bool
 	UploadSuccessful     bool
+	AwaitingUpload       bool
 	QuestComplete        bool
 	QuestStartTime       time.Time
 	QuestEndTime         time.Time
@@ -63,6 +64,7 @@ func (state *GameState) ClearQuest() {
 	state.MonsterCount = 0
 	state.QuestStarted = false
 	state.QuestComplete = false
+	state.AwaitingUpload = false
 	state.Uploading = false
 	state.UploadSuccessful = false
 	state.CmodeStage = -1
