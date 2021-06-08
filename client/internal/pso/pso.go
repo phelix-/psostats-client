@@ -2,14 +2,17 @@ package pso
 
 import (
 	"fmt"
-	"github.com/phelix-/psostats/v2/client/internal/pso/inventory"
-	"github.com/phelix-/psostats/v2/client/internal/pso/quest"
 	"log"
 	"syscall"
 	"time"
 
+	"github.com/phelix-/psostats/v2/client/internal/pso/inventory"
+	"github.com/phelix-/psostats/v2/client/internal/pso/quest"
+
 	"github.com/TheTitanrain/w32"
 	"github.com/phelix-/psostats/v2/client/internal/pso/player"
+
+	constants "github.com/phelix-/psostats/v2/client/internal/pso/constants"
 )
 
 const (
@@ -146,10 +149,10 @@ func (pso *PSO) StopPersistentConnection() {
 }
 
 func (pso *PSO) Connect() (bool, string, error) {
-	server := "unseen"
+	server := constants.UnseenServerName
 	hwnd := w32.FindWindowW(nil, syscall.StringToUTF16Ptr(unseenWindowName))
 	if hwnd == 0 {
-		server = "ephinea"
+		server = constants.EphineaServerName
 		// unseen not found
 		hwnd = w32.FindWindowW(nil, syscall.StringToUTF16Ptr(ephineaWindowName))
 		if hwnd == 0 {

@@ -9,6 +9,13 @@ import (
 
 	"github.com/TheTitanrain/w32"
 	"github.com/phelix-/psostats/v2/client/internal/numbers"
+
+	constants "github.com/phelix-/psostats/v2/client/internal/pso/constants"
+)
+
+const (
+	ephineaGuildCardOffset = 0x4
+	ephineaGuildCardSize   = 4
 )
 
 type BasePlayerInfo struct {
@@ -62,7 +69,7 @@ func ParsePlayerMemory(buf []uint16, base uintptr) BasePlayerInfo {
 	}
 }
 
-func GetPlayerData(handle w32.HANDLE, playerAddress uintptr) (BasePlayerInfo, error) {
+func GetPlayerData(handle w32.HANDLE, playerAddress uintptr, server string) (BasePlayerInfo, error) {
 	base := uintptr(0x028)
 	max := uintptr(0xE4E)
 	buf, _, ok := w32.ReadProcessMemory(handle, playerAddress+base, (max-base)+4)
@@ -76,7 +83,7 @@ func GetPlayerData(handle w32.HANDLE, playerAddress uintptr) (BasePlayerInfo, er
 	}
 	basePlayerInfo.Name = name
 
-	guildcard, err := getGuildCard(handle, playerAddress)
+	guildcard, err := getGuildCard(handle, playerAddress, server)
 	if err != nil {
 		return BasePlayerInfo{}, err
 	}
@@ -103,8 +110,15 @@ func getCharacterName(handle w32.HANDLE, playerAddress uintptr) (string, error) 
 	return name, nil
 }
 
-func getGuildCard(handle w32.HANDLE, playerAddress uintptr) (string, error) {
-	guildCard, err := numbers.ReadString(handle, playerAddress+0x92c, 7)
+func getGuildCard(handle w32.HANDLE, playerAddress uintptr, server string) (string, error) {
+	offset := 0
+	size := 7
+	if server == constants.EphineaServerName {
+		offset = ephineaGuildCardOffset
+		size = ephineaGuildCardSize
+	}
+
+	guildCard, err := numbers.ReadString(handle, playerAddress+0x92c+uintptr(offset), size)
 	if err != nil {
 		return "", err
 	}
