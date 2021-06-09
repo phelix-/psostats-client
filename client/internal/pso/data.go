@@ -153,6 +153,9 @@ func (pso *PSO) StartNewQuest(questConfig quest.Quest) {
 		}
 	}
 	maxPartyPbShifta := int16(21 + (20 * (len(allPlayers) - 1)))
+	if maxPartySupplyableShifta > maxPartyPbShifta {
+		maxPartyPbShifta = maxPartySupplyableShifta
+	}
 	currentShifta := pso.CurrentPlayerData.ShiftaLvl
 	pbShifta := currentShifta > maxPartySupplyableShifta
 	pbCharged := pso.CurrentPlayerData.PB > 5.0
