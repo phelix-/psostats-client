@@ -605,8 +605,8 @@ func (s *Server) PostMotd(c *fiber.Ctx) error {
 		return err
 	}
 	message := fmt.Sprintf("Logged in as %v, up to date", user)
-	if clientInfo.VersionMajor < 0 || clientInfo.VersionMinor < 7 || clientInfo.VersionPatch < 2 {
-		message = "Version 0.7.2 available! Head to https://psostats.com/download to update"
+	if clientInfo.VersionMajor < 0 || clientInfo.VersionMinor < 7 || clientInfo.VersionPatch < 3 {
+		message = "Version 0.7.3 available! Head to https://psostats.com/download to update"
 	}
 	motd := model.MessageOfTheDay{
 		Authorized: authorized,
