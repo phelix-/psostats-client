@@ -16,8 +16,6 @@ import (
 	"time"
 )
 
-
-
 func getUserFromBasicAuth(headerBytes []byte) (string, string, error) {
 	headerString := string(headerBytes)
 	if len(headerString) > 0 && strings.HasPrefix(headerString, "Basic ") {
@@ -67,6 +65,7 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 		return err
 	}
 	questRun.UserName = user
+	questRun.SubmittedTime = time.Now()
 
 	matchingGame := s.findMatchingGame(questRun)
 
@@ -110,7 +109,7 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 			}
 		} else if topRun == nil || topRun.Time > questDuration {
 			record = true
-			s.QuestRecordWebhook(questRun)
+			s.QuestRecordWebhook(questRun, topRun)
 			log.Printf("new record for %v %vp pb:%v - %v",
 				questRun.QuestName, numPlayers, questRun.PbCategory, questRun.Id)
 			if err = db.WriteGameByQuestRecord(&questRun, s.dynamoClient); err != nil {
@@ -165,18 +164,24 @@ func (s *Server) findMatchingGame(questRun model.QuestRun) *model.QuestRun {
 	return matchingGame
 }
 
-func (s *Server) QuestRecordWebhook(questRun model.QuestRun) {
+func (s *Server) QuestRecordWebhook(questRun model.QuestRun, previousRecord *model.Game) {
 	if len(s.webhookUrl) > 0 {
 		duration, err := time.ParseDuration(questRun.QuestDuration)
 		formattedDuration := formatDuration(duration)
 		playersString := ""
-		for _,player := range questRun.AllPlayers {
+		for _, player := range questRun.AllPlayers {
 			playersString = fmt.Sprintf("%v%v - %v\n", playersString, player.Class, player.Name)
+		}
+		previousRecordText := ""
+		if previousRecord != nil {
+			difference := previousRecord.Time - duration
+			previousRecordText = "\nbeating the previous record by " + formatDuration(difference)
 		}
 		jsonBytes, err := json.Marshal(Webhook{Embeds: []Embed{
 			{
-				Title: questRun.QuestName,
-				Description: fmt.Sprintf("%v https://psostats.com/game/%v", formattedDuration, questRun.Id),
+				Title: "New Record: " + questRun.QuestName,
+				Description: fmt.Sprintf("%v https://psostats.com/game/%v%v",
+					formattedDuration, questRun.Id, previousRecordText),
 				Fields: []Field{
 					{Name: "Players", Value: playersString, Inline: true},
 				},
@@ -187,9 +192,12 @@ func (s *Server) QuestRecordWebhook(questRun model.QuestRun) {
 		}
 		buf := bytes.NewBuffer(jsonBytes)
 
-		_, err = http.Post(s.webhookUrl, "application/json", buf)
-		if err != nil {
-			log.Printf("Failed to perform webhook %v", err)
+		urls := strings.Split(s.webhookUrl, ",")
+		for _, url := range urls {
+			_, err = http.Post(url, "application/json", buf)
+			if err != nil {
+				log.Printf("Failed to perform webhook %v", err)
+			}
 		}
 	}
 }
@@ -198,8 +206,8 @@ type Webhook struct {
 	Embeds []Embed `json:"embeds"`
 }
 type Embed struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
 	Fields      []Field `json:"fields"`
 }
 

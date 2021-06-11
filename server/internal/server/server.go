@@ -646,12 +646,8 @@ func GamesMatch(a, b model.QuestRun) bool {
 	if a.UserName == b.UserName {
 		return false
 	}
-	if a.QuestStartTime.Add(time.Second*-30).After(b.QuestStartTime) ||
-		a.QuestStartTime.Add(time.Second*30).Before(b.QuestStartTime) {
-		return false
-	}
-	if a.QuestEndTime.Add(time.Second*-30).After(b.QuestEndTime) ||
-		a.QuestEndTime.Add(time.Second*30).Before(b.QuestEndTime) {
+	if a.SubmittedTime.Add(time.Second*-30).After(b.SubmittedTime) ||
+		a.SubmittedTime.Add(time.Second*30).Before(b.SubmittedTime) {
 		return false
 	}
 	if len(a.AllPlayers) != len(b.AllPlayers) {

@@ -36,6 +36,7 @@ type QuestRun struct {
 	QuestStartDate      string
 	QuestEndTime        time.Time
 	QuestDuration       string
+	SubmittedTime       time.Time
 	DeathCount          int
 	HP                  []uint16
 	TP                  []uint16
