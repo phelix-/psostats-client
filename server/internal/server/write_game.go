@@ -190,11 +190,11 @@ func (s *Server) QuestRecordWebhook(questRun model.QuestRun, previousRecord *mod
 		if err != nil {
 			log.Printf("Failed to marshal data %v", err)
 		}
-		buf := bytes.NewBuffer(jsonBytes)
 
 		urls := strings.Split(s.webhookUrl, ",")
 		for _, url := range urls {
-			_, err = http.Post(url, "application/json", buf)
+			buf := bytes.NewBuffer(jsonBytes)
+			_, err := http.Post(url, "application/json", buf)
 			if err != nil {
 				log.Printf("Failed to perform webhook %v", err)
 			}
