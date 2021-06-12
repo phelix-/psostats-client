@@ -98,14 +98,19 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 	record := false
 	pb := false
 	if IsLeaderboardCandidate(questRun) {
+		s.recordsLock.Lock()
 		numPlayers := len(questRun.AllPlayers)
 		topRun, err := db.GetQuestRecord(questRun.QuestName, numPlayers, questRun.PbCategory, s.dynamoClient)
 		if err != nil {
 			log.Printf("failed to get top quest runs for gameId:%v - %v", questRun.Id, err)
 		} else if matchingGame != nil {
-			record = matchingGame.Id == topRun.Id
-			if err := db.AddPovToRecord(questRun, s.dynamoClient); err != nil {
-				log.Printf("failed to add pov to record")
+			if topRun == nil {
+				log.Printf("Matching game but no topRun, almost definitely a bug")
+			} else {
+				record = matchingGame.Id == topRun.Id
+				if err := db.AddPovToRecord(questRun, s.dynamoClient); err != nil {
+					log.Printf("failed to add pov to record")
+				}
 			}
 		} else if topRun == nil || topRun.Time > questDuration {
 			record = true
@@ -116,6 +121,7 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 				log.Printf("failed to update leaderboard for game %v - %v", questRun.Id, err)
 			}
 		}
+		s.recordsLock.Unlock()
 		if err = db.WriteGameByQuest(&questRun, s.dynamoClient); err != nil {
 			log.Printf("failed to update games by quest for game %v - %v", questRun.Id, err)
 		}

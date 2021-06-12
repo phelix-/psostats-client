@@ -31,6 +31,7 @@ type Server struct {
 	recentGamesCount int
 	recentGamesSize  int
 	recentGamesLock sync.Mutex
+	recordsLock sync.Mutex
 	webhookUrl string
 }
 
