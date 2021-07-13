@@ -137,6 +137,8 @@ type FormattedGame struct {
 	Time         string
 	Date         string
 	RelativeDate string
+	Pb           bool
+	Record       bool
 }
 
 type ClientInfo struct {

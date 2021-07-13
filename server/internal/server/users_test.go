@@ -48,3 +48,27 @@ func Test_cmodeRegex(t *testing.T) {
 		t.Error("ma1c ult")
 	}
 }
+
+func Test_sendWebhook(t *testing.T) {
+	s := server.New(nil)
+	duration := (1 * time.Minute) + (25 * time.Second) + (31 * time.Millisecond)
+	questRun := model.QuestRun{QuestName: "Maximum Attack E: CCA", QuestDuration: duration.String(), Id: "1", AllPlayers: []model.BasePlayerInfo{
+		{
+			Name: "phelix",
+			Class: "HUmar",
+		},{
+			Name: "shoebert",
+			Class: "FOnewearl",
+		},{
+			Name: "Clio",
+			Class: "RAmarl",
+		},{
+			Name: "Krang",
+			Class: "HUcast",
+		},
+	}}
+	//previousRecord := model.Game{
+	//	Time: (1 * time.Minute) + (45 * time.Second),
+	//}
+	s.QuestRecordWebhook(questRun, nil)
+}

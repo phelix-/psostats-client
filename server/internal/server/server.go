@@ -61,9 +61,8 @@ func (s *Server) Run() {
 	s.app.Get("/info", s.InfoPage)
 	s.app.Get("/download", s.DownloadPage)
 	s.app.Get("/records", s.RecordsV2Page)
-	s.app.Get("/recordsV2", s.RecordsPage)
-	s.app.Get("/players/:player", s.PlayerPage)
-	s.app.Get("/playersV2", s.PlayerV2Page)
+	s.app.Get("/playersV1/:player", s.PlayerPage)
+	s.app.Get("/players/:player", s.PlayerV2Page)
 	s.app.Get("/gc/:gc", s.GcRedirect)
 	// API
 	s.app.Post("/api/game", s.PostGame)
@@ -119,14 +118,118 @@ func (s *Server) InfoPage(c *fiber.Ctx) error {
 }
 
 func (s *Server) PlayerV2Page(c *fiber.Ctx) error {
+	player := c.Params("player")
+	player, err := url.PathUnescape(player)
+	if err != nil {
+		c.Status(500)
+		return err
+	}
+	recentGames, err := db.GetPlayerRecentGames(player, s.dynamoClient)
+	if err != nil {
+		return err
+	}
+	games, err := db.GetQuestRecords(s.dynamoClient)
+	if err != nil {
+		return err
+	}
+	sortedRecords := sortGames(games)
+	playerPbs, err := db.GetPlayerPbs(player, s.dynamoClient)
+	if err != nil {
+		return err
+	}
+	sortedPbs := sortGames(playerPbs)
+
+	for _, pb := range playerPbs {
+		if sortedRecords[pb.Episode][pb.Quest][pb.Category].Id == pb.Id {
+			pbsForEp := sortedPbs[pb.Episode]
+			pbsForQuest := pbsForEp[pb.Quest]
+			pbForCategory := pbsForQuest[pb.Category]
+			pbForCategory.Record = true
+			pbsForQuest[pb.Category] = pbForCategory
+			pbsForEp[pb.Quest] = pbsForQuest
+			sortedPbs[pb.Episode] = pbsForEp
+		}
+	}
+
+
 	t, err := template.ParseFiles("./server/internal/templates/playerV2.gohtml")
 	if err != nil {
 		return err
 	}
-	infoModel := struct{}{}
+	infoModel := struct{
+		PlayerName string
+		Classes map[string]int
+		TotalGames int
+		GamesByEpisode map[int]int
+		RecentGames []model.FormattedGame
+		PbGames map[int]map[string]map[string]model.FormattedGame
+	}{
+		PlayerName: player,
+		Classes: map[string]int{
+			"HUmar": 0,
+			"HUnewearl": 0,
+			"HUcast": 0,
+			"HUcaseal": 0,
+			"RAmar": 0,
+			"RAmarl": 0,
+			"RAcast": 0,
+			"RAcaseal": 0,
+			"FOmar": 0,
+			"FOmarl": 0,
+			"FOnewm": 0,
+			"FOnewearl": 0,
+		},
+		TotalGames: 0,
+		GamesByEpisode: map[int]int {
+			1: 0,
+			2: 0,
+			4: 0,
+		},
+		RecentGames: make([]model.FormattedGame, 0),
+		PbGames:     sortedPbs,
+	}
+	for index, game := range recentGames {
+		formattedGame := getFormattedGame(game)
+		for _,playerInfo := range formattedGame.Players {
+			if playerInfo.HasPov {
+				infoModel.Classes[playerInfo.Class] = infoModel.Classes[playerInfo.Class] + 1
+			}
+		}
+		infoModel.TotalGames++
+		infoModel.GamesByEpisode[game.Episode] = infoModel.GamesByEpisode[game.Episode] + 1
+		pbForQuestAndCategory := sortedPbs[game.Episode][game.Quest][game.Category]
+		if pbForQuestAndCategory.Id == game.Id {
+			formattedGame.Pb = true
+			if pbForQuestAndCategory.Record {
+				formattedGame.Record = true
+			}
+		}
+		if index < 15 {
+			infoModel.RecentGames = append(infoModel.RecentGames, formattedGame)
+		}
+	}
 	err = t.ExecuteTemplate(c.Response().BodyWriter(), "player", infoModel)
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
+}
+
+func sortGames(games []model.Game) map[int]map[string]map[string]model.FormattedGame {
+	recordModel := make(map[int]map[string]map[string]model.FormattedGame)
+	for _, game := range games {
+		formattedGame := getFormattedGame(game)
+		questsForEpisode := recordModel[game.Episode]
+		if questsForEpisode == nil {
+			questsForEpisode = make(map[string]map[string]model.FormattedGame)
+		}
+		gamesForQuest := questsForEpisode[game.Quest]
+		if gamesForQuest == nil {
+			gamesForQuest = make(map[string]model.FormattedGame)
+		}
+		gamesForQuest[game.Category] = formattedGame
+		questsForEpisode[game.Quest] = gamesForQuest
+		recordModel[game.Episode] = questsForEpisode
+	}
+	return recordModel
 }
 
 func (s *Server) DownloadPage(c *fiber.Ctx) error {
@@ -373,60 +476,10 @@ func (s *Server) RecordsV2Page(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	recordModel := make(map[int]map[string]map[string]model.FormattedGame)
-	for _, game := range games {
-		formattedGame := getFormattedGame(game)
-		questsForEpisode := recordModel[game.Episode]
-		if questsForEpisode == nil {
-			questsForEpisode = make(map[string]map[string]model.FormattedGame)
-		}
-		gamesForQuest := questsForEpisode[game.Quest]
-		if gamesForQuest == nil {
-			gamesForQuest = make(map[string]model.FormattedGame)
-		}
-		gamesForQuest[game.Category] = formattedGame
-		questsForEpisode[game.Quest] = gamesForQuest
-		recordModel[game.Episode] = questsForEpisode
-	}
+	recordModel := sortGames(games)
 
 	err = t.ExecuteTemplate(c.Response().BodyWriter(), "index", recordModel)
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
-	return err
-}
-
-func (s *Server) RecordsPage(c *fiber.Ctx) error {
-	t, err := template.ParseFiles("./server/internal/templates/records.gohtml")
-	if err != nil {
-		c.Status(500)
-		return err
-	}
-	games, err := db.GetQuestRecords(s.dynamoClient)
-	sort.Slice(games, func(i, j int) bool {
-		if games[i].Episode != games[j].Episode {
-			return games[i].Episode < games[j].Episode
-		}
-		if games[i].Quest != games[j].Quest {
-			return games[i].Quest < games[j].Quest
-		}
-		return games[i].Category < games[j].Category
-	})
-
-	if err != nil {
-		log.Print("get recent games")
-		c.Status(500)
-		return err
-	}
-	for i, game := range games {
-		addFormattedFields(&game)
-		games[i] = game
-	}
-	model := struct {
-		Games []model.Game
-	}{
-		Games: games,
-	}
-	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
-	err = t.ExecuteTemplate(c.Response().BodyWriter(), "index", model)
 	return err
 }
 
@@ -606,8 +659,8 @@ func (s *Server) PostMotd(c *fiber.Ctx) error {
 		return err
 	}
 	message := fmt.Sprintf("Logged in as %v, up to date", user)
-	if clientInfo.VersionMajor < 0 || clientInfo.VersionMinor < 7 || clientInfo.VersionPatch < 3 {
-		message = "Version 0.7.3 available! Head to https://psostats.com/download to update"
+	if clientInfo.VersionMajor < 0 || clientInfo.VersionMinor < 7 || clientInfo.VersionPatch < 5 {
+		message = "0.7.5 - fixes PW4 and LSB is available. https://psostats.com/download"
 	}
 	motd := model.MessageOfTheDay{
 		Authorized: authorized,

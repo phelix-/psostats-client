@@ -372,9 +372,12 @@ func (pso *PSO) consolidateMonsterState(monsters []Monster) {
 			existingMonster.Alive = false
 			currentQuestRun.MonstersDead += 1
 			existingMonster.KilledTime = now
-			existingMonster.Frame1 = existingMonster.KilledTime.Sub(existingMonster.SpawnTime).Milliseconds() < 60
-			if existingMonster.Frame1 {
-				log.Printf("frame1? %v(%v) %v", existingMonster.Name, existingMonster.UnitxtId, existingMonster.Id)
+			if existingMonster.UnitxtId != 34 && existingMonster.UnitxtId != 45 {
+				// Excluding DRL and Dark Gunners because they're buggy
+				existingMonster.Frame1 = existingMonster.KilledTime.Sub(existingMonster.SpawnTime).Milliseconds() < 60
+				if existingMonster.Frame1 {
+					log.Printf("frame1? %v(%v) %v", existingMonster.Name, existingMonster.UnitxtId, existingMonster.Id)
+				}
 			}
 			currentQuestRun.Monsters[monsterId] = existingMonster
 		}
