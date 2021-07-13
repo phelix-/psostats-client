@@ -77,7 +77,7 @@ func getAllQuests() []Quest {
 		// The Missing Maracas
 		{Episode: 1, Name: "Lost HEAT SWORD", Start: warpIn(), End: register(15)},
 		{Episode: 1, Name: "Lost ICE SPINNER", Start: warpIn(), End: register(15)},
-		{Episode: 1, Name: "Lost SOUL BLADE", Start: warpIn(), End: register(211)},
+		{Episode: 1, Name: "Lost SOUL BLADE", Start: warpIn(), End: register(18)},
 		{Episode: 1, Name: "Lost HELL PALLASCH", Start: warpIn(), End: register(110)},
 		// FoaM
 		// Rappy's Holiday
@@ -186,7 +186,7 @@ func getAllQuests() []Quest {
 		{Episode: 2, Name: "Phantasmal World #1", Start: warpIn(), End: register(254)},
 		{Episode: 2, Name: "Phantasmal World #2", Start: warpIn(), End: register(254)},
 		{Episode: 2, Name: "Phantasmal World #3", Start: warpIn(), End: register(254)},
-		{Episode: 2, Name: "Phantasmal World #4", Start: warpIn(), End: register(254)},
+		{Episode: 2, Name: "Phantasmal World #4", Start: warpIn(), End: floorSwitch(16, 120)},
 		{Episode: 2, Name: "Sweep-up Operation #5", Start: register(210), End: register(254)},
 		{Episode: 2, Name: "Sweep-up Operation #6", Start: register(210), End: register(254)},
 		{Episode: 2, Name: "Sweep-up Operation #7", Start: register(210), End: register(254)},
