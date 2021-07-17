@@ -72,10 +72,10 @@ func (s *Server) Run() {
 
 	if certLocation, found := os.LookupEnv("CERT"); found {
 		keyLocation := os.Getenv("KEY")
+		go http.ListenAndServe(":80", http.HandlerFunc(redirectToTls))
 		if err := s.app.ListenTLS(":443", certLocation, keyLocation); err != nil {
 			log.Fatal(err)
 		}
-		go http.ListenAndServe(":80", http.HandlerFunc(redirectToTls))
 	} else {
 		if err := s.app.Listen(":80"); err != nil {
 			log.Fatal(err)
