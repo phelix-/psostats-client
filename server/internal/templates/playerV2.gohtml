@@ -194,6 +194,7 @@
                     {{ .Classes.RAmar }},{{ .Classes.RAmarl }},{{ .Classes.RAcast }},{{ .Classes.RAcaseal }},
                     {{ .Classes.FOmar }},{{ .Classes.FOmarl }},{{ .Classes.FOnewm }},{{ .Classes.FOnewearl }},
                 ],
+                name: "Games Played",
             }],
             xaxis: {
                 categories: [
@@ -216,17 +217,6 @@
                     horizontal: true
                 }
             },
-            responsive: [{
-                breakpoint: 480,
-                options: {
-                    chart: {
-                        width: 200
-                    },
-                    legend: {
-                        position: 'bottom'
-                    }
-                }
-            }]
         };
 
         const classDonutChart = new ApexCharts(document.querySelector("#class-donut"), classDonutOptions);

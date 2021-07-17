@@ -9,6 +9,7 @@ import (
 	"github.com/phelix-/psostats/v2/server/internal/userdb"
 	"io"
 	"log"
+	"net/http"
 	"net/url"
 	"os"
 	"regexp"
@@ -74,11 +75,16 @@ func (s *Server) Run() {
 		if err := s.app.ListenTLS(":443", certLocation, keyLocation); err != nil {
 			log.Fatal(err)
 		}
+		go http.ListenAndServe(":80", http.HandlerFunc(redirectToTls))
 	} else {
 		if err := s.app.Listen(":80"); err != nil {
 			log.Fatal(err)
 		}
 	}
+}
+
+func redirectToTls(w http.ResponseWriter, req *http.Request) {
+	http.Redirect(w, req, "https://" + req.Host + req.URL.String(), http.StatusMovedPermanently)
 }
 
 func (s *Server) Index(c *fiber.Ctx) error {

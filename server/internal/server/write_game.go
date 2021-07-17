@@ -101,6 +101,7 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 		s.recordsLock.Lock()
 		numPlayers := len(questRun.AllPlayers)
 		topRun, err := db.GetQuestRecord(questRun.QuestName, numPlayers, questRun.PbCategory, s.dynamoClient)
+		otherPbCategory, _ := db.GetQuestRecord(questRun.QuestName, numPlayers, !questRun.PbCategory, s.dynamoClient)
 		if err != nil {
 			log.Printf("failed to get top quest runs for gameId:%v - %v", questRun.Id, err)
 		} else if matchingGame != nil {
@@ -112,7 +113,8 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 					log.Printf("failed to add pov to record")
 				}
 			}
-		} else if topRun == nil || topRun.Time > questDuration {
+		} else if (topRun == nil || topRun.Time > questDuration) &&
+			(!questRun.PbCategory || otherPbCategory == nil || otherPbCategory.Time > questDuration) {
 			record = true
 			s.QuestRecordWebhook(questRun, topRun)
 			log.Printf("new record for %v %vp pb:%v - %v",
