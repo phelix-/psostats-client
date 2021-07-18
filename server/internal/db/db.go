@@ -419,11 +419,11 @@ func WriteGameByPlayer(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB
 	if err != nil {
 		return err
 	}
-	err = incrementPlayerQuestCount(questRun.PlayerName, questRun.QuestName, dynamoClient)
+	err = incrementPlayerQuestCount(questRun.UserName, questRun.QuestName, dynamoClient)
 	if err != nil {
 		return err
 	}
-	err = incrementPlayerClassCount(questRun.PlayerName, questRun.PlayerClass, dynamoClient)
+	err = incrementPlayerClassCount(questRun.UserName, questRun.PlayerClass, dynamoClient)
 	return err
 }
 
