@@ -20,13 +20,15 @@ import (
 
 const (
 	GamesByIdTable           = "games_by_id"
-	GamesByQuestTable        = "games_by_quest"
 	QuestRecordsTable        = "quest_records"
 	RecentGamesByPlayerTable = "recent_games_by_player"
 	RecentGamesByMonth       = "recent_games_by_month"
 	GameCountTable           = "games_counter"
 	gameCountPrimaryKey      = "game_count"
 	PlayerPbTable            = "player_pb"
+	PlayerClassCount         = "player_class_count"
+	PlayerQuestCount         = "player_quest_count"
+	OverallQuestCount        = "overall_quest_count"
 )
 
 type PsoStatsDb struct {
@@ -94,6 +96,10 @@ func WriteGameById(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) (s
 		TableName: aws.String(GamesByIdTable),
 	}
 	_, err = dynamoClient.PutItem(input2)
+	if err != nil {
+		return "", err
+	}
+	err = incrementOverallQuestCount(game.Quest, dynamoClient)
 	if err != nil {
 		return "", err
 	}
@@ -234,27 +240,6 @@ func compressGame(questRun *model.QuestRun) ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
-func WriteGameByQuest(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) error {
-	gameSummary := summaryFromQuestRun(*questRun)
-	marshalledSummary, err := dynamodbattribute.MarshalMap(gameSummary)
-	delete(marshalledSummary, "GameGzip")
-	delete(marshalledSummary, "P1Gzip")
-	delete(marshalledSummary, "P2Gzip")
-	delete(marshalledSummary, "P3Gzip")
-	delete(marshalledSummary, "P4Gzip")
-	delete(marshalledSummary, "FormattedDate")
-	delete(marshalledSummary, "FormattedTime")
-	if err != nil {
-		return err
-	}
-	gamesByQuestInput := &dynamodb.PutItemInput{
-		Item:      marshalledSummary,
-		TableName: aws.String(GamesByQuestTable),
-	}
-	_, err = dynamoClient.PutItem(gamesByQuestInput)
-	return err
-}
-
 func WriteGameByQuestRecord(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) error {
 	gameSummary := summaryFromQuestRun(*questRun)
 	marshalledSummary, err := dynamodbattribute.MarshalMap(gameSummary)
@@ -308,8 +293,8 @@ func GetQuestRecords(dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
 		AttributesToGet: aws.StringSlice([]string{"Id", "Category", "Episode", "Quest",
 			"Time", "Player", "Timestamp", "PlayerNames", "PlayerClasses", "PlayerGcs",
 			"P1HasStats", "P2HasStats", "P3HasStats", "P4HasStats"}),
-		Limit:           aws.Int64(1000),
-		TableName:       aws.String(QuestRecordsTable),
+		Limit:     aws.Int64(1000),
+		TableName: aws.String(QuestRecordsTable),
 	}
 	scan, err := dynamoClient.Scan(&scanInput)
 	if err != nil {
@@ -431,6 +416,67 @@ func WriteGameByPlayer(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB
 		TableName: aws.String(RecentGamesByPlayerTable),
 	}
 	_, err = dynamoClient.PutItem(gamesByQuestInput)
+	if err != nil {
+		return err
+	}
+	err = incrementPlayerQuestCount(questRun.PlayerName, questRun.QuestName, dynamoClient)
+	if err != nil {
+		return err
+	}
+	err = incrementPlayerClassCount(questRun.PlayerName, questRun.PlayerClass, dynamoClient)
+	return err
+}
+
+func incrementPlayerQuestCount(playerName string, questName string, dynamoClient *dynamodb.DynamoDB) error {
+	oneValue := dynamodb.AttributeValue{N: aws.String("1")}
+	update := dynamodb.AttributeValueUpdate{
+		Action: aws.String(dynamodb.AttributeActionAdd),
+		Value:  &oneValue,
+	}
+	playerNameAttr := dynamodb.AttributeValue{S: aws.String(playerName)}
+	questNameAttr := dynamodb.AttributeValue{S: aws.String(questName)}
+
+	updateItemInput := dynamodb.UpdateItemInput{
+		TableName:        aws.String(PlayerQuestCount),
+		Key:              map[string]*dynamodb.AttributeValue{"Player": &playerNameAttr, "Quest": &questNameAttr},
+		AttributeUpdates: map[string]*dynamodb.AttributeValueUpdate{"count": &update},
+	}
+	_, err := dynamoClient.UpdateItem(&updateItemInput)
+	return err
+}
+
+func incrementPlayerClassCount(playerName string, className string, dynamoClient *dynamodb.DynamoDB) error {
+	oneValue := dynamodb.AttributeValue{N: aws.String("1")}
+	update := dynamodb.AttributeValueUpdate{
+		Action: aws.String(dynamodb.AttributeActionAdd),
+		Value:  &oneValue,
+	}
+	playerNameAttr := dynamodb.AttributeValue{S: aws.String(playerName)}
+	questNameAttr := dynamodb.AttributeValue{S: aws.String(className)}
+
+	updateItemInput := dynamodb.UpdateItemInput{
+		TableName:        aws.String(PlayerClassCount),
+		Key:              map[string]*dynamodb.AttributeValue{"Player": &playerNameAttr, "Class": &questNameAttr},
+		AttributeUpdates: map[string]*dynamodb.AttributeValueUpdate{"count": &update},
+	}
+	_, err := dynamoClient.UpdateItem(&updateItemInput)
+	return err
+}
+
+func incrementOverallQuestCount(questName string, dynamoClient *dynamodb.DynamoDB) error {
+	oneValue := dynamodb.AttributeValue{N: aws.String("1")}
+	update := dynamodb.AttributeValueUpdate{
+		Action: aws.String(dynamodb.AttributeActionAdd),
+		Value:  &oneValue,
+	}
+	questNameAttr := dynamodb.AttributeValue{S: aws.String(questName)}
+
+	updateItemInput := dynamodb.UpdateItemInput{
+		TableName:        aws.String(OverallQuestCount),
+		Key:              map[string]*dynamodb.AttributeValue{"Quest": &questNameAttr},
+		AttributeUpdates: map[string]*dynamodb.AttributeValueUpdate{"count": &update},
+	}
+	_, err := dynamoClient.UpdateItem(&updateItemInput)
 	return err
 }
 

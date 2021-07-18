@@ -64,7 +64,6 @@ func (s *Server) Run() {
 	s.app.Get("/records", s.RecordsV2Page)
 	s.app.Get("/playersV1/:player", s.PlayerPage)
 	s.app.Get("/players/:player", s.PlayerV2Page)
-	s.app.Get("/gc/:gc", s.GcRedirect)
 	// API
 	s.app.Post("/api/game", s.PostGame)
 	s.app.Get("/api/game/:gameId", s.GetGame)
@@ -624,15 +623,6 @@ func (s *Server) PlayerPage(c *fiber.Ctx) error {
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	err = t.ExecuteTemplate(c.Response().BodyWriter(), "index", model)
 	return err
-}
-
-func (s *Server) GcRedirect(c *fiber.Ctx) error {
-	gc := c.Params("gc")
-	playerName, err := s.userDb.GetUsernameByGc(gc)
-	if err != nil {
-		log.Printf("loading player by gc %v %v", gc, err)
-	}
-	return c.Redirect(fmt.Sprintf("/players/%v", playerName))
 }
 
 func (s *Server) GetGame(c *fiber.Ctx) error {

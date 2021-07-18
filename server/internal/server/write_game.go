@@ -124,9 +124,6 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 			}
 		}
 		s.recordsLock.Unlock()
-		if err = db.WriteGameByQuest(&questRun, s.dynamoClient); err != nil {
-			log.Printf("failed to update games by quest for game %v - %v", questRun.Id, err)
-		}
 
 		playerPb, err := db.GetPlayerPB(questRun.QuestName, user, numPlayers, questRun.PbCategory, s.dynamoClient)
 		if err != nil {
