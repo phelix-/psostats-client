@@ -12,6 +12,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"log"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -167,6 +168,12 @@ func (s *Server) findMatchingGame(questRun model.QuestRun) *model.QuestRun {
 		}
 	}
 	return matchingGame
+}
+
+func IsLeaderboardCandidate(questRun model.QuestRun) bool {
+	cmodeRegex := regexp.MustCompile("[12]c\\d")
+	allowedDifficulty := questRun.Difficulty == "Ultimate" || cmodeRegex.MatchString(questRun.QuestName)
+	return allowedDifficulty && questRun.QuestComplete && !questRun.IllegalShifta
 }
 
 func (s *Server) QuestRecordWebhook(questRun model.QuestRun, previousRecord *model.Game) {

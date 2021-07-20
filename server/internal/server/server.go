@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"fmt"
+	"github.com/phelix-/psostats/v2/pkg/common"
 	"github.com/phelix-/psostats/v2/server/internal/db"
 	"github.com/phelix-/psostats/v2/server/internal/userdb"
 	"io"
@@ -12,9 +13,9 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"regexp"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"text/template"
 	"time"
@@ -31,9 +32,9 @@ type Server struct {
 	recentGames      []model.QuestRun
 	recentGamesCount int
 	recentGamesSize  int
-	recentGamesLock sync.Mutex
-	recordsLock sync.Mutex
-	webhookUrl string
+	recentGamesLock  sync.Mutex
+	recordsLock      sync.Mutex
+	webhookUrl       string
 }
 
 func New(dynamo *dynamodb.DynamoDB) *Server {
@@ -49,7 +50,7 @@ func New(dynamo *dynamodb.DynamoDB) *Server {
 		recentGames:      make([]model.QuestRun, cacheSize),
 		recentGamesCount: 0,
 		recentGamesSize:  cacheSize,
-		webhookUrl: webhookUrl,
+		webhookUrl:       webhookUrl,
 	}
 }
 
@@ -62,7 +63,6 @@ func (s *Server) Run() {
 	s.app.Get("/info", s.InfoPage)
 	s.app.Get("/download", s.DownloadPage)
 	s.app.Get("/records", s.RecordsV2Page)
-	s.app.Get("/playersV1/:player", s.PlayerPage)
 	s.app.Get("/players/:player", s.PlayerV2Page)
 	// API
 	s.app.Post("/api/game", s.PostGame)
@@ -83,7 +83,7 @@ func (s *Server) Run() {
 }
 
 func redirectToTls(w http.ResponseWriter, req *http.Request) {
-	http.Redirect(w, req, "https://" + req.Host + req.URL.String(), http.StatusMovedPermanently)
+	http.Redirect(w, req, "https://"+req.Host+req.URL.String(), http.StatusMovedPermanently)
 }
 
 func (s *Server) Index(c *fiber.Ctx) error {
@@ -111,6 +111,7 @@ func (s *Server) Index(c *fiber.Ctx) error {
 	err = t.ExecuteTemplate(c.Response().BodyWriter(), "index", recentGamesModel)
 	return err
 }
+
 func (s *Server) InfoPage(c *fiber.Ctx) error {
 	t, err := template.ParseFiles("./server/internal/templates/info.gohtml")
 	if err != nil {
@@ -129,7 +130,7 @@ func (s *Server) PlayerV2Page(c *fiber.Ctx) error {
 		c.Status(500)
 		return err
 	}
-	recentGames, err := db.GetPlayerRecentGames(player, s.dynamoClient)
+	recentGames, err := db.GetPlayerRecentGames(player, s.dynamoClient, 15)
 	if err != nil {
 		return err
 	}
@@ -155,53 +156,56 @@ func (s *Server) PlayerV2Page(c *fiber.Ctx) error {
 			sortedPbs[pb.Episode] = pbsForEp
 		}
 	}
-
-
 	t, err := template.ParseFiles("./server/internal/templates/playerV2.gohtml")
 	if err != nil {
 		return err
 	}
-	infoModel := struct{
-		PlayerName string
-		Classes map[string]int
-		TotalGames int
-		GamesByEpisode map[int]int
-		RecentGames []model.FormattedGame
-		PbGames map[int]map[string]map[string]model.FormattedGame
-	}{
-		PlayerName: player,
-		Classes: map[string]int{
-			"HUmar": 0,
-			"HUnewearl": 0,
-			"HUcast": 0,
-			"HUcaseal": 0,
-			"RAmar": 0,
-			"RAmarl": 0,
-			"RAcast": 0,
-			"RAcaseal": 0,
-			"FOmar": 0,
-			"FOmarl": 0,
-			"FOnewm": 0,
-			"FOnewearl": 0,
-		},
-		TotalGames: 0,
-		GamesByEpisode: map[int]int {
-			1: 0,
-			2: 0,
-			4: 0,
-		},
-		RecentGames: make([]model.FormattedGame, 0),
-		PbGames:     sortedPbs,
+	classUsage, err := db.GetPlayerClassCounts(player, s.dynamoClient)
+	if err != nil {
+		return err
 	}
-	for index, game := range recentGames {
-		formattedGame := getFormattedGame(game)
-		for _,playerInfo := range formattedGame.Players {
-			if playerInfo.HasPov {
-				infoModel.Classes[playerInfo.Class] = infoModel.Classes[playerInfo.Class] + 1
+	for _, class := range common.GetAllClasses() {
+		if _, exists := classUsage[class.Name]; !exists {
+			classUsage[class.Name] = 0
+		}
+	}
+	questsPlayed, err := db.GetPlayerQuestCounts(player, s.dynamoClient)
+	if err != nil {
+		return err
+	}
+	gamesByEpisode := map[int]int{1: 0, 2: 0, 4: 0}
+	questCounts := make([]QuestAndCount, 0)
+	for quest, count := range questsPlayed {
+		split := strings.SplitN(quest, "_", 2)
+		if len(split) == 2 {
+			episode, err := strconv.Atoi(split[0])
+			questName := split[1]
+			if err == nil {
+				gamesByEpisode[episode] += count
+				questCounts = append(questCounts, QuestAndCount{questName, count})
 			}
 		}
-		infoModel.TotalGames++
-		infoModel.GamesByEpisode[game.Episode] = infoModel.GamesByEpisode[game.Episode] + 1
+	}
+	sort.Slice(questCounts, func(i, j int) bool { return questCounts[i].Count > questCounts[j].Count })
+	infoModel := struct {
+		PlayerName     string
+		Classes        map[string]int
+		TotalGames     int
+		GamesByEpisode map[int]int
+		FavoriteQuest  QuestAndCount
+		RecentGames    []model.FormattedGame
+		PbGames        map[int]map[string]map[string]model.FormattedGame
+	}{
+		PlayerName:     player,
+		Classes:        classUsage,
+		TotalGames:     0,
+		GamesByEpisode: gamesByEpisode,
+		FavoriteQuest:  questCounts[0],
+		RecentGames:    make([]model.FormattedGame, 0),
+		PbGames:        sortedPbs,
+	}
+	for _, game := range recentGames {
+		formattedGame := getFormattedGame(game)
 		pbForQuestAndCategory := sortedPbs[game.Episode][game.Quest][game.Category]
 		if pbForQuestAndCategory.Id == game.Id {
 			formattedGame.Pb = true
@@ -209,13 +213,16 @@ func (s *Server) PlayerV2Page(c *fiber.Ctx) error {
 				formattedGame.Record = true
 			}
 		}
-		if index < 15 {
-			infoModel.RecentGames = append(infoModel.RecentGames, formattedGame)
-		}
+		infoModel.RecentGames = append(infoModel.RecentGames, formattedGame)
 	}
 	err = t.ExecuteTemplate(c.Response().BodyWriter(), "player", infoModel)
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
+}
+
+type QuestAndCount struct {
+	Quest string
+	Count int
 }
 
 func sortGames(games []model.Game) map[int]map[string]map[string]model.FormattedGame {
@@ -488,23 +495,6 @@ func (s *Server) RecordsV2Page(c *fiber.Ctx) error {
 	return err
 }
 
-func addFormattedFields(game *model.Game) {
-	game.FormattedTime = formatDuration(game.Time)
-	shortCategory := game.Category
-	numPlayers := string(shortCategory[0])
-	pbRun := string(shortCategory[1])
-	pbText := ""
-	if pbRun == "p" {
-		pbText = " PB"
-	}
-	game.Category = numPlayers + " Player" + pbText
-	location, err := time.LoadLocation("America/Chicago")
-	if err != nil {
-		log.Fatalf("Couldn't find time zone America/Chicago")
-	}
-	game.FormattedDate = game.Timestamp.In(location).Format("15:04 01/02/2006")
-}
-
 func getFormattedGame(game model.Game) model.FormattedGame {
 	shortCategory := game.Category
 	numPlayers, err := strconv.Atoi(string(shortCategory[0]))
@@ -573,58 +563,6 @@ func getFormattedGame(game model.Game) model.FormattedGame {
 	}
 }
 
-func (s *Server) PlayerPage(c *fiber.Ctx) error {
-	player := c.Params("player")
-	t, err := template.ParseFiles("./server/internal/templates/player.gohtml")
-	if err != nil {
-		c.Status(500)
-		return err
-	}
-
-	player, err = url.PathUnescape(player)
-	if err != nil {
-		c.Status(500)
-		return err
-	}
-	pbs, err := db.GetPlayerPbs(player, s.dynamoClient)
-
-	if err != nil {
-		log.Print("get pbs")
-		c.Status(500)
-		return err
-	}
-	sort.Slice(pbs, func(i, j int) bool { return pbs[i].Quest < pbs[j].Quest })
-	for i, game := range pbs {
-		addFormattedFields(&game)
-		pbs[i] = game
-	}
-
-	recent, err := db.GetPlayerRecentGames(player, s.dynamoClient)
-
-	if err != nil {
-		log.Print("get recent")
-		c.Status(500)
-		return err
-	}
-	for i, game := range recent {
-		addFormattedFields(&game)
-		recent[i] = game
-	}
-
-	model := struct {
-		Player      string
-		PlayerPbs   []model.Game
-		RecentGames []model.Game
-	}{
-		Player:      player,
-		PlayerPbs:   pbs,
-		RecentGames: recent,
-	}
-	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
-	err = t.ExecuteTemplate(c.Response().BodyWriter(), "index", model)
-	return err
-}
-
 func (s *Server) GetGame(c *fiber.Ctx) error {
 	gameId := c.Params("gameId")
 	game, err := db.GetGame(gameId, s.dynamoClient)
@@ -669,12 +607,6 @@ func (s *Server) PostMotd(c *fiber.Ctx) error {
 	c.Response().AppendBody(jsonBytes)
 	c.Response().Header.Set("Content-Type", "application/json")
 	return nil
-}
-
-func IsLeaderboardCandidate(questRun model.QuestRun) bool {
-	cmodeRegex := regexp.MustCompile("[12]c\\d")
-	allowedDifficulty := questRun.Difficulty == "Ultimate" || cmodeRegex.MatchString(questRun.QuestName)
-	return allowedDifficulty && questRun.QuestComplete && !questRun.IllegalShifta
 }
 
 func GamesMatch(a, b model.QuestRun) bool {

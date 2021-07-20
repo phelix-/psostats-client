@@ -55,6 +55,7 @@
                     <li class="list-group-item">Episode 1 Games: <span style="float: right">{{ index .GamesByEpisode 1 }}</span></li>
                     <li class="list-group-item">Episode 2 Games: <span style="float: right">{{ index .GamesByEpisode 2 }}</span></li>
                     <li class="list-group-item">Episode 4 Games: <span style="float: right">{{ index .GamesByEpisode 4 }}</span></li>
+                    <li class="list-group-item">Favorite Quest: <span style="float: right">{{ .FavoriteQuest.Quest }} ({{ .FavoriteQuest.Count }})</span></li>
                 </ul>
             </div>
             <div class="col-12 col-lg-6">

@@ -99,7 +99,7 @@ func WriteGameById(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) (s
 	if err != nil {
 		return "", err
 	}
-	err = incrementOverallQuestCount(game.Quest, dynamoClient)
+	err = incrementOverallQuestCount(game.Episode, game.Quest, dynamoClient)
 	if err != nil {
 		return "", err
 	}
@@ -327,7 +327,7 @@ func GetPlayerPbs(player string, dynamoClient *dynamodb.DynamoDB) ([]model.Game,
 	return games, err
 }
 
-func GetPlayerRecentGames(player string, dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
+func GetPlayerRecentGames(player string, dynamoClient *dynamodb.DynamoDB, limit int64) ([]model.Game, error) {
 	requestExpression, err := expression.NewBuilder().
 		WithKeyCondition(expression.KeyEqual(expression.Key("Player"), expression.Value(player))).
 		Build()
@@ -338,6 +338,7 @@ func GetPlayerRecentGames(player string, dynamoClient *dynamodb.DynamoDB) ([]mod
 		ExpressionAttributeNames:  requestExpression.Names(),
 		ExpressionAttributeValues: requestExpression.Values(),
 		KeyConditionExpression:    requestExpression.KeyCondition(),
+		Limit:                     aws.Int64(limit),
 		TableName:                 aws.String(RecentGamesByPlayerTable),
 	})
 	if err != nil {
@@ -419,7 +420,7 @@ func WriteGameByPlayer(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB
 	if err != nil {
 		return err
 	}
-	err = incrementPlayerQuestCount(questRun.UserName, questRun.QuestName, dynamoClient)
+	err = incrementPlayerQuestCount(questRun.UserName, int(questRun.Episode), questRun.QuestName, dynamoClient)
 	if err != nil {
 		return err
 	}
@@ -427,14 +428,66 @@ func WriteGameByPlayer(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB
 	return err
 }
 
-func incrementPlayerQuestCount(playerName string, questName string, dynamoClient *dynamodb.DynamoDB) error {
+func GetPlayerClassCounts(playerName string, dynamoClient *dynamodb.DynamoDB) (map[string]int, error) {
+	expr, err := expression.NewBuilder().
+		WithKeyCondition(expression.KeyEqual(expression.Key("Player"), expression.Value(playerName))).
+		Build()
+	if err != nil {
+		return nil, err
+	}
+	result, err := dynamoClient.Query(&dynamodb.QueryInput{
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		KeyConditionExpression:    expr.KeyCondition(),
+		TableName:                 aws.String(PlayerClassCount),
+	})
+	classUsage := map[string]int{}
+	for _, item := range result.Items {
+		class := item["Class"].S
+		count := item["count"].N
+		atoi, err := strconv.Atoi(*count)
+		if err != nil {
+			return nil, err
+		}
+		classUsage[*class] = atoi
+	}
+	return classUsage, nil
+}
+
+func GetPlayerQuestCounts(playerName string, dynamoClient *dynamodb.DynamoDB) (map[string]int, error) {
+	expr, err := expression.NewBuilder().
+		WithKeyCondition(expression.KeyEqual(expression.Key("Player"), expression.Value(playerName))).
+		Build()
+	if err != nil {
+		return nil, err
+	}
+	result, err := dynamoClient.Query(&dynamodb.QueryInput{
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		KeyConditionExpression:    expr.KeyCondition(),
+		TableName:                 aws.String(PlayerQuestCount),
+	})
+	questsPlayed := map[string]int{}
+	for _, item := range result.Items {
+		class := item["Quest"].S
+		count := item["count"].N
+		atoi, err := strconv.Atoi(*count)
+		if err != nil {
+			return nil, err
+		}
+		questsPlayed[*class] = atoi
+	}
+	return questsPlayed, nil
+}
+
+func incrementPlayerQuestCount(playerName string, episode int, questName string, dynamoClient *dynamodb.DynamoDB) error {
 	oneValue := dynamodb.AttributeValue{N: aws.String("1")}
 	update := dynamodb.AttributeValueUpdate{
 		Action: aws.String(dynamodb.AttributeActionAdd),
 		Value:  &oneValue,
 	}
 	playerNameAttr := dynamodb.AttributeValue{S: aws.String(playerName)}
-	questNameAttr := dynamodb.AttributeValue{S: aws.String(questName)}
+	questNameAttr := dynamodb.AttributeValue{S: aws.String(fmt.Sprintf("%d_%v", episode, questName))}
 
 	updateItemInput := dynamodb.UpdateItemInput{
 		TableName:        aws.String(PlayerQuestCount),
@@ -463,13 +516,13 @@ func incrementPlayerClassCount(playerName string, className string, dynamoClient
 	return err
 }
 
-func incrementOverallQuestCount(questName string, dynamoClient *dynamodb.DynamoDB) error {
+func incrementOverallQuestCount(episode int, questName string, dynamoClient *dynamodb.DynamoDB) error {
 	oneValue := dynamodb.AttributeValue{N: aws.String("1")}
 	update := dynamodb.AttributeValueUpdate{
 		Action: aws.String(dynamodb.AttributeActionAdd),
 		Value:  &oneValue,
 	}
-	questNameAttr := dynamodb.AttributeValue{S: aws.String(questName)}
+	questNameAttr := dynamodb.AttributeValue{S: aws.String(fmt.Sprintf("%d_%v", episode, questName))}
 
 	updateItemInput := dynamodb.UpdateItemInput{
 		TableName:        aws.String(OverallQuestCount),
