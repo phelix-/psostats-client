@@ -26,15 +26,22 @@ import (
 )
 
 type Server struct {
-	app              *fiber.App
-	dynamoClient     *dynamodb.DynamoDB
-	userDb           userdb.UserDb
-	recentGames      []model.QuestRun
-	recentGamesCount int
-	recentGamesSize  int
-	recentGamesLock  sync.Mutex
-	recordsLock      sync.Mutex
-	webhookUrl       string
+	app                  *fiber.App
+	dynamoClient         *dynamodb.DynamoDB
+	userDb               userdb.UserDb
+	recentGames          []model.QuestRun
+	recentGamesCount     int
+	recentGamesSize      int
+	recentGamesLock      sync.Mutex
+	recordsLock          sync.Mutex
+	webhookUrl           string
+	indexTemplate        *template.Template
+	infoTemplate         *template.Template
+	downloadTemplate     *template.Template
+	gameTemplate         *template.Template
+	playerTemplate       *template.Template
+	gameNotFoundTemplate *template.Template
+	recordsTemplate      *template.Template
 }
 
 func New(dynamo *dynamodb.DynamoDB) *Server {
@@ -68,6 +75,13 @@ func (s *Server) Run() {
 	s.app.Post("/api/game", s.PostGame)
 	s.app.Get("/api/game/:gameId", s.GetGame)
 	s.app.Post("/api/motd", s.PostMotd)
+	s.indexTemplate = ensureParsed("./server/internal/templates/index.gohtml")
+	s.infoTemplate = ensureParsed("./server/internal/templates/info.gohtml")
+	s.playerTemplate = ensureParsed("./server/internal/templates/playerV2.gohtml")
+	s.gameTemplate = ensureParsed("./server/internal/templates/game.gohtml")
+	s.downloadTemplate = ensureParsed("./server/internal/templates/download.gohtml")
+	s.gameNotFoundTemplate = ensureParsed("./server/internal/templates/gameNotFound.gohtml")
+	s.recordsTemplate = ensureParsed("./server/internal/templates/recordsV2.gohtml")
 
 	if certLocation, found := os.LookupEnv("CERT"); found {
 		keyLocation := os.Getenv("KEY")
@@ -82,16 +96,19 @@ func (s *Server) Run() {
 	}
 }
 
+func ensureParsed(templatePath string) *template.Template {
+	t, err := template.ParseFiles(templatePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return t
+}
+
 func redirectToTls(w http.ResponseWriter, req *http.Request) {
 	http.Redirect(w, req, "https://"+req.Host+req.URL.String(), http.StatusMovedPermanently)
 }
 
 func (s *Server) Index(c *fiber.Ctx) error {
-	t, err := template.ParseFiles("./server/internal/templates/index.gohtml")
-	if err != nil {
-		c.Status(500)
-		return err
-	}
 	games, err := db.GetRecentGames(s.dynamoClient)
 	if err != nil {
 		log.Printf("get recent games %v", err)
@@ -108,17 +125,13 @@ func (s *Server) Index(c *fiber.Ctx) error {
 		recentGamesModel.Games[i] = formattedGame
 	}
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
-	err = t.ExecuteTemplate(c.Response().BodyWriter(), "index", recentGamesModel)
+	err = s.indexTemplate.ExecuteTemplate(c.Response().BodyWriter(), "index", recentGamesModel)
 	return err
 }
 
 func (s *Server) InfoPage(c *fiber.Ctx) error {
-	t, err := template.ParseFiles("./server/internal/templates/info.gohtml")
-	if err != nil {
-		return err
-	}
 	infoModel := struct{}{}
-	err = t.ExecuteTemplate(c.Response().BodyWriter(), "info", infoModel)
+	err := s.infoTemplate.ExecuteTemplate(c.Response().BodyWriter(), "info", infoModel)
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
 }
@@ -156,10 +169,6 @@ func (s *Server) PlayerV2Page(c *fiber.Ctx) error {
 			sortedPbs[pb.Episode] = pbsForEp
 		}
 	}
-	t, err := template.ParseFiles("./server/internal/templates/playerV2.gohtml")
-	if err != nil {
-		return err
-	}
 	classUsage, err := db.GetPlayerClassCounts(player, s.dynamoClient)
 	if err != nil {
 		return err
@@ -186,7 +195,12 @@ func (s *Server) PlayerV2Page(c *fiber.Ctx) error {
 			}
 		}
 	}
-	sort.Slice(questCounts, func(i, j int) bool { return questCounts[i].Count > questCounts[j].Count })
+	favoriteQuest := QuestAndCount{"None", 0}
+	if len(questCounts) > 0 {
+		sort.Slice(questCounts, func(i, j int) bool { return questCounts[i].Count > questCounts[j].Count })
+		favoriteQuest = questCounts[0]
+	}
+
 	infoModel := struct {
 		PlayerName     string
 		Classes        map[string]int
@@ -200,7 +214,7 @@ func (s *Server) PlayerV2Page(c *fiber.Ctx) error {
 		Classes:        classUsage,
 		TotalGames:     0,
 		GamesByEpisode: gamesByEpisode,
-		FavoriteQuest:  questCounts[0],
+		FavoriteQuest:  favoriteQuest,
 		RecentGames:    make([]model.FormattedGame, 0),
 		PbGames:        sortedPbs,
 	}
@@ -215,7 +229,7 @@ func (s *Server) PlayerV2Page(c *fiber.Ctx) error {
 		}
 		infoModel.RecentGames = append(infoModel.RecentGames, formattedGame)
 	}
-	err = t.ExecuteTemplate(c.Response().BodyWriter(), "player", infoModel)
+	err = s.playerTemplate.ExecuteTemplate(c.Response().BodyWriter(), "player", infoModel)
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
 }
@@ -245,12 +259,8 @@ func sortGames(games []model.Game) map[int]map[string]map[string]model.Formatted
 }
 
 func (s *Server) DownloadPage(c *fiber.Ctx) error {
-	t, err := template.ParseFiles("./server/internal/templates/download.gohtml")
-	if err != nil {
-		return err
-	}
 	downloadModel := struct{}{}
-	err = t.ExecuteTemplate(c.Response().BodyWriter(), "download", downloadModel)
+	err := s.downloadTemplate.ExecuteTemplate(c.Response().BodyWriter(), "download", downloadModel)
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
 }
@@ -290,11 +300,7 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 	}
 
 	if gameGzip == nil {
-		t, err := template.ParseFiles("./server/internal/templates/gameNotFound.gohtml")
-		if err != nil {
-			return err
-		}
-		err = t.ExecuteTemplate(c.Response().BodyWriter(), "gameNotFound", nil)
+		err = s.gameNotFoundTemplate.ExecuteTemplate(c.Response().BodyWriter(), "gameNotFound", nil)
 	} else {
 		game, err := parseGameGzip(gameGzip)
 		if err != nil {
@@ -369,11 +375,7 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 			Mags:                 getEquipment(game, model.EquipmentTypeMag),
 			VideoUrl:             videoUrl,
 		}
-		t, err := template.ParseFiles("./server/internal/templates/game.gohtml")
-		if err != nil {
-			return err
-		}
-		err = t.ExecuteTemplate(c.Response().BodyWriter(), "game", model)
+		err = s.gameTemplate.ExecuteTemplate(c.Response().BodyWriter(), "game", model)
 	}
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
@@ -479,18 +481,13 @@ func convertToXY(values []int16) map[int]int16 {
 }
 
 func (s *Server) RecordsV2Page(c *fiber.Ctx) error {
-	t, err := template.ParseFiles("./server/internal/templates/recordsV2.gohtml")
-	if err != nil {
-		return err
-	}
-
 	games, err := db.GetQuestRecords(s.dynamoClient)
 	if err != nil {
 		return err
 	}
 	recordModel := sortGames(games)
 
-	err = t.ExecuteTemplate(c.Response().BodyWriter(), "index", recordModel)
+	err = s.recordsTemplate.ExecuteTemplate(c.Response().BodyWriter(), "index", recordModel)
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
 }
