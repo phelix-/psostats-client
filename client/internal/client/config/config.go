@@ -14,13 +14,7 @@ const (
 )
 
 type Config struct {
-	ServerBaseUrl        *string `yaml:"serverBaseUrl"`
 	UiFps                *int    `yaml:"uiFps"`
-	User                 *string `yaml:"user"`
-	Password             *string `yaml:"password"`
-	AutoUpload           *bool   `yaml:"autoUpload"`
-	QuestSplitsEnabled   *bool   `yaml:"questSplitsEnabled"`
-	QuestSplitsCompareTo *string `yaml:"questSplitsCompareTo"`
 }
 
 func (config *Config) GetUiRefreshRate() time.Duration {
@@ -35,14 +29,6 @@ func (config *Config) GetUiRefreshRate() time.Duration {
 	return uiRefreshRate
 }
 
-func (config *Config) GetServerBaseUrl() string {
-	if config.ServerBaseUrl != nil {
-		return *config.ServerBaseUrl
-	} else {
-		return "https://psostats.com"
-	}
-}
-
 func ReadFromFile(fileLocation string) *Config {
 	config := Config{}
 	data, err := ioutil.ReadFile(fileLocation)
@@ -55,20 +41,4 @@ func ReadFromFile(fileLocation string) *Config {
 		log.Fatalf("Error parsing config file %v", err)
 	}
 	return &config
-}
-
-func (config *Config) AutoUploadEnabled() bool {
-	return config.AutoUpload == nil || *config.AutoUpload
-}
-
-func (config *Config) GetQuestSplitsEnabled() bool {
-	return config.QuestSplitsEnabled == nil || *config.QuestSplitsEnabled
-}
-
-func (config *Config) GetQuestSplitsCompareTo() string {
-	compareTo := "Local"
-	if config.QuestSplitsCompareTo != nil {
-		compareTo = *config.QuestSplitsCompareTo
-	}
-	return compareTo
 }

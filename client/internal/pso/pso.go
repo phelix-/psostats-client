@@ -2,15 +2,12 @@ package pso
 
 import (
 	"fmt"
-	"github.com/phelix-/psostats/v2/pkg/model"
 	"log"
 	"syscall"
 	"time"
 
-	"github.com/phelix-/psostats/v2/client/internal/pso/inventory"
-	"github.com/phelix-/psostats/v2/client/internal/pso/quest"
-
 	"github.com/TheTitanrain/w32"
+	"github.com/phelix-/psostats/v2/client/internal/pso/inventory"
 	"github.com/phelix-/psostats/v2/client/internal/pso/player"
 
 	constants "github.com/phelix-/psostats/v2/client/internal/pso/constants"
@@ -24,63 +21,23 @@ const (
 )
 
 type PSO struct {
-	completeGame      chan QuestRun
-	questTypes        quest.Quests
 	connected         bool
 	connectedStatus   string
 	server            string
 	handle            w32.HANDLE
 	CurrentPlayerData player.BasePlayerInfo
 	Equipment         []inventory.Equipment
-	GameState         GameState
-	CurrentQuest      QuestRun
 	errors            chan error
 	done              chan struct{}
 	MonsterNames      map[uint32]string
+	PlayerState       int
+	PlayerStateName   string
+	TimeInState       []TimeDoingAction
 }
-
-type GameState struct {
-	MonsterCount         int
-	QuestName            string
-	AllowQuestStart      bool // Guards against starting the client mid-quest
-	QuestStarted         bool
-	Uploading            bool
-	UploadSuccessful     bool
-	AwaitingUpload       bool
-	QuestComplete        bool
-	QuestStartTime       time.Time
-	QuestEndTime         time.Time
-	CmodeStage           int
-	RngSeed              uint32
-	Difficulty           string
-	Episode              uint16
-	Map                  uint16
-	Floor                uint16
-	questPointer         uintptr
-	questRegisterPointer uintptr
-	CurrentSplit         model.QuestRunSplit
+type TimeDoingAction struct {
+	Action uint16
+	Time   int
 }
-
-func (state *GameState) ClearQuest() {
-	state.MonsterCount = 0
-	state.QuestStarted = false
-	state.QuestComplete = false
-	state.AwaitingUpload = false
-	state.Uploading = false
-	state.UploadSuccessful = false
-	state.CmodeStage = -1
-	state.QuestName = "No Active Quest"
-	state.questRegisterPointer = 0
-	state.questPointer = 0
-	state.CurrentSplit = model.QuestRunSplit{}
-}
-
-func (state *GameState) Clear() {
-	state.Difficulty = "Normal"
-	state.Episode = 1
-	state.ClearQuest()
-}
-
 type PlayerData struct {
 	CharacterName       string
 	Class               string
@@ -98,10 +55,8 @@ type PlayerData struct {
 	Time                time.Time
 }
 
-func New(completeGameChannel chan QuestRun) *PSO {
+func New() *PSO {
 	return &PSO{
-		completeGame: completeGameChannel,
-		questTypes:   quest.NewQuests(),
 		MonsterNames: make(map[uint32]string),
 	}
 }
