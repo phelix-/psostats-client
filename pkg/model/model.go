@@ -50,6 +50,7 @@ type QuestRun struct {
 	DebandLvl           []int16
 	Invincible          []bool
 	Events              []Event
+	Splits              []QuestRunSplit
 	Monsters            map[int]Monster
 	Bosses              map[string]BossData
 	MonsterCount        []int
@@ -64,6 +65,15 @@ type QuestRun struct {
 	DTUsed              uint16
 	CTUsed              uint16
 	TPUsed              uint16
+	TimeByState         map[int]uint64
+}
+
+type QuestRunSplit struct {
+	Name        string
+	Index       int
+	StartSecond int
+	Start       time.Time
+	End         time.Time
 }
 
 type Monster struct {

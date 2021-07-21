@@ -75,13 +75,6 @@ type Event struct {
 	Description string
 }
 
-type QuestRunSplit struct {
-	Name  string
-	Index int
-	Start time.Time
-	End   time.Time
-}
-
 type QuestRun struct {
 	Server                   string
 	PlayerName               string
@@ -116,7 +109,7 @@ type QuestRun struct {
 	DebandLvl                []int16
 	Invincible               []bool
 	Events                   []Event
-	Splits                   []QuestRunSplit
+	Splits                   []model.QuestRunSplit
 	Monsters                 map[int]Monster
 	Bosses                   map[string]model.BossData
 	MonsterCount             []int
@@ -133,6 +126,7 @@ type QuestRun struct {
 	CTUsed                   uint16
 	previousTp               uint16
 	TPUsed                   uint16
+	TimeByState map[uint16]uint64
 }
 
 func (pso *PSO) StartNewQuest(questConfig quest.Quest) {
@@ -195,7 +189,7 @@ func (pso *PSO) StartNewQuest(questConfig quest.Quest) {
 		PbCategory:               pbCategory,
 		Invincible:               make([]bool, 0),
 		Events:                   make([]Event, 0),
-		Splits:                   make([]QuestRunSplit, len(questConfig.Splits)),
+		Splits:                   make([]model.QuestRunSplit, len(questConfig.Splits)),
 		Monsters:                 make(map[int]Monster),
 		Bosses:                   make(map[string]model.BossData),
 		MonsterCount:             make([]int, 0),
@@ -211,6 +205,7 @@ func (pso *PSO) StartNewQuest(questConfig quest.Quest) {
 		CTUsed:                   0,
 		previousTp:               0,
 		TPUsed:                   0,
+		TimeByState: make(map[uint16]uint64),
 	}
 	pso.GameState.QuestStarted = true
 }
@@ -303,6 +298,8 @@ func (pso *PSO) consolidateFrame() {
 		}
 	}
 
+	currentQuestRun.TimeByState[pso.CurrentPlayerData.ActionState] = currentQuestRun.TimeByState[pso.CurrentPlayerData.ActionState] + 1
+
 	if currentQuestRun.lastFloor != pso.GameState.Floor {
 		currentQuestRun.Events = append(currentQuestRun.Events, Event{
 			Second:      currentSecond,
@@ -340,12 +337,13 @@ func (pso *PSO) updateCurrentSplit(questConfig quest.Quest) {
 		if err == nil && switched {
 			currentSplit.End = time.Now()
 			currentQuestRun.Splits[currentSplit.Index] = currentSplit
-			currentSplit = QuestRunSplit{Index: currentSplit.Index + 1}
+			currentSplit = model.QuestRunSplit{Index: currentSplit.Index + 1}
 			pso.GameState.CurrentSplit = currentSplit
 		}
 	}
 	if currentSplit.Start.IsZero() && currentSplit.Index < len(questConfig.Splits) {
 		currentSplit.Start = time.Now()
+		currentSplit.StartSecond = int(time.Now().Sub(currentQuestRun.QuestStartTime).Seconds())
 		currentSplit.Name = questConfig.Splits[pso.GameState.CurrentSplit.Index].Name
 		currentQuestRun.Splits[currentSplit.Index] = currentSplit
 		pso.GameState.CurrentSplit = currentSplit

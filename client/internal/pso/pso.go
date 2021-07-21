@@ -2,6 +2,7 @@ package pso
 
 import (
 	"fmt"
+	"github.com/phelix-/psostats/v2/pkg/model"
 	"log"
 	"syscall"
 	"time"
@@ -57,7 +58,7 @@ type GameState struct {
 	Floor                uint16
 	questPointer         uintptr
 	questRegisterPointer uintptr
-	CurrentSplit         QuestRunSplit
+	CurrentSplit         model.QuestRunSplit
 }
 
 func (state *GameState) ClearQuest() {
@@ -71,7 +72,7 @@ func (state *GameState) ClearQuest() {
 	state.QuestName = "No Active Quest"
 	state.questRegisterPointer = 0
 	state.questPointer = 0
-	state.CurrentSplit = QuestRunSplit{}
+	state.CurrentSplit = model.QuestRunSplit{}
 }
 
 func (state *GameState) Clear() {

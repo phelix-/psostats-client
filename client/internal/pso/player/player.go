@@ -38,6 +38,7 @@ type BasePlayerInfo struct {
 	Class               string
 	Meseta              uint32
 	Warping             bool
+	ActionState         uint16
 }
 
 func ParsePlayerMemory(buf []uint16, base uintptr) BasePlayerInfo {
@@ -66,6 +67,7 @@ func ParsePlayerMemory(buf []uint16, base uintptr) BasePlayerInfo {
 		ConfuseTraps:        (buf[(0x89F-base)/2] & 0xFF00) >> 8,
 		Class:               getClass(class),
 		Meseta:              numbers.Uint32FromU16(buf[(0xE4C-base)/2], buf[(0xE4E-base)/2]),
+		ActionState:         buf[(0x348-base)/2],
 	}
 }
 

@@ -179,7 +179,12 @@ func getAllQuests() []Quest {
 		{Episode: 2, Name: "Christmas Fiasco Episode 2", Start: floorSwitch(4, 100), End: floorSwitch(11, 3)},
 		{Episode: 2, Name: "Maximum Attack E: Temple", Start: floorSwitch(1, 0), End: register(50)},
 		{Episode: 2, Name: "Maximum Attack E: Spaceship", Start: floorSwitch(3, 0), End: register(50)},
-		{Episode: 2, Name: "Maximum Attack E: CCA", Start: floorSwitch(5, 0), End: register(50)},
+		{Episode: 2, Name: "Maximum Attack E: CCA", Start: floorSwitch(5, 0), End: register(50), Splits: []Split{
+			{Name: "Room 1", Trigger: floorSwitch(5, 1)},
+			{Name: "Room 2", Trigger: floorSwitch(5, 2)},
+			{Name: "Room 3", Trigger: floorSwitch(5, 3)},
+			{Name: "Room 4", Trigger: register(50)},
+		}},
 		{Episode: 2, Name: "Maximum Attack E: Seabed", Start: floorSwitch(10, 0), End: register(50)},
 		{Episode: 2, Name: "Maximum Attack E: Tower", Start: floorSwitch(17, 0), End: register(50)},
 		// ---- Extermination ----
@@ -191,7 +196,17 @@ func getAllQuests() []Quest {
 		{Episode: 2, Name: "Sweep-up Operation #6", Start: register(210), End: register(254)},
 		{Episode: 2, Name: "Sweep-up Operation #7", Start: register(210), End: register(254)},
 		{Episode: 2, Name: "Sweep-up Operation #8", Start: register(210), End: register(254)},
-		{Episode: 2, Name: "Sweep-up Operation #9", Start: register(210), End: register(254)},
+		{Episode: 2, Name: "Sweep-up Operation #9", Start: register(210), End: register(254), Splits: []Split{
+			{Name: "10f & 9f", Trigger: floorSwitch(17, 9)},
+			{Name: "8f", Trigger: floorSwitch(17, 8)},
+			{Name: "7f", Trigger: floorSwitch(17, 7)},
+			{Name: "6f", Trigger: floorSwitch(17, 6)},
+			{Name: "5f", Trigger: floorSwitch(17, 5)},
+			{Name: "4f", Trigger: floorSwitch(17, 4)},
+			{Name: "3f", Trigger: floorSwitch(17, 3)},
+			{Name: "2f", Trigger: floorSwitch(17, 2)},
+			{Name: "1f", Trigger: floorSwitch(17, 1)},
+		}},
 		{Episode: 2, Name: "Gal Da Val's Darkness", Start: floorSwitch(3, 20), End: register(89)},
 		{Episode: 2, Name: "CAL's Clock Challenge", Start: floorSwitch(1, 40), End: register(254)},
 		// ---- Retrieval ----

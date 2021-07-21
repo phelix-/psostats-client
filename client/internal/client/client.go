@@ -90,6 +90,8 @@ func (c *Client) Run() error {
 
 				}
 				c.pso.GameState.AwaitingUpload = false
+			case "<Resize>":
+				c.ui.ClearScreen()
 			}
 		case game := <-c.completeGame:
 			if c.config.AutoUploadEnabled() {

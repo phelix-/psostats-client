@@ -70,6 +70,10 @@
                     {{ if gt .Game.DTUsed 0 }}<li class="list-group-item">DT Used: <span style="float: right">{{ .Game.DTUsed }}</span></li> {{ end }}
                     {{ if gt .Game.CTUsed 0 }}<li class="list-group-item">CT Used: <span style="float: right">{{ .Game.CTUsed }}</span></li> {{ end }}
                     {{ if gt .Game.TPUsed 0 }}<li class="list-group-item">TP Used: <span style="float: right">{{ .Game.TPUsed }}</span></li> {{ end }}
+                    {{ if gt (len .Game.TimeByState) 0 }}<li class="list-group-item">Time Moving: <span style="float: right">{{ .TimeMoving }}</span></li> {{ end }}
+                    {{ if gt (len .Game.TimeByState) 0}}<li class="list-group-item">Time Standing: <span style="float: right">{{ .TimeStanding }}</span></li> {{ end }}
+                    {{ if gt (len .Game.TimeByState) 0 }}<li class="list-group-item">Time Attacking: <span style="float: right">{{ .TimeAttacking }}</span></li> {{ end }}
+                    {{ if gt .TimeCasting 0 }}<li class="list-group-item">Time Casting: <span style="float: right">{{ .FormattedTimeCasting }}</span></li> {{ end }}
                     {{ if gt (len .VideoUrl) 0 }}<a class="list-group-item" href="{{ .VideoUrl }}">Video</a> {{ end }}
                 </ul>
                 <ul class="list-group list-group-flush" style="margin-bottom: 4px;">

@@ -184,12 +184,14 @@ func (s *Server) PlayerV2Page(c *fiber.Ctx) error {
 	}
 	gamesByEpisode := map[int]int{1: 0, 2: 0, 4: 0}
 	questCounts := make([]QuestAndCount, 0)
+	totalGames := 0
 	for quest, count := range questsPlayed {
 		split := strings.SplitN(quest, "_", 2)
 		if len(split) == 2 {
 			episode, err := strconv.Atoi(split[0])
 			questName := split[1]
 			if err == nil {
+				totalGames += count
 				gamesByEpisode[episode] += count
 				questCounts = append(questCounts, QuestAndCount{questName, count})
 			}
@@ -212,7 +214,7 @@ func (s *Server) PlayerV2Page(c *fiber.Ctx) error {
 	}{
 		PlayerName:     player,
 		Classes:        classUsage,
-		TotalGames:     0,
+		TotalGames:     totalGames,
 		GamesByEpisode: gamesByEpisode,
 		FavoriteQuest:  favoriteQuest,
 		RecentGames:    make([]model.FormattedGame, 0),
@@ -327,6 +329,18 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 				}
 			}
 		}
+		for _, split := range game.Splits {
+			if split.StartSecond > 1 {
+				game.Events = append(game.Events, model.Event{
+					Second:      split.StartSecond,
+					Description: split.Name,
+				})
+			}
+		}
+		timeMoving := game.TimeByState[2] + game.TimeByState[4]
+		timeStanding := game.TimeByState[1]
+		timeAttacking := game.TimeByState[5] + game.TimeByState[6] + game.TimeByState[7]
+		timeCasting := game.TimeByState[8]
 		model := struct {
 			Game                 model.QuestRun
 			HasPov               map[int]bool
@@ -348,6 +362,11 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 			Units                []model.Equipment
 			Mags                 []model.Equipment
 			VideoUrl             string
+			TimeMoving           string
+			TimeStanding         string
+			TimeAttacking        string
+			TimeCasting          uint64
+			FormattedTimeCasting string
 		}{
 			Game: *game,
 			HasPov: map[int]bool{
@@ -374,6 +393,11 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 			Units:                getEquipment(game, model.EquipmentTypeUnit),
 			Mags:                 getEquipment(game, model.EquipmentTypeMag),
 			VideoUrl:             videoUrl,
+			TimeMoving:           formatDuration(time.Duration(timeMoving) * (time.Second / 30)),
+			TimeStanding:         formatDuration(time.Duration(timeStanding) * (time.Second / 30)),
+			TimeAttacking:        formatDuration(time.Duration(timeAttacking) * (time.Second / 30)),
+			TimeCasting:          timeCasting,
+			FormattedTimeCasting: formatDuration(time.Duration(timeCasting) * (time.Second / 30)),
 		}
 		err = s.gameTemplate.ExecuteTemplate(c.Response().BodyWriter(), "game", model)
 	}
