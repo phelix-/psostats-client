@@ -2,15 +2,13 @@
 package consoleui
 
 import (
-	"bytes"
 	"fmt"
-	"github.com/phelix-/psostats/v2/pkg/model"
-	"strings"
-
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 	"github.com/phelix-/psostats/v2/client/internal/pso"
+	"github.com/phelix-/psostats/v2/client/internal/pso/inventory"
 	"github.com/phelix-/psostats/v2/client/internal/pso/player"
+	"github.com/phelix-/psostats/v2/pkg/model"
 )
 
 type Data struct {
@@ -51,66 +49,20 @@ func (cui *ConsoleUI) ClearScreen() {
 }
 func (cui *ConsoleUI) DrawScreen(
 	playerData *player.BasePlayerInfo,
+	equipment *[]inventory.Equipment,
 	timeInState *[]pso.TimeDoingAction,
 ) error {
 	termWidth, _ := ui.TerminalDimensions()
-	cui.drawLogo(termWidth)
-	cui.drawMotd(termWidth)
 	cui.drawConnection(termWidth)
-	cui.DrawHP(playerData, termWidth)
-	cui.drawQuestInfo(playerData, timeInState, termWidth)
+	cui.drawClass(playerData, termWidth)
+	cui.drawEquipment(equipment, termWidth)
+	cui.drawFrameData(playerData, timeInState, termWidth)
 	return nil
 }
 
 func (cui *ConsoleUI) SetConnectionStatus(connected bool, statusString string) {
 	cui.data.Connected = connected
 	cui.data.Status = statusString
-}
-
-func (cui *ConsoleUI) drawLogo(width int) {
-	logo := widgets.NewParagraph()
-	logo1 := ` ▄▄▄·.▄▄ ·       .▄▄ · ▄▄▄▄▄ ▄▄▄· ▄▄▄▄▄.▄▄ · 
-▐█ ▄█▐█ ▀. ▪     ▐█ ▀. •██  ▐█ ▀█ •██  ▐█ ▀. 
- ██▀·▄▀▀▀█▄ ▄█▀▄ ▄▀▀▀█▄ ▐█.▪▄█▀▀█  ▐█.▪▄▀▀▀█▄
-▐█▪·•▐█▄▪▐█▐█▌.▐▌▐█▄▪▐█ ▐█▌·▐█ ▪▐▌ ▐█▌·▐█▄▪▐█
-.▀    ▀▀▀▀  ▀█▄▀▪ ▀▀▀▀  ▀▀▀  ▀  ▀  ▀▀▀  ▀▀▀▀ 
-                                       v%v.%v.%v`
-	logo.Text = fmt.Sprintf(logo1, cui.data.clientInfo.VersionMajor, cui.data.clientInfo.VersionMinor,
-		cui.data.clientInfo.VersionPatch)
-	logo.Border = false
-	offset := (width - 48) / 2
-	logo.SetRect(offset, 0, offset+48, 8)
-	logo.TextStyle.Fg = ui.ColorCyan
-	logo.WrapText = false
-	ui.Render(logo)
-}
-
-func (cui *ConsoleUI) drawMotd(width int) {
-	paragraph := widgets.NewParagraph()
-	paragraph.Text = cui.Motd
-	if strings.Contains(cui.Motd, "Invalid credentials") {
-		paragraph.TextStyle.Fg = ui.ColorRed
-	} else if strings.Contains(cui.Motd, "psostats.com/download") {
-		paragraph.TextStyle.Fg = ui.ColorYellow
-	} else {
-		paragraph.TextStyle.Fg = ui.ColorWhite
-	}
-	paragraph.Border = false
-	paragraph.WrapText = false
-	paragraph.Text = padToCenter(paragraph.Text, width)
-
-	paragraph.SetRect(0, 8, width, 9)
-	ui.Render(paragraph)
-}
-
-func padToCenter(str string, width int) string {
-	offset := (width - (len(str) + 3)) / 2
-	buffer := bytes.NewBufferString("")
-	for i := 0; i < offset; i++ {
-		buffer.WriteString(" ")
-	}
-	buffer.WriteString(str)
-	return buffer.String()
 }
 
 func (cui *ConsoleUI) drawConnection(width int) {
@@ -123,35 +75,33 @@ func (cui *ConsoleUI) drawConnection(width int) {
 	}
 	connection.Border = false
 	connection.WrapText = false
-	connection.Text = padToCenter(connection.Text, width+1)
-	connection.SetRect(0, 9, width, 10)
+	connection.SetRect(0, 0, width, 3)
 	ui.Render(connection)
 }
 
-func (cui *ConsoleUI) DrawHP(playerData *player.BasePlayerInfo, width int) {
+func (cui *ConsoleUI) drawClass(playerData *player.BasePlayerInfo, width int) {
 	playerInfo := widgets.NewParagraph()
-	playerInfo.Text = fmt.Sprintf("%v - %v (gc: %v)", playerData.Class, playerData.Name, playerData.GuildCard)
+	playerInfo.Text = fmt.Sprintf("%v", playerData.Class)
 	playerInfo.Border = false
 	playerInfo.WrapText = false
-	playerInfo.Text = padToCenter(playerInfo.Text, width)
-	playerInfo.SetRect(0, 11, width, 12)
+	playerInfo.SetRect(0, 3, width, 4)
 	ui.Render(playerInfo)
-
-	hpChart := widgets.NewGauge()
-	hpChart.Title = "HP"
-	percentHp := 0
-	if playerData.MaxHP > 0 {
-		percentHp = (100 * int(playerData.HP)) / int(playerData.MaxHP)
-	}
-	hpChart.Percent = percentHp
-	hpChart.Label = fmt.Sprintf("%v/%v", playerData.HP, playerData.MaxHP)
-	hpChart.Border = false
-	hpOffset := (width - 50) / 2
-	hpChart.SetRect(hpOffset, 12, hpOffset+50, 15)
-	ui.Render(hpChart)
 }
 
-func (cui *ConsoleUI) drawQuestInfo(
+func (cui *ConsoleUI) drawEquipment(equipment *[]inventory.Equipment, width int) {
+	playerInfo := widgets.NewParagraph()
+	for _,equipment := range *equipment {
+		if equipment.Type == model.EquipmentTypeWeapon {
+			playerInfo.Text = equipment.Display
+		}
+	}
+	playerInfo.Border = false
+	playerInfo.WrapText = false
+	playerInfo.SetRect(0, 4, width, 5)
+	ui.Render(playerInfo)
+}
+
+func (cui *ConsoleUI) drawFrameData(
 	playerData *player.BasePlayerInfo,
 	timeInState *[]pso.TimeDoingAction,
 	width int,
@@ -160,13 +110,17 @@ func (cui *ConsoleUI) drawQuestInfo(
 	list.Rows = make([]string, 0)
 
 	list.Rows = append(list.Rows, fmt.Sprintf("%v", fmtActionName(playerData.ActionState)))
+	total := 0
 	for _,timeDoingAction := range *timeInState {
+		total += timeDoingAction.Time
 		list.Rows = append(list.Rows, fmt.Sprintf("%v - %2v", fmtActionName(timeDoingAction.Action), timeDoingAction.Time))
+	}
+	if playerData.ActionState == 1 {
+		list.Rows = append(list.Rows, fmt.Sprintf("Standing to standing: %vf", total))
 	}
 	list.WrapText = false
 	list.Border = false
-	offset := (width / 2) - 42
-	list.SetRect(offset, 17, width/2, 40)
+	list.SetRect(0, 5, width, 40)
 	ui.Render(list)
 }
 
@@ -186,6 +140,8 @@ func fmtActionName(action uint16) string {
 		return "combo step 3"
 	case 8:
 		return "casting tech"
+	case 23:
+		return "emote"
 	default:
 		return fmt.Sprintf("unnamed action %v", action)
 	}

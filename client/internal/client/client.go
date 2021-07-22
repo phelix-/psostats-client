@@ -77,7 +77,7 @@ func (c *Client) runUI() {
 			connected, statusString := c.pso.CheckConnection()
 			c.ui.SetConnectionStatus(connected, statusString)
 
-			err := c.ui.DrawScreen(&c.pso.CurrentPlayerData, &c.pso.TimeInState)
+			err := c.ui.DrawScreen(&c.pso.CurrentPlayerData, &c.pso.Equipment, &c.pso.TimeInState)
 			if err != nil {
 				c.errChan <- fmt.Errorf("runUI: error drawing screen in ui: %w", err)
 				return
