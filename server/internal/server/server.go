@@ -70,6 +70,7 @@ func (s *Server) Run() {
 	s.app.Get("/info", s.InfoPage)
 	s.app.Get("/download", s.DownloadPage)
 	s.app.Get("/records", s.RecordsV2Page)
+	s.app.Get("/combo-calculator", s.ComboCalcPage)
 	s.app.Get("/players/:player", s.PlayerV2Page)
 	// API
 	s.app.Post("/api/game", s.PostGame)
@@ -132,6 +133,15 @@ func (s *Server) Index(c *fiber.Ctx) error {
 func (s *Server) InfoPage(c *fiber.Ctx) error {
 	infoModel := struct{}{}
 	err := s.infoTemplate.ExecuteTemplate(c.Response().BodyWriter(), "info", infoModel)
+	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
+	return err
+}
+
+func (s *Server) ComboCalcPage(c *fiber.Ctx) error {
+	t := ensureParsed("./server/internal/templates/comboCalc.gohtml")
+
+	infoModel := struct{}{}
+	err := t.ExecuteTemplate(c.Response().BodyWriter(), "combo-calc", infoModel)
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
 }
