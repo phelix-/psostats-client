@@ -292,7 +292,7 @@ func GetQuestRecords(dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
 	scanInput := dynamodb.ScanInput{
 		AttributesToGet: aws.StringSlice([]string{"Id", "Category", "Episode", "Quest",
 			"Time", "Player", "Timestamp", "PlayerNames", "PlayerClasses", "PlayerGcs",
-			"P1HasStats", "P2HasStats", "P3HasStats", "P4HasStats"}),
+			"P1HasStats", "P2HasStats", "P3HasStats", "P4HasStats", "Points"}),
 		Limit:     aws.Int64(1000),
 		TableName: aws.String(QuestRecordsTable),
 	}
@@ -565,6 +565,7 @@ func summaryFromQuestRun(questRun model.QuestRun) model.Game {
 		Time:             duration,
 		Timestamp:        questRun.QuestStartTime,
 		Episode:          int(questRun.Episode),
+		Points:           int(questRun.Points),
 	}
 }
 

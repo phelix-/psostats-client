@@ -56,14 +56,15 @@ type Trigger struct {
 }
 
 type Quest struct {
-	Episode    int
-	Name       string
-	Ignore     bool
-	Remap      *string
-	CmodeStage int
-	Start      Trigger
-	End        Trigger
-	Splits     []Split
+	Episode       int
+	Name          string
+	Ignore        bool
+	ForceTerminal bool
+	Remap         *string
+	CmodeStage    int
+	Start         Trigger
+	End           Trigger
+	Splits        []Split
 }
 
 type Split struct {
@@ -123,7 +124,7 @@ func (q *Quest) StartsAtWarpIn() bool {
 }
 
 func (q *Quest) TerminalQuest() bool {
-	return !q.StartsAtWarpIn() && !q.StartsOnRegister()
+	return q.ForceTerminal || (!q.StartsAtWarpIn() && !q.StartsOnRegister())
 }
 
 func (q *Quest) EndsOnRegister() bool {

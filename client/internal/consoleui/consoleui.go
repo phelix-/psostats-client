@@ -269,7 +269,7 @@ func (cui *ConsoleUI) drawQuestInfo2(
 			formatTimeMoving(quest),
 			formatTimeAttacking(quest),
 		}
-		if quest.TimeByState[8] > 0 {
+		if quest.TimeCasting > 0 {
 			list.Rows = append(list.Rows, formatTimeCasting(quest))
 		}
 	}
@@ -378,25 +378,21 @@ func formatQuestComplete(quest *pso.QuestRun) string {
 }
 
 func formatTimeMoving(quest *pso.QuestRun) string {
-	timeMoving := quest.TimeByState[2] + quest.TimeByState[4]
-	movingDuration := (time.Second / 30) * time.Duration(timeMoving)
+	movingDuration := (time.Second / 30) * time.Duration(quest.TimeMoving)
 	return fmt.Sprintf("%15v: %v", "Time Moving", movingDuration.Truncate(time.Millisecond*100))
 }
 
 func formatTimeStanding(quest *pso.QuestRun) string {
-	timeMoving := quest.TimeByState[1]
-	movingDuration := (time.Second / 30) * time.Duration(timeMoving)
-	return fmt.Sprintf("%15v: %v", "Time Standing", movingDuration.Truncate(time.Millisecond*100))
+	standingDuration := (time.Second / 30) * time.Duration(quest.TimeStanding)
+	return fmt.Sprintf("%15v: %v", "Time Standing", standingDuration.Truncate(time.Millisecond*100))
 }
 
 func formatTimeAttacking(quest *pso.QuestRun) string {
-	timeMoving := quest.TimeByState[5] + quest.TimeByState[6] + quest.TimeByState[7]
-	movingDuration := (time.Second / 30) * time.Duration(timeMoving)
-	return fmt.Sprintf("%15v: %v", "Time Attacking", movingDuration.Truncate(time.Millisecond*100))
+	attackingDuration := (time.Second / 30) * time.Duration(quest.TimeAttacking)
+	return fmt.Sprintf("%15v: %v", "Time Attacking", attackingDuration.Truncate(time.Millisecond*100))
 }
 
 func formatTimeCasting(quest *pso.QuestRun) string {
-	timeMoving := quest.TimeByState[8]
-	movingDuration := (time.Second / 30) * time.Duration(timeMoving)
-	return fmt.Sprintf("%15v: %v", "Time Casting", movingDuration.Truncate(time.Millisecond*100))
+	castingDuration := (time.Second / 30) * time.Duration(quest.TimeCasting)
+	return fmt.Sprintf("%15v: %v", "Time Casting", castingDuration.Truncate(time.Millisecond*100))
 }

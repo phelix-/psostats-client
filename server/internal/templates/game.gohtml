@@ -55,7 +55,7 @@
         <div class="row psostats-heading">
             <div class="col">
                 <h1>{{ .Game.QuestName}} <small class="text-muted">Episode {{ .Game.Episode }}</small></h1>
-                <h2 class="display-6"> {{ .FormattedQuestTime}}</h2>
+                <h2 class="display-6">{{ if gt .Game.Points 0}}{{ .Game.Points }} Points{{ else }}{{ .FormattedQuestTime}}{{ end }}</h2>
             </div>
         </div>
         <div class="row psostats-questbasics">
@@ -63,6 +63,8 @@
                 <ul class="list-group list-group-flush" style="margin-bottom: 4px;">
                     <li class="list-group-item">Category: <span style="float: right">{{ len .Game.AllPlayers }}p {{ if .Game.PbCategory}}PB{{else}}No-PB{{end}}</span></li>
                     <li class="list-group-item">Difficulty: <span style="float: right">{{ .Game.Difficulty }}</span></li>
+                    {{ if gt .Game.Points 0}}<li class="list-group-item">Time: <span style="float: right">{{ .FormattedQuestTime}}</span></li>{{ end }}
+                    <li class="list-group-item">Date: <span style="float: right">{{ .Game.QuestStartTime }}</span></li>
                     <a class="list-group-item" href="/players/{{ .Game.UserName }}">Player: <span style="float: right">{{ .Game.UserName }}</span></a>
                     <li class="list-group-item">Deaths: <span style="float: right">{{ .Game.DeathCount }}</span></li>
                     <li class="list-group-item">Enemies Killed: <span style="float: right">{{ .Game.MonstersDead }}</span></li>

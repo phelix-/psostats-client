@@ -227,7 +227,7 @@ func (s *Server) QuestRecordWebhook(questRun model.QuestRun, previousRecord *mod
 			timeDifference := previousRecord.Time - duration
 			if isRankedByScore(questRun) {
 				previousRecordText = fmt.Sprintf("\nbeating the previous record by %v points", int(questRun.Points) - previousRecord.Points)
-				if timeDifference > 0 {
+				if timeDifference >= 0 {
 					previousRecordText = fmt.Sprintf("%v (%v faster)", previousRecordText, formatDuration(timeDifference))
 				} else {
 					previousRecordText = fmt.Sprintf("%v (%v slower)", previousRecordText, formatDuration(-timeDifference))

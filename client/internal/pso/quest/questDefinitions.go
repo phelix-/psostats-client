@@ -138,7 +138,7 @@ func getAllQuests() []Quest {
 		// Sugoroku
 		// Sim 2.0
 		// Mine Offensive
-		{Episode: 1, Name: "Endless: Episode 1", Start: register(50), End: register(248)},
+		{Episode: 1, Name: "Endless: Episode 1", Start: register(50), End: register(248), ForceTerminal: true},
 
 		// ---- Halloween ----
 		{Episode: 1, Name: "Hollow Battlefield: Caves", Start: warpIn(), End: register(0)},

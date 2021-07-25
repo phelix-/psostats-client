@@ -118,16 +118,20 @@ type QuestRun struct {
 	MonstersDead             int
 	Weapons                  map[string]model.Equipment
 	FreezeTraps              []uint16
-	previousFt               uint16
-	previousDt               uint16
-	previousCt               uint16
-	FTUsed                   uint16
-	DTUsed                   uint16
-	CTUsed                   uint16
-	previousTp               uint16
-	TPUsed                   uint16
-	TimeByState              map[uint16]uint64
-	Points                   uint16
+	previousFt    uint16
+	previousDt    uint16
+	previousCt    uint16
+	FTUsed        uint16
+	DTUsed        uint16
+	CTUsed        uint16
+	previousTp    uint16
+	TPUsed        uint16
+	TimeByState   map[uint16]uint64
+	TimeStanding  uint64
+	TimeMoving    uint64
+	TimeAttacking uint64
+	TimeCasting   uint64
+	Points        uint16
 }
 
 func (pso *PSO) StartNewQuest(questConfig quest.Quest) {
@@ -299,7 +303,17 @@ func (pso *PSO) consolidateFrame() {
 		}
 	}
 
+	currentState := pso.CurrentPlayerData.ActionState
 	currentQuestRun.TimeByState[pso.CurrentPlayerData.ActionState] = currentQuestRun.TimeByState[pso.CurrentPlayerData.ActionState] + 1
+	if 	currentState == 5 || currentState == 6 || currentState == 7 {
+		currentQuestRun.TimeAttacking++
+	} else if currentState == 2 || currentState == 4 {
+		currentQuestRun.TimeMoving++
+	} else if currentState == 8 {
+		currentQuestRun.TimeCasting++
+	} else if currentState == 1 {
+		currentQuestRun.TimeStanding++
+	}
 
 	if currentQuestRun.lastFloor != pso.GameState.Floor {
 		currentQuestRun.Events = append(currentQuestRun.Events, Event{
@@ -353,7 +367,10 @@ func (pso *PSO) updateCurrentSplit(questConfig quest.Quest) {
 
 func (pso *PSO) addExtraQuestInfo(questConfig quest.Quest) {
 	if questConfig.Name == "Endless: Episode 1" {
-		pso.CurrentQuest.Points = quest.GetRegisterValue(pso.handle, 51, quest.GetQuestRegisterPointer(pso.handle))
+		points := quest.GetRegisterValue(pso.handle, 51, quest.GetQuestRegisterPointer(pso.handle))
+		if points > 0 {
+			pso.CurrentQuest.Points = points
+		}
 	}
 }
 
@@ -542,7 +559,6 @@ func (pso *PSO) RefreshData() error {
 						return err
 					}
 				}
-				pso.GameState.AllowQuestStart = true
 				if questStartConditionsMet && pso.GameState.AllowQuestStart {
 					rngSeed := pso.getRngSeed()
 					pso.GameState.RngSeed = rngSeed
