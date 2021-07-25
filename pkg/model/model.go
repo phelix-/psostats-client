@@ -66,7 +66,7 @@ type QuestRun struct {
 	CTUsed              uint16
 	TPUsed              uint16
 	TimeByState         map[int]uint64
-	Score               uint16
+	Points              uint16
 }
 
 type QuestRunSplit struct {
