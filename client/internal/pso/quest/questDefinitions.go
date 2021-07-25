@@ -90,10 +90,33 @@ func getAllQuests() []Quest {
 		// ---- Event ----
 		{Episode: 1, Name: "Christmas Fiasco", Remap: remap("Christmas Fiasco Episode 1")},
 		{Episode: 1, Name: "Christmas Fiasco Episode 1", Start: floorSwitch(4, 100), End: floorSwitch(10, 3)},
-		{Episode: 1, Name: "Maximum Attack E: Forest", Start: floorSwitch(2, 0), End: register(50)},
-		{Episode: 1, Name: "Maximum Attack E: Caves", Start: floorSwitch(4, 0), End: register(50)},
-		{Episode: 1, Name: "Maximum Attack E: Mines", Start: floorSwitch(6, 0), End: register(50)},
-		{Episode: 1, Name: "Maximum Attack E: Ruins", Start: floorSwitch(10, 0), End: register(50)},
+		{Episode: 1, Name: "Maximum Attack E: Forest", Start: floorSwitch(2, 0), End: register(50), Splits: []Split{
+			{Name: "Room 1", Trigger: floorSwitch(2, 1)},
+			{Name: "Room 2", Trigger: floorSwitch(2, 2)},
+			{Name: "Room 3", Trigger: floorSwitch(2, 3)},
+			{Name: "Room 4", Trigger: register(50)},
+		}},
+		{Episode: 1, Name: "Maximum Attack E: Caves", Start: floorSwitch(4, 0), End: register(50), Splits: []Split{
+			{Name: "Room 1", Trigger: floorSwitch(4, 1)},
+			{Name: "Room 2", Trigger: floorSwitch(4, 2)},
+			{Name: "Room 3", Trigger: floorSwitch(4, 3)},
+			{Name: "Room 4", Trigger: floorSwitch(4, 4)},
+			{Name: "Room 5", Trigger: floorSwitch(4, 5)},
+			{Name: "Room 6", Trigger: floorSwitch(4, 6)},
+			{Name: "Room 7", Trigger: register(50)},
+		}},
+		{Episode: 1, Name: "Maximum Attack E: Mines", Start: floorSwitch(6, 0), End: register(50), Splits: []Split{
+			{Name: "Room 1", Trigger: floorSwitch(6, 1)},
+			{Name: "Room 2", Trigger: floorSwitch(6, 2)},
+			{Name: "Room 3", Trigger: floorSwitch(6, 3)},
+			{Name: "Room 4", Trigger: register(50)},
+		}},
+		{Episode: 1, Name: "Maximum Attack E: Ruins", Start: floorSwitch(10, 0), End: register(50), Splits: []Split{
+			{Name: "Room 1", Trigger: floorSwitch(10, 1)},
+			{Name: "Room 2", Trigger: floorSwitch(10, 2)},
+			{Name: "Room 3", Trigger: floorSwitch(10, 3)},
+			{Name: "Room 4", Trigger: register(50)},
+		}},
 		// ---- Maximum Attack ----
 		// "MAXIMUM ATTACK 1 Ver2"
 		{Episode: 1, Name: "Maximum Attack 4 -1A-", Start: floorSwitch(4, 99), End: floorSwitch(10, 31)},
@@ -115,6 +138,7 @@ func getAllQuests() []Quest {
 		// Sugoroku
 		// Sim 2.0
 		// Mine Offensive
+		{Episode: 1, Name: "Endless: Episode 1", Start: register(50), End: register(248)},
 
 		// ---- Halloween ----
 		{Episode: 1, Name: "Hollow Battlefield: Caves", Start: warpIn(), End: register(0)},
@@ -177,16 +201,38 @@ func getAllQuests() []Quest {
 		// Festivity On The Beach
 		{Episode: 2, Name: "Christmas Fiasco", Remap: remap("Christmas Fiasco Episode 2")},
 		{Episode: 2, Name: "Christmas Fiasco Episode 2", Start: floorSwitch(4, 100), End: floorSwitch(11, 3)},
-		{Episode: 2, Name: "Maximum Attack E: Temple", Start: floorSwitch(1, 0), End: register(50)},
-		{Episode: 2, Name: "Maximum Attack E: Spaceship", Start: floorSwitch(3, 0), End: register(50)},
+		{Episode: 2, Name: "Maximum Attack E: Temple", Start: floorSwitch(1, 0), End: register(50), Splits: []Split{
+			{Name: "Room 1", Trigger: floorSwitch(1, 1)},
+			{Name: "Room 2", Trigger: floorSwitch(1, 2)},
+			{Name: "Room 3", Trigger: floorSwitch(1, 3)},
+			{Name: "Room 4", Trigger: register(50)},
+		}},
+		{Episode: 2, Name: "Maximum Attack E: Spaceship", Remap: remap("Maximum Attack E: Space")},
+		{Episode: 2, Name: "Maximum Attack E: Space", Start: floorSwitch(3, 0), End: register(50), Splits: []Split{
+			{Name: "Room 1", Trigger: floorSwitch(3, 1)},
+			{Name: "Room 2", Trigger: floorSwitch(3, 2)},
+			{Name: "Room 3", Trigger: floorSwitch(3, 3)},
+			{Name: "Room 4", Trigger: register(50)},
+		}},
 		{Episode: 2, Name: "Maximum Attack E: CCA", Start: floorSwitch(5, 0), End: register(50), Splits: []Split{
 			{Name: "Room 1", Trigger: floorSwitch(5, 1)},
 			{Name: "Room 2", Trigger: floorSwitch(5, 2)},
 			{Name: "Room 3", Trigger: floorSwitch(5, 3)},
 			{Name: "Room 4", Trigger: register(50)},
 		}},
-		{Episode: 2, Name: "Maximum Attack E: Seabed", Start: floorSwitch(10, 0), End: register(50)},
-		{Episode: 2, Name: "Maximum Attack E: Tower", Start: floorSwitch(17, 0), End: register(50)},
+		{Episode: 2, Name: "Maximum Attack E: Seabed", Start: floorSwitch(10, 0), End: register(50), Splits: []Split{
+			{Name: "Room 1", Trigger: floorSwitch(10, 1)},
+			{Name: "Room 2", Trigger: floorSwitch(10, 2)},
+			{Name: "Room 3", Trigger: floorSwitch(10, 3)},
+			{Name: "Room 4", Trigger: register(50)},
+		}},
+		{Episode: 2, Name: "Maximum Attack E: Tower", Start: floorSwitch(17, 0), End: register(50), Splits: []Split{
+			{Name: "1f", Trigger: floorSwitch(17, 1)},
+			{Name: "2f", Trigger: floorSwitch(17, 2)},
+			{Name: "3f", Trigger: floorSwitch(17, 3)},
+			{Name: "4f", Trigger: floorSwitch(17, 4)},
+			{Name: "5f", Trigger: register(50)},
+		}},
 		// ---- Extermination ----
 		{Episode: 2, Name: "Phantasmal World #1", Start: warpIn(), End: register(254)},
 		{Episode: 2, Name: "Phantasmal World #2", Start: warpIn(), End: register(111)},
@@ -318,8 +364,14 @@ func getAllQuests() []Quest {
 			{Name: "Room 1", Trigger: floorSwitch(2, 1)},
 			{Name: "Room 2", Trigger: floorSwitch(2, 2)},
 			{Name: "Room 3", Trigger: floorSwitch(2, 3)},
+			{Name: "Room 4", Trigger: register(50)},
 		}},
-		{Episode: 4, Name: "Maximum Attack E: Desert", Start: floorSwitch(8, 0), End: register(50)},
+		{Episode: 4, Name: "Maximum Attack E: Desert", Start: floorSwitch(8, 0), End: register(50), Splits: []Split{
+			{Name: "Room 1", Trigger: floorSwitch(8, 1)},
+			{Name: "Room 2", Trigger: floorSwitch(8, 2)},
+			{Name: "Room 3", Trigger: floorSwitch(8, 3)},
+			{Name: "Room 4", Trigger: register(50)},
+		}},
 		// ---- Maximum Attack ----
 		// MAXIMUM ATTACK 3 Ver2
 		{Episode: 4, Name: "Maximum Attack 4 -4A-", Start: floorSwitch(5, 66), End: floorSwitch(8, 50)},

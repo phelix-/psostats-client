@@ -60,7 +60,11 @@ func (pso *PSO) GetFloorName() string {
 				case 10:
 					floorName = "Ruins 3"
 				case 11:
-					floorName = "Dragon"
+					if pso.GameState.Map == 17 {
+						floorName = "BA Temple"
+					} else {
+						floorName = "Dragon"
+					}
 				case 12:
 					floorName = "De Rol Le"
 				case 13:

@@ -126,7 +126,8 @@ type QuestRun struct {
 	CTUsed                   uint16
 	previousTp               uint16
 	TPUsed                   uint16
-	TimeByState map[uint16]uint64
+	TimeByState              map[uint16]uint64
+	Points                   uint16
 }
 
 func (pso *PSO) StartNewQuest(questConfig quest.Quest) {
@@ -205,7 +206,7 @@ func (pso *PSO) StartNewQuest(questConfig quest.Quest) {
 		CTUsed:                   0,
 		previousTp:               0,
 		TPUsed:                   0,
-		TimeByState: make(map[uint16]uint64),
+		TimeByState:              make(map[uint16]uint64),
 	}
 	pso.GameState.QuestStarted = true
 }
@@ -347,6 +348,12 @@ func (pso *PSO) updateCurrentSplit(questConfig quest.Quest) {
 		currentSplit.Name = questConfig.Splits[pso.GameState.CurrentSplit.Index].Name
 		currentQuestRun.Splits[currentSplit.Index] = currentSplit
 		pso.GameState.CurrentSplit = currentSplit
+	}
+}
+
+func (pso *PSO) addExtraQuestInfo(questConfig quest.Quest) {
+	if questConfig.Name == "Endless: Episode 1" {
+		pso.CurrentQuest.Points = quest.GetRegisterValue(pso.handle, 51, quest.GetQuestRegisterPointer(pso.handle))
 	}
 }
 
@@ -535,6 +542,7 @@ func (pso *PSO) RefreshData() error {
 						return err
 					}
 				}
+				pso.GameState.AllowQuestStart = true
 				if questStartConditionsMet && pso.GameState.AllowQuestStart {
 					rngSeed := pso.getRngSeed()
 					pso.GameState.RngSeed = rngSeed
@@ -566,6 +574,7 @@ func (pso *PSO) RefreshData() error {
 			if pso.GameState.QuestStarted {
 				pso.consolidateFrame()
 				pso.updateCurrentSplit(questConfig)
+				pso.addExtraQuestInfo(questConfig)
 				pso.consolidateMonsterState(monsters)
 			}
 		} else {
@@ -711,15 +720,9 @@ func (pso *PSO) checkQuestStartConditions(questConfig quest.Quest) (bool, error)
 	questStart := false
 	if questConfig.StartsOnRegister() {
 		registerPointer := quest.GetQuestRegisterPointer(pso.handle)
-		registerSet, err := quest.IsRegisterSet(pso.handle, *questConfig.Start.Register, registerPointer)
-		if err != nil {
-			return false, err
-		}
+		registerSet := quest.IsRegisterSet(pso.handle, *questConfig.Start.Register, registerPointer)
 		if questConfig.GetCmodeStage() > 0 {
-			cmodeFailedRegister, err := quest.IsRegisterSet(pso.handle, 253, registerPointer)
-			if err != nil {
-				return false, err
-			}
+			cmodeFailedRegister := quest.IsRegisterSet(pso.handle, 253, registerPointer)
 			questStart = registerSet && !cmodeFailedRegister
 		} else {
 			questStart = registerSet
@@ -747,7 +750,7 @@ func (pso *PSO) checkQuestStartConditions(questConfig quest.Quest) (bool, error)
 
 func (pso *PSO) checkQuestEndConditions(questConfig quest.Quest) (bool, error) {
 	if questConfig.EndsOnRegister() {
-		return quest.IsRegisterSet(pso.handle, *questConfig.End.Register, pso.GameState.questRegisterPointer)
+		return quest.IsRegisterSet(pso.handle, *questConfig.End.Register, pso.GameState.questRegisterPointer), nil
 	} else if questConfig.End.Floor != 0 {
 		return pso.getFloorSwitch(questConfig.End.Switch, questConfig.End.Floor)
 	} else {

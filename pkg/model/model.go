@@ -66,6 +66,7 @@ type QuestRun struct {
 	CTUsed              uint16
 	TPUsed              uint16
 	TimeByState         map[int]uint64
+	Score               uint16
 }
 
 type QuestRunSplit struct {
@@ -128,6 +129,7 @@ type Game struct {
 	P4Gzip           []byte
 	P4HasStats       bool
 	P4Video          string
+	Score            int
 }
 
 type FormattedPlayerInfo struct {

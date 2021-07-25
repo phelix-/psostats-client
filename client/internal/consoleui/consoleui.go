@@ -4,6 +4,7 @@ package consoleui
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -25,6 +26,7 @@ type Data struct {
 type ConsoleUI struct {
 	data Data
 	Motd string
+	termWidth int
 }
 
 func New(clientInfo model.ClientInfo) (*ConsoleUI, error) {
@@ -42,6 +44,7 @@ func New(clientInfo model.ClientInfo) (*ConsoleUI, error) {
 	return &ConsoleUI{
 		data,
 		"",
+		0,
 	}, nil
 }
 
@@ -51,6 +54,7 @@ func (cui *ConsoleUI) Close() {
 
 func (cui *ConsoleUI) ClearScreen() {
 	ui.Clear()
+	cui.termWidth = 0
 }
 func (cui *ConsoleUI) DrawScreen(
 	playerData *player.BasePlayerInfo,
@@ -59,7 +63,14 @@ func (cui *ConsoleUI) DrawScreen(
 	config *config.Config,
 	floorName string,
 ) error {
-	termWidth, _ := ui.TerminalDimensions()
+	termWidth := cui.termWidth
+	if termWidth < 1 {
+		termWidth, _ = ui.TerminalDimensions()
+		if termWidth < 1 {
+			log.Fatal("Unable to read terminal dimensions")
+		}
+		cui.termWidth = termWidth
+	}
 	cui.drawLogo(termWidth)
 	cui.drawMotd(termWidth)
 	cui.drawConnection(termWidth)
@@ -224,6 +235,9 @@ func (cui *ConsoleUI) drawQuestInfo(
 			fmt.Sprintf("%40v", formatQuestComplete(quest)),
 			fmt.Sprintf("%40v", formatCategory(quest)),
 			fmt.Sprintf("%40v", formatQuestTime(quest)),
+		}
+		if quest.QuestName == "Endless: Episode 1" {
+			list.Rows = append(list.Rows, fmt.Sprintf("%28v:%11v", "Points", quest.Points))
 		}
 		list.Rows = append(list.Rows, fmt.Sprintf("%40v", formatMesetaCharged(quest)))
 		list.Rows = append(list.Rows, fmt.Sprintf("%40v", formatDeaths(quest)))

@@ -1,7 +1,6 @@
 package quest
 
 import (
-	"errors"
 	"github.com/TheTitanrain/w32"
 	"github.com/phelix-/psostats/v2/client/internal/numbers"
 	"log"
@@ -19,16 +18,17 @@ func GetQuestRegisterPointer(handle w32.HANDLE) uintptr {
 	return uintptr(numbers.ReadU32Unchecked(handle, uintptr(0x00A954B0)))
 }
 
-func IsRegisterSet(handle w32.HANDLE, registerId uint16, questRegisterAddress uintptr) (bool, error) {
-	registerSet := false
+func IsRegisterSet(handle w32.HANDLE, registerId uint16, questRegisterAddress uintptr) bool {
+	value := GetRegisterValue(handle, registerId, questRegisterAddress)
+	return value > 0
+}
+
+func GetRegisterValue(handle w32.HANDLE, registerId uint16, questRegisterAddress uintptr) uint16 {
+	value := uint16(0)
 	if questRegisterAddress != 0 {
-		buf, _, ok := w32.ReadProcessMemory(handle, questRegisterAddress+(4*uintptr(registerId)), 2)
-		if !ok {
-			return false, errors.New("unable to isQuestRegisterSet")
-		}
-		registerSet = buf[0] > 0
+		return numbers.ReadU16(handle, questRegisterAddress+(4*uintptr(registerId)))
 	}
-	return registerSet, nil
+	return value
 }
 
 func warpIn() Trigger {

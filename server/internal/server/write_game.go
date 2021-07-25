@@ -60,7 +60,8 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 		c.Status(400)
 		return err
 	}
-	questDuration, err := time.ParseDuration(questRun.QuestDuration)
+	// just making sure it parses
+	_, err := time.ParseDuration(questRun.QuestDuration)
 	if err != nil {
 		c.Status(400)
 		return err
@@ -114,8 +115,7 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 					log.Printf("failed to add pov to record")
 				}
 			}
-		} else if (topRun == nil || topRun.Time > questDuration) &&
-			(!questRun.PbCategory || otherPbCategory == nil || otherPbCategory.Time > questDuration) {
+		} else if isNewRecord(questRun, topRun, otherPbCategory) {
 			record = true
 			s.QuestRecordWebhook(questRun, topRun)
 			log.Printf("new record for %v %vp pb:%v - %v",
@@ -129,7 +129,7 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 		playerPb, err := db.GetPlayerPB(questRun.QuestName, user, numPlayers, questRun.PbCategory, s.dynamoClient)
 		if err != nil {
 			log.Printf("failed to get player pb for gameId:%v - %v", questRun.Id, err)
-		} else if playerPb == nil || playerPb.Time > questDuration {
+		} else if isBetterRun(questRun, playerPb) {
 			pb = true
 			log.Printf("new pb for %v %v %vp pb:%v - %v",
 				user, questRun.QuestName, numPlayers, questRun.PbCategory, questRun.Id)
@@ -158,6 +158,40 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 	return nil
 }
 
+func isNewRecord(
+	currentRun model.QuestRun,
+	previousRecord *model.Game,
+	otherPbCategory *model.Game,
+) bool {
+	if currentRun.PbCategory {
+		return isBetterRun(currentRun, previousRecord) && isBetterRun(currentRun, otherPbCategory)
+	} else {
+		return isBetterRun(currentRun, previousRecord)
+	}
+}
+
+func isBetterRun(
+	currentRun model.QuestRun,
+	other *model.Game,
+) bool {
+	if other == nil {
+		return true
+	}
+	questDuration, _ := time.ParseDuration(currentRun.QuestDuration)
+	if isRankedByScore(currentRun) {
+		if int(currentRun.Score) > other.Score {
+			return true
+		}
+		if int(currentRun.Score) == other.Score && questDuration < other.Time {
+			// Same score but faster
+			return true
+		}
+		return false
+	} else {
+		return questDuration < other.Time
+	}
+}
+
 func (s *Server) findMatchingGame(questRun model.QuestRun) *model.QuestRun {
 	var matchingGame *model.QuestRun = nil
 	for _, recentGame := range s.recentGames {
@@ -179,6 +213,10 @@ func IsLeaderboardCandidate(questRun model.QuestRun) bool {
 func (s *Server) QuestRecordWebhook(questRun model.QuestRun, previousRecord *model.Game) {
 	if len(s.webhookUrl) > 0 {
 		duration, err := time.ParseDuration(questRun.QuestDuration)
+		formattedScore := ""
+		if isRankedByScore(questRun) {
+			formattedScore = fmt.Sprintf("%d points in ", questRun.Score)
+		}
 		formattedDuration := formatDuration(duration)
 		playersString := ""
 		for _, player := range questRun.AllPlayers {
@@ -186,14 +224,23 @@ func (s *Server) QuestRecordWebhook(questRun model.QuestRun, previousRecord *mod
 		}
 		previousRecordText := ""
 		if previousRecord != nil {
-			difference := previousRecord.Time - duration
-			previousRecordText = "\nbeating the previous record by " + formatDuration(difference)
+			timeDifference := previousRecord.Time - duration
+			if isRankedByScore(questRun) {
+				previousRecordText = fmt.Sprintf("\nbeating the previous record by %v points", int(questRun.Score) - previousRecord.Score)
+				if timeDifference > 0 {
+					previousRecordText = fmt.Sprintf("%v (%v faster)", previousRecordText, formatDuration(timeDifference))
+				} else {
+					previousRecordText = fmt.Sprintf("%v (%v slower)", previousRecordText, formatDuration(-timeDifference))
+				}
+			} else {
+				previousRecordText = "\nbeating the previous record by " + formatDuration(timeDifference)
+			}
 		}
 		jsonBytes, err := json.Marshal(Webhook{Embeds: []Embed{
 			{
 				Title: "New Record: " + questRun.QuestName,
-				Description: fmt.Sprintf("%v https://psostats.com/game/%v%v",
-					formattedDuration, questRun.Id, previousRecordText),
+				Description: fmt.Sprintf("%v%v https://psostats.com/game/%v%v",
+					formattedScore, formattedDuration, questRun.Id, previousRecordText),
 				Fields: []Field{
 					{Name: "Players", Value: playersString, Inline: true},
 				},
@@ -227,4 +274,8 @@ type Field struct {
 	Name   string `json:"name"`
 	Value  string `json:"value"`
 	Inline bool   `json:"inline"`
+}
+
+func isRankedByScore(questRun model.QuestRun) bool {
+	return questRun.QuestName == "Endless: Episode 1"
 }
