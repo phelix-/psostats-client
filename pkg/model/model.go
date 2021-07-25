@@ -129,7 +129,7 @@ type Game struct {
 	P4Gzip           []byte
 	P4HasStats       bool
 	P4Video          string
-	Score            int
+	Points           int
 }
 
 type FormattedPlayerInfo struct {

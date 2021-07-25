@@ -179,10 +179,10 @@ func isBetterRun(
 	}
 	questDuration, _ := time.ParseDuration(currentRun.QuestDuration)
 	if isRankedByScore(currentRun) {
-		if int(currentRun.Score) > other.Score {
+		if int(currentRun.Score) > other.Points {
 			return true
 		}
-		if int(currentRun.Score) == other.Score && questDuration < other.Time {
+		if int(currentRun.Score) == other.Points && questDuration < other.Time {
 			// Same score but faster
 			return true
 		}
@@ -226,7 +226,7 @@ func (s *Server) QuestRecordWebhook(questRun model.QuestRun, previousRecord *mod
 		if previousRecord != nil {
 			timeDifference := previousRecord.Time - duration
 			if isRankedByScore(questRun) {
-				previousRecordText = fmt.Sprintf("\nbeating the previous record by %v points", int(questRun.Score) - previousRecord.Score)
+				previousRecordText = fmt.Sprintf("\nbeating the previous record by %v points", int(questRun.Score) - previousRecord.Points)
 				if timeDifference > 0 {
 					previousRecordText = fmt.Sprintf("%v (%v faster)", previousRecordText, formatDuration(timeDifference))
 				} else {
