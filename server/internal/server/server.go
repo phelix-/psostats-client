@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"github.com/phelix-/psostats/v2/pkg/common"
 	"github.com/phelix-/psostats/v2/server/internal/db"
+	"github.com/phelix-/psostats/v2/server/internal/enemies"
 	"github.com/phelix-/psostats/v2/server/internal/userdb"
+	"github.com/phelix-/psostats/v2/server/internal/weapons"
 	"io"
 	"log"
 	"net/http"
@@ -140,7 +142,24 @@ func (s *Server) InfoPage(c *fiber.Ctx) error {
 func (s *Server) ComboCalcPage(c *fiber.Ctx) error {
 	t := ensureParsed("./server/internal/templates/comboCalc.gohtml")
 
-	infoModel := struct{}{}
+	sortedEnemies := make(map[string][]enemies.Enemy)
+	for _,enemy := range enemies.GetEnemiesUltMulti() {
+		enemiesInArea := sortedEnemies[enemy.Location]
+		if enemiesInArea == nil {
+			enemiesInArea = make([]enemies.Enemy, 0)
+		}
+		enemiesInArea = append(enemiesInArea, enemy)
+		sortedEnemies[enemy.Location] = enemiesInArea
+	}
+	infoModel := struct{
+		Classes []weapons.PsoClass
+		Enemies map[string][]enemies.Enemy
+		Weapons []weapons.Weapon
+	}{
+		Classes: weapons.GetClasses(),
+		Enemies: sortedEnemies,
+		Weapons: weapons.GetWeapons(),
+	}
 	err := t.ExecuteTemplate(c.Response().BodyWriter(), "combo-calc", infoModel)
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err

@@ -3,11 +3,14 @@
     <head>
         <meta name="viewport" content="width=device-width">
         <title>Combo Calculator - PSOStats</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-        <script src="https://unpkg.com/react@17/umd/react.production.min.js" crossorigin></script>
-        <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js" crossorigin></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns" crossorigin="anonymous"></script>
+        <script type="text/javascript" src="static/select/bootstrap-multiselect.js"></script>
+        <link rel="stylesheet" href="static/select/bootstrap-multiselect.css" type="text/css"/>
         <link href="/static/main2.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="//cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css" type="text/css"/>
+        <script src="//cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
     </head>
     <style>
         .psostats-content {
@@ -15,13 +18,89 @@
             padding: 8px;
         }
         .form-select {
-            color: #fff;
-            background-color: #444;
+            color: #ddd;
+            background-color: #333;
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e")
         }
+        .btn-group {
+            width: 100%;
+            background-color: #333;
+            color: #ddd;
+        }
+        .multiselect-container {
+            background-color: #333;
+
+            color: #aaa;
+        }
+        .multiselect-selected-text {
+            color: #ddd;
+        }
+        .dropdown-item.active {
+            background-color: #666 !important;
+
+            color: #aaa;
+        }
+        .dropdown-item:hover {
+            background-color: #484848 !important;
+
+            color: #aaa;
+        }
+        button.multiselect {
+            background: #333 url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") right .75rem center/8px 10px no-repeat
+            /*background-color: #333;*/
+            /*background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e")*/
+        }
+
+        .form-check-label {
+
+            color: #ccc;
+        }
+        .form-control {
+            color: #ddd;
+            background-color: #333;
+        }
+        .form-control:focus {
+            background-color: #444;
+            color: #ddd;
+        }
+        .input-group-text {
+            color: #ddd;
+            background-color: #282828;
+        }
     </style>
+
+    <script type="text/javascript">
+        'use strict';
+        $(document).ready(function() {
+            $('#enemy-select').multiselect({
+                enableFiltering: true,
+                enableCaseInsensitiveFiltering: true,
+                enableClickableOptGroups: true,
+                maxHeight: 400,
+                buttonTextAlignment: 'left',
+                onChange: function(option, checked, select) {
+                    console.log(checked, select);
+                    console.log($('#enemy-select').val())
+                    
+                }
+            });
+            $('#weapon-select').multiselect({
+                enableFiltering: true,
+                enableCaseInsensitiveFiltering: true,
+                maxHeight: 600,
+                buttonTextAlignment: 'left',
+            });
+            $('#combo-calc-table').DataTable({
+                data:[],
+                columns: [
+                    { title: "Monster" },
+                    { title: "Attack 1" },
+                    { title: "Damage 1" },
+                ]
+            })
+        });
+    </script>
     <body>
-    <div id="like_button_container"></div>
 
     <div class="container">
         <div class="row psostats-nav">
@@ -42,6 +121,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/download">Download</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/combo-calculator">Combo Calculator</a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -51,140 +133,293 @@
             </div>
         </div>
         <div class="row psostats-content">
-            <div class="col">
-                <select class="form-select" aria-label="Class Select">
-                    <option value="HUMR">HUmar</option>
-                    <option value="HUNL">HUnewearl</option>
-                    <option value="HUCT">HUcast</option>
-                    <option value="HUCL">HUcaseal</option>
-                    <option value="RAMR">RAmar</option>
-                    <option value="RAML">RAmarl</option>
-                    <option value="RACT">RAcast</option>
-                    <option value="RACL">RAcaseal</option>
-                    <option value="FOMR">FOmar</option>
-                    <option value="FOML">FOmarl</option>
-                    <option value="FONM">FOnewm</option>
-                    <option value="FONL">FOnewearl</option>
-                </select>
-                <select class="form-select" aria-label="Barrier Select">
-                    <option value="RED_RING">Red Ring</option>
-                    <option value="RANGER_WALL">Ranger Wall</option>
-                    <option value="KASAMI_BRACER">Kasami Bracer</option>
-                    <option value="COMBAT_GEAR">Combat Gear</option>
-                    <option value="SAFETY_HEART">Safety Heart</option>
-                    <option value="SPARTS2">S-Parts ver2.01</option>
-                    <option value="BLACK_RING1">Black Ring(1)</option>
-                    <option value="BLACK_RING2">Black Ring(2)</option>
-                    <option value="BLACK_RING3">Black Ring(3)</option>
-                </select>
-                <select class="form-select" aria-label="Frame Select">
-                    <option value="THIRTEEN">Thirteen</option>
-                    <option value="DPARTS1">D-Parts ver1.01</option>
-                    <option value="CRIMSON_COAT">Crimson Coat</option>
-                    <option value="Samurai Armor">Samurai Armor</option>
-                    <option value="SWEETHEART1">Sweetheart (1)</option>
-                    <option value="SWEETHEART2">Sweetheart (2)</option>
-                    <option value="SWEETHEART3">Sweetheart (3)</option>
-                </select>
-                <select class="form-select" aria-label="Unit Select">
-                    <option value="POSS1">Proof of Sword-Saint</option>
-                    <option value="POSS2">Proof of Sword-Saint (2)</option>
-                    <option value="POSS3">Proof of Sword-Saint (3)</option>
-                    <option value="POSS4">Proof of Sword-Saint (4)</option>
+            <div class="col-12 col-sm-6 mb-1">
+                <select class="form-control" id="class-select" aria-label="Class Select">
+                    <optgroup label="Hunter">
+                        <option value="HUmar">HUmar</option>
+                        <option value="HUnewearl">HUnewearl</option>
+                        <option value="HUcast" selected>HUcast</option>
+                        <option value="HUcaseal">HUcaseal</option>
+                    </optgroup>
+                    <optgroup label="Ranger">
+                        <option value="RAmar">RAmar</option>
+                        <option value="RAmarl">RAmarl</option>
+                        <option value="RAcast">RAcast</option>
+                        <option value="RAcaseal">RAcaseal</option>
+                    </optgroup>
+                    <optgroup label="Force">
+                        <option value="FOmar">FOmar</option>
+                        <option value="FOmarl">FOmarl</option>
+                        <option value="FOnewm">FOnewm</option>
+                        <option value="FOnewearl">FOnewearl</option>
+                    </optgroup>
                 </select>
             </div>
+            <div class="col-12 col-sm-6 mb-1">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">Frame</div>
+                    </div>
+
+                    <select class="form-control" aria-label="Frame Select">
+                        <option value="THIRTEEN" selected>Thirteen</option>
+                        <option value="DPARTS1">D-Parts ver1.01</option>
+                        <option value="CRIMSON_COAT">Crimson Coat</option>
+                        <option value="Samurai Armor">Samurai Armor</option>
+                        <option value="SWEETHEART1">Sweetheart (1)</option>
+                        <option value="SWEETHEART2">Sweetheart (2)</option>
+                        <option value="SWEETHEART3">Sweetheart (3)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 mb-1">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">Barrier</div>
+                    </div>
+                    <select class="form-control" aria-label="Barrier Select">
+                        <option value="NONE" selected>None</option>
+                        <option value="RED_RING" selected>Red Ring</option>
+                        <option value="RANGER_WALL">Ranger Wall</option>
+                        <option value="KASAMI_BRACER">Kasami Bracer</option>
+                        <option value="COMBAT_GEAR">Combat Gear</option>
+                        <option value="SAFETY_HEART">Safety Heart</option>
+                        <option value="SPARTS2">S-Parts ver2.01</option>
+                        <option value="BLACK_RING1">Black Ring (1)</option>
+                        <option value="BLACK_RING2">Black Ring (2)</option>
+                        <option value="BLACK_RING3">Black Ring (3)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 mb-1">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">Units</div>
+                    </div>
+                    <select class="form-control" aria-label="Unit Select">
+                        <option value="NONE" selected>None</option>
+                        <option value="POSS1">Proof of Sword-Saint</option>
+                        <option value="POSS2">Proof of Sword-Saint x2</option>
+                        <option value="POSS3">Proof of Sword-Saint x3</option>
+                        <option value="POSS4">Proof of Sword-Saint x4</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 mb-1">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">ATP</div>
+                    </div>
+                    <input type="text" class="form-control" id="atpInput" value="1639" >
+                </div>
+            </div>
+            <div class="col-6 col-md-3 mb-1">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">ATA</div>
+                    </div>
+                    <input type="text" class="form-control" id="ataInput" value="191">
+                </div>
+            </div>
+            <div class="col-6 col-md-3 mb-1">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">Shifta</div>
+                    </div>
+                    <input type="text" class="form-control" id="shiftaInput" value="0">
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3 mb-1">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">Zalure</div>
+                    </div>
+                    <input type="text" class="form-control" id="zalureInput" value="0">
+                </div>
+            </div>
+
         </div>
         <div class="row psostats-content">
-            <div class="col">
-                <select class="form-select" aria-label="Weapon Select">
-                    <option value="POSS1">Proof of Sword-Saint</option>
-                    <option value="POSS2">Proof of Sword-Saint (2)</option>
-                    <option value="POSS3">Proof of Sword-Saint (3)</option>
-                    <option value="POSS4">Proof of Sword-Saint (4)</option>
+            <div class="col-12">
+                <h3>Weapon</h3>
+            </div>
+
+            <div class="col-8 mb-1">
+                <select id="weapon-select" aria-label="Weapon Select">
+                    {{ range .Weapons }}
+                        <option value="{{.Name}}">{{.Name}}</option>
+                    {{ end }}
                 </select>
             </div>
-        </div>
-        <div class="row psostats-content">
-            <div class="col">
-                <div class="input-group mb-3">
-                    <select class="form-select" aria-label="Default select example">
-                        <option value="NORMAL">Normal</option>
-                        <option value="HEAVY">Heavy</option>
-                        <option value="SPECIAL">Special</option>
-                        <option value="NONE">None</option>
-                    </select>
-                    <select id="hits1" class="form-select">
-                        <option value="1">1 Hits</option>
-                        <option value="2">2 Hits</option>
-                        <option value="3">3 Hits</option>
-                        <option value="4">4 Hits</option>
-                        <option value="5">5 Hits</option>
-                    </select>
-                </div>
-                <div class="input-group mb-3">
-                    <select class="form-select" aria-label="Default select example">
-                        <option value="NORMAL">Normal</option>
-                        <option value="HEAVY">Heavy</option>
-                        <option value="SPECIAL">Special</option>
-                        <option value="NONE">None</option>
-                    </select>
-                    <select id="hits1" class="form-select">
-                        <option value="1">1 Hits</option>
-                        <option value="2">2 Hits</option>
-                        <option value="3">3 Hits</option>
-                        <option value="4">4 Hits</option>
-                        <option value="5">5 Hits</option>
-                    </select>
-                </div>
-                <div class="input-group mb-3">
-                    <select class="form-select" aria-label="Default select example">
-                        <option value="NORMAL">Normal</option>
-                        <option value="HEAVY">Heavy</option>
-                        <option value="SPECIAL">Special</option>
-                        <option value="NONE">None</option>
-                    </select>
-                    <select id="hits1" class="form-select">
-                        <option value="1">1 Hits</option>
-                        <option value="2">2 Hits</option>
-                        <option value="3">3 Hits</option>
-                        <option value="4">4 Hits</option>
-                        <option value="5">5 Hits</option>
-                    </select>
+            <div class="col-4">
+                <select id="special-select" class="form-control special-select">
+                    <option value="Charge">Charge</option>
+                    <option value="Berserk">Berserk</option>
+                    <option value="Spirit">Spirit</option>
+                    <option value="Dark Flow">Dark Flow</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-3 mb-1">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="sphereInput" value="0">
+                    <div class="input-group-append">
+                        <div class="input-group-text">%</div>
+                    </div>
                 </div>
             </div>
+            <div class="col-6 col-md-3 mb-1">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="hitInput" value="0">
+                    <div class="input-group-append">
+                        <div class="input-group-text">Hit</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 mb-1">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">Min</div>
+                    </div>
+                    <input type="text" class="form-control" id="minAtpInput" value="0">
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3 mb-1">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">Max</div>
+                    </div>
+                    <input type="text" class="form-control" id="maxAtpInput" value="0">
+                </div>
+            </div>
+
         </div>
 
+        <div class="row psostats-content">
+            <div class="col-12">
+                <h3>Combo</h3>
+            </div>
+            <div class="col-12 mb-1">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="ataGlitch">
+                    <label class="form-check-label" for="ataGlitch">Accuracy (SN) Glitch</label>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4 mb-1">
+                <div class="input-group" id="attack1InputGroup">
+                    <select class="form-control">
+                        <option value="NORMAL">Normal</option>
+                        <option value="HEAVY">Heavy</option>
+                        <option value="SPECIAL">Special</option>
+                        <option value="NONE">None</option>
+                    </select>
+                    <select id="hits1" class="form-control">
+                        <option value="1">1 Hit</option>
+                        <option value="2">2 Hits</option>
+                        <option value="3">3 Hits</option>
+                        <option value="4">4 Hits</option>
+                        <option value="5">5 Hits</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-12 col-md-4 mb-1">
+                <div class="input-group" id="attack2InputGroup">
+                    <select class="form-control" id="combo2Attack">
+                        <option value="NORMAL">Normal</option>
+                        <option value="HEAVY">Heavy</option>
+                        <option value="SPECIAL">Special</option>
+                        <option value="NONE">None</option>
+                    </select>
+                    <select id="hits1" class="form-control">
+                        <option value="1">1 Hit</option>
+                        <option value="2">2 Hits</option>
+                        <option value="3">3 Hits</option>
+                        <option value="4">4 Hits</option>
+                        <option value="5">5 Hits</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-12 col-md-4 mb-1">
+                <div class="input-group"  id="attack3InputGroup">
+                    <select class="form-control">
+                        <option value="NORMAL">Normal</option>
+                        <option value="HEAVY">Heavy</option>
+                        <option value="SPECIAL">Special</option>
+                        <option value="NONE">None</option>
+                    </select>
+                    <select id="hits1" class="form-control">
+                        <option value="1">1 Hit</option>
+                        <option value="2">2 Hits</option>
+                        <option value="3">3 Hits</option>
+                        <option value="4">4 Hits</option>
+                        <option value="5">5 Hits</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="row psostats-content">
+            <div class="col-12">
+                <h3>Enemies</h3>
+            </div>
+            <div class="col-12 mb-1">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="frozenCheckbox">
+                    <label class="form-check-label" for="frozenCheckbox">Frozen</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="paralyzedCheckbox">
+                    <label class="form-check-label" for="paralyzedCheckbox">Paralyzed</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="maxDamageCheckbox">
+                    <label class="form-check-label" for="maxDamageCheckbox">Max Damage</label>
+                </div>
+
+            </div>
+            <div class="col-12 mb-3">
+                <select id="enemy-select" multiple="multiple">
+                    {{ range $location, $enemiesInLocation := .Enemies }}
+                        <optgroup label="{{ $location }}">
+                            {{ range $enemiesInLocation }}
+                                <option value="{{ .Name }}">{{ .Name }}</option>
+                            {{ end }}
+                        </optgroup>
+                    {{ end }}
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <table id="combo-calc-table"/>
+            </div>
+        </div>
     </div>
-    </body>
-
     <script>
-        'use strict';
-
-        const e = React.createElement;
-
-        class LikeButton extends React.Component {
-            constructor(props) {
-                super(props);
-                this.state = { liked: false };
-            }
-
-            render() {
-                if (this.state.liked) {
-                    return 'You liked this.';
-                }
-
-                return e(
-                    'button',
-                    { onClick: () => this.setState({ liked: true }) },
-                    'Like'
-                );
-            }
+        const classes = {
+        {{ range .Classes }}{{ .Name }}:{atp:{{ .Atp}},ata:{{.Ata}}},{{ end }}
         }
-        const domContainer = document.querySelector('#like_button_container');
-        ReactDOM.render(e(LikeButton), domContainer);
-
-
+        const weapons = {
+        {{ range .Weapons }}"{{ .Name }}":{minAtp: {{.MinAtp}}, maxAtp: {{.MaxAtp}}, ata: {{.Ata}}, grind: {{.Grind}}, maxHit: {{.MaxHit}}, maxAttr: {{.MaxAttr}}, special: "{{.Special}}",},{{end}}
+        }
+        const enemies = {
+        {{ range $location, $enemy := .Enemies }}{{ range $enemy }}"{{.Name}}": {name: "{{.Name}}", type: "{{.Type}}", hp: {{.Hp}}, atp: {{.Atp}}, dfp: {{.Dfp}}, evp: {{.Evp}}, location: "{{.Location}}", ccaMiniboss: {{.CcaMiniboss}},},{{ end }}{{ end }}
+        }
+        $('#class-select').change(function() {
+            const selectedClass = $('#class-select').val()
+            $('#atpInput').val(classes[selectedClass].atp)
+            $('#ataInput').val(classes[selectedClass].ata)
+        })
+        $('#weapon-select').change(() => {
+            const selectedWeapon = $('#weapon-select').val()
+            $('#minAtpInput').val(weapons[selectedWeapon].minAtp)
+            $('#maxAtpInput').val(weapons[selectedWeapon].maxAtp)
+            $('#hitInput').val(weapons[selectedWeapon].maxHit)
+            $('#sphereInput').val(weapons[selectedWeapon].maxAttr)
+        })
     </script>
+    </body>
 
     </html>
 {{ end }}
