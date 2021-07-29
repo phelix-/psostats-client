@@ -4,12 +4,12 @@
         <meta name="viewport" content="width=device-width">
         <title>Combo Calculator - PSOStats</title>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
-        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns" crossorigin="anonymous"></script>
-        <script type="text/javascript" src="static/select/bootstrap-multiselect.js"></script>
-        <link rel="stylesheet" href="static/select/bootstrap-multiselect.css" type="text/css"/>
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns" crossorigin="anonymous"></script>
+        <script type="text/javascript" src="/static/select/bootstrap-multiselect.min.js"></script>
+        <link rel="stylesheet" href="/static/select/bootstrap-multiselect.min.css" type="text/css"/>
         <link href="/static/main2.css" rel="stylesheet" type="text/css">
-        <script src="/static/combo_calc.js"></script>
+        <script type="text/javascript" src="/static/combo_calc.js"></script>
     </head>
     <style>
         .psostats-content {
@@ -87,19 +87,29 @@
         $(document).ready(function() {
             $('#enemy-select').multiselect({
                 enableFiltering: true,
+                includeFilterClearBtn: false,
                 enableCaseInsensitiveFiltering: true,
                 enableClickableOptGroups: true,
-                maxHeight: 400,
+                maxHeight: 600,
                 buttonTextAlignment: 'left',
                 onChange: function(option, checked, select) {
                     updateDamageTable();
-                }
+                },
+                onDropdownShown: function(event) {
+                    $('#enemy-select').parent().find("button.multiselect-clear-filter").click();
+                    $('#enemy-select').parent().find("input[type='text'].multiselect-search").focus();
+                },
             });
             $('#weapon-select').multiselect({
                 enableFiltering: true,
+                includeFilterClearBtn: false,
                 enableCaseInsensitiveFiltering: true,
                 maxHeight: 600,
                 buttonTextAlignment: 'left',
+                onDropdownShown: function(event) {
+                    $('#weapon-select').parent().find("button.multiselect-clear-filter").click();
+                    $('#weapon-select').parent().find("input[type='text'].multiselect-search").focus();
+                },
             });
         });
     </script>
@@ -137,7 +147,7 @@
             </div>
         </div>
         <div class="row psostats-content">
-            <div class="col-12 col-sm-6 mb-1">
+            <div class="col-12 col-sm-6 col-lg-3 mb-1">
                 <select class="form-control" id="class-select" aria-label="Class Select">
                     <optgroup label="Hunter">
                         <option value="HUmar">HUmar</option>
@@ -159,7 +169,7 @@
                     </optgroup>
                 </select>
             </div>
-            <div class="col-12 col-sm-6 mb-1">
+            <div class="col-12 col-sm-6 col-lg-3 mb-1">
                 <div class="input-group">
                     <div class="input-group-prepend">
                         <div class="input-group-text">Frame</div>
@@ -176,7 +186,7 @@
                     </select>
                 </div>
             </div>
-            <div class="col-12 col-sm-6 mb-1">
+            <div class="col-12 col-sm-6 col-lg-3 mb-1">
                 <div class="input-group">
                     <div class="input-group-prepend">
                         <div class="input-group-text">Barrier</div>
@@ -195,7 +205,7 @@
                     </select>
                 </div>
             </div>
-            <div class="col-12 col-sm-6 mb-1">
+            <div class="col-12 col-sm-6 col-lg-3 mb-1">
                 <div class="input-group">
                     <div class="input-group-prepend">
                         <div class="input-group-text">Units</div>
@@ -249,14 +259,14 @@
                 <h3>Weapon</h3>
             </div>
 
-            <div class="col-8 mb-1">
+            <div class="col-8 col-lg-4 col-xl-3 mb-1">
                 <select id="weapon-select" aria-label="Weapon Select">
                     {{ range .Weapons }}
                         <option value="{{.Name}}">{{.Name}}{{if (gt .Grind 0)}} +{{ .Grind }}{{end}}</option>
                     {{ end }}
                 </select>
             </div>
-            <div class="col-4">
+            <div class="col-4 col-lg-3 col-xl-2 mb-1">
                 <select id="special-select" class="form-control special-select">
                     <option value="None">None</option>
                     <option value="Charge">Charge</option>
@@ -268,7 +278,7 @@
                     <option value="Vjaya">Vjaya</option>
                 </select>
             </div>
-            <div class="col-6 col-md-3 mb-1">
+            <div class="col-6 col-sm-3 col-lg-2 mb-1">
                 <div class="input-group">
                     <input type="text" class="form-control" id="sphereInput" value="0">
                     <div class="input-group-append">
@@ -276,7 +286,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-6 col-md-3 mb-1">
+            <div class="col-6 col-sm-3 col-lg-2 mb-1">
                 <div class="input-group">
                     <input type="text" class="form-control" id="hitInput" value="0">
                     <div class="input-group-append">
@@ -284,20 +294,12 @@
                     </div>
                 </div>
             </div>
-            <div class="col-6 col-md-3 mb-1">
+            <div class="col-12 col-sm-6 col-lg-3 mb-1">
                 <div class="input-group">
                     <div class="input-group-prepend">
-                        <div class="input-group-text">Min</div>
+                        <div class="input-group-text">ATP</div>
                     </div>
                     <input type="text" class="form-control" id="minAtpInput" value="0">
-                </div>
-            </div>
-
-            <div class="col-6 col-md-3 mb-1">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">Max</div>
-                    </div>
                     <input type="text" class="form-control" id="maxAtpInput" value="0">
                 </div>
             </div>
@@ -455,57 +457,97 @@
         $('#class-select').change(function() {
             updateAtpInput();
             updateAtaInput();
+            updateDamageTable();
         })
         $('#frame-select').change(function() {
             updateMinAtpInput();
             updateMaxAtpInput();
             updateAtaInput();
+            updateDamageTable();
         });
         $('#barrier-select').change(() => {
             updateMinAtpInput();
             updateMaxAtpInput();
             updateAtaInput();
+            updateDamageTable();
         });
         $('#unit-select').change(() => {
             updateMinAtpInput();
             updateMaxAtpInput();
             updateAtaInput();
+            updateDamageTable();
         });
         $('#weapon-select').change(() => {
             const selectedWeapon = $('#weapon-select').val()
+            const weapon = weapons[selectedWeapon]
             updateMinAtpInput();
             updateMaxAtpInput();
-            if (weapons[selectedWeapon].maxHit === undefined) {
+            if (weapon.maxHit === undefined) {
                 $('#hitInput').val(100)
             } else {
-                $('#hitInput').val(weapons[selectedWeapon].maxHit)
+                $('#hitInput').val(weapon.maxHit)
             }
-            if (weapons[selectedWeapon].maxAttr === undefined) {
+            if (weapon.maxAttr === undefined) {
                 $('#sphereInput').val(100)
             } else {
-                $('#sphereInput').val(weapons[selectedWeapon].maxAttr)
+                $('#sphereInput').val(weapon.maxAttr)
             }
 
-            if (weapons[selectedWeapon].special === undefined) {
+            if (weapon.special === undefined) {
                 $('#special-select').val("Charge")
             } else {
-                $('#special-select').val(weapons[selectedWeapon].special)
+                $('#special-select').val(weapon.special)
             }
-            updateAtaInput();
+            if (!!weapon.combo) {
+                const combo = weapon.combo
+                if (!!combo.attack1Hits) {
+                    $('#hits1').val(combo.attack1Hits)
+                } else {
+                    $('#hits1').val(1)
+                }
+                if (!!combo.attack1) {
+                    $('#attack1').val(combo.attack1)
+                }
+                if (!!combo.attack2Hits) {
+                    $('#hits2').val(combo.attack2Hits)
+                } else {
+                    $('#hits2').val(1)
+                }
+                if (!!combo.attack2) {
+                    $('#attack2').val(combo.attack2)
+                }
+                if (!!combo.attack3Hits) {
+                    $('#hits3').val(combo.attack3Hits)
+                } else {
+                    $('#hits3').val(1)
+                }
+                if (!!combo.attack3) {
+                    $('#attack3').val(combo.attack3)
+                }
+            }
             updateTotalFrames();
+            updateAtaInput();
+            updateDamageTable();
         })
         $('#attack1').change(() => {
             updateTotalFrames();
+            updateDamageTable();
         })
         $('#attack2').change(() => {
             updateTotalFrames();
+            updateDamageTable();
         })
         $('#attack3').change(() => {
             updateTotalFrames();
+            updateDamageTable();
         })
         $('#hitInput').change(() => {
             updateAtaInput();
+            updateDamageTable();
         })
+        $('#hits1').change(updateDamageTable)
+        $('#hits2').change(updateDamageTable)
+        $('#hits3').change(updateDamageTable)
 
         function updateAtpInput() {
             const selectedClass = $('#class-select').val()
@@ -530,7 +572,6 @@
             const selectedBarrier = $('#barrier-select').val();
             const selectedWeapon = $('#weapon-select').val()
             $('#maxAtpInput').val(weapons[selectedWeapon].maxAtp + (2 * weapons[selectedWeapon].grind) + barriers[selectedBarrier].atp)
-
         }
 
         function updateTotalFrames() {

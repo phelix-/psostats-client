@@ -28,7 +28,7 @@ const weapons = {
     "Zanba": {                   animation: "Sword", minAtp: 310, maxAtp: 438, ata: 38, grind: 38},
     "Sealed J-Sword": {          animation: "Sword", minAtp: 420, maxAtp: 525, ata: 35, grind: 0},
     "Laconium Axe": {            animation: "Sword", minAtp: 700, maxAtp: 750, ata: 40, grind: 25},
-    "Dark Flow": {               animation: "Sword", minAtp: 756, maxAtp: 900, ata: 50, grind: 0, special: "Dark Flow", combo: {   "attack1": "H",   "attack1Hits": 5,   "attack2": "NONE",   "attack3": "NONE" } },
+    "Dark Flow": {               animation: "Sword", minAtp: 756, maxAtp: 900, ata: 50, grind: 0, special: "Dark Flow", combo: {   "attack1": "SPECIAL",   "attack1Hits": 5,   "attack2": "NONE",   "attack3": "NONE" } },
     "Tsumikiri J-Sword": {       animation: "Sword", minAtp: 700, maxAtp: 756, ata: 40, grind: 50, special: "TJS"},
     "TypeSW/J-Sword": {          animation: "Sword", minAtp: 100, maxAtp: 150, ata: 40, grind: 125},
     "ES Sword": {                animation: "Sword", minAtp: 200, maxAtp: 200, ata: 35, grind: 250, maxHit: 0, maxAttr: 0},
@@ -48,7 +48,7 @@ const weapons = {
     "ES Blade": {                animation: "Dagger", minAtp: 10,  maxAtp: 10,  ata: 35, grind: 200, combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}},
 
     "Gungnir": {          animation: "Partisan", minAtp: 150, maxAtp: 180,   ata: 32, grind: 10},
-    "Vjaya": {            animation: "Partisan", minAtp: 160, maxAtp: 220,   ata: 36, grind: 15, combo: {"attack1": "VJAYA", "attack2": "VJAYA", "attack3": "VJAYA"}},
+    "Vjaya": {            animation: "Partisan", minAtp: 160, maxAtp: 220,   ata: 36, grind: 15},
     "Tyrell's Parasol": { animation: "Partisan", minAtp: 250, maxAtp: 300,   ata: 40, grind: 0},
     "Madam's Umbrella": { animation: "Partisan", minAtp: 210, maxAtp: 280,   ata: 40, grind: 0},
     "Plantain Huge Fan": {animation: "Partisan", minAtp: 265, maxAtp: 300,   ata: 38, grind: 9},
