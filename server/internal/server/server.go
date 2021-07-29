@@ -152,10 +152,12 @@ func (s *Server) ComboCalcPage(c *fiber.Ctx) error {
 		sortedEnemies[enemy.Location] = enemiesInArea
 	}
 	infoModel := struct{
+		FrameData map[string]weapons.FrameData
 		Classes []weapons.PsoClass
 		Enemies map[string][]enemies.Enemy
 		Weapons []weapons.Weapon
 	}{
+		FrameData: weapons.GetClassFrameData(),
 		Classes: weapons.GetClasses(),
 		Enemies: sortedEnemies,
 		Weapons: weapons.GetWeapons(),
