@@ -44,6 +44,7 @@ type Server struct {
 	playerTemplate       *template.Template
 	gameNotFoundTemplate *template.Template
 	recordsTemplate      *template.Template
+	comboCalcTemplate    *template.Template
 }
 
 func New(dynamo *dynamodb.DynamoDB) *Server {
@@ -85,6 +86,7 @@ func (s *Server) Run() {
 	s.downloadTemplate = ensureParsed("./server/internal/templates/download.gohtml")
 	s.gameNotFoundTemplate = ensureParsed("./server/internal/templates/gameNotFound.gohtml")
 	s.recordsTemplate = ensureParsed("./server/internal/templates/recordsV2.gohtml")
+	s.comboCalcTemplate = ensureParsed("./server/internal/templates/comboCalc.gohtml")
 
 	if certLocation, found := os.LookupEnv("CERT"); found {
 		keyLocation := os.Getenv("KEY")
@@ -140,10 +142,9 @@ func (s *Server) InfoPage(c *fiber.Ctx) error {
 }
 
 func (s *Server) ComboCalcPage(c *fiber.Ctx) error {
-	t := ensureParsed("./server/internal/templates/comboCalc.gohtml")
 
 	sortedEnemies := make(map[string][]enemies.Enemy)
-	for _,enemy := range enemies.GetEnemiesUltMulti() {
+	for _, enemy := range enemies.GetEnemiesUltMulti() {
 		enemiesInArea := sortedEnemies[enemy.Location]
 		if enemiesInArea == nil {
 			enemiesInArea = make([]enemies.Enemy, 0)
@@ -151,7 +152,7 @@ func (s *Server) ComboCalcPage(c *fiber.Ctx) error {
 		enemiesInArea = append(enemiesInArea, enemy)
 		sortedEnemies[enemy.Location] = enemiesInArea
 	}
-	infoModel := struct{
+	infoModel := struct {
 		Classes []weapons.PsoClass
 		Enemies map[string][]enemies.Enemy
 		Weapons []weapons.Weapon
@@ -160,7 +161,7 @@ func (s *Server) ComboCalcPage(c *fiber.Ctx) error {
 		Enemies: sortedEnemies,
 		Weapons: weapons.GetWeapons(),
 	}
-	err := t.ExecuteTemplate(c.Response().BodyWriter(), "combo-calc", infoModel)
+	err := s.comboCalcTemplate.ExecuteTemplate(c.Response().BodyWriter(), "combo-calc", infoModel)
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
 }
