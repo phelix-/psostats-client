@@ -1,0 +1,613 @@
+{{ define "combo-calc" }}
+    <html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width">
+        <title>Combo Calculator - PSOStats</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns" crossorigin="anonymous"></script>
+        <script type="text/javascript" src="/static/select/bootstrap-multiselect.min.js"></script>
+        <link rel="stylesheet" href="/static/select/bootstrap-multiselect.min.css" type="text/css"/>
+        <link href="/static/main2.css" rel="stylesheet" type="text/css">
+        <script type="text/javascript" src="/static/combo_calc.js"></script>
+    </head>
+    <style>
+        .psostats-content {
+            background-color: #444;
+            padding: 8px;
+        }
+        .form-select {
+            color: #ddd;
+            background-color: #333;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e")
+        }
+        .btn-group {
+            width: 100%;
+            background-color: #333;
+            color: #ddd;
+        }
+        .multiselect-container {
+            background-color: #333;
+
+            color: #aaa;
+        }
+        .multiselect-selected-text {
+            color: #ddd;
+        }
+        .dropdown-item.active {
+            background-color: #666 !important;
+
+            color: #aaa;
+        }
+        .dropdown-item:hover {
+            background-color: #484848 !important;
+
+            color: #aaa;
+        }
+        button.multiselect {
+            background: #333 url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") right .75rem center/8px 10px no-repeat
+        }
+
+        .form-check-label {
+
+            color: #ccc;
+        }
+        .form-control {
+            color: #ddd;
+            background-color: #333;
+            border-top-color: #aaa;
+            border-bottom-color: #aaa;
+            border-left-color: #aaa;
+            border-right-color: #aaa;
+        }
+        .form-control:focus {
+            background-color: #444;
+            color: #ddd;
+        }
+        .input-group-text {
+            color: #ddd;
+            background-color: #282828;
+            border-color: #aaa;
+        }
+        .table-dark {
+            background-color: #333;
+            margin-bottom: 0;
+        }
+        .table-dark td, .table-dark th, .table-dark thead th {
+            border-width: 1px;
+            border-color: #5A5A5A;
+        }
+        .custom-select {
+            border-color: #aaa;
+        }
+    </style>
+
+    <script type="text/javascript">
+        'use strict';
+        $(document).ready(function() {
+            $('#enemy-select').multiselect({
+                enableFiltering: true,
+                includeFilterClearBtn: false,
+                enableCaseInsensitiveFiltering: true,
+                enableClickableOptGroups: true,
+                maxHeight: 600,
+                buttonTextAlignment: 'left',
+                onChange: function(option, checked, select) {
+                    updateDamageTable();
+                },
+                onDropdownShown: function(event) {
+                    $('#enemy-select').parent().find("button.multiselect-clear-filter").click();
+                    $('#enemy-select').parent().find("input[type='text'].multiselect-search").focus();
+                },
+            });
+            $('#weapon-select').multiselect({
+                enableFiltering: true,
+                includeFilterClearBtn: false,
+                enableCaseInsensitiveFiltering: true,
+                maxHeight: 600,
+                buttonTextAlignment: 'left',
+                onDropdownShown: function(event) {
+                    $('#weapon-select').parent().find("button.multiselect-clear-filter").click();
+                    $('#weapon-select').parent().find("input[type='text'].multiselect-search").focus();
+                },
+            });
+            updateTotalFrames();
+        });
+    </script>
+    <body>
+
+    <div class="container">
+        <div class="row psostats-nav">
+            <div class="col">
+                <ul class="nav">
+                    <li class="nav-item">
+                        <img src="/static/egotrap.png" height="48" width="48" alt="PSOStats"/>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Recent</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/records">Records</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/info">Info</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/download">Download</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/combo-calculator">Combo Calculator</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <h1>Combo Calculator</h1>
+            </div>
+        </div>
+        <div class="row psostats-content">
+            <div class="col-12 col-sm-6 col-lg-3 mb-1">
+                <select class="form-control" id="class-select" aria-label="Class Select">
+                    <optgroup label="Hunter">
+                        <option value="HUmar">HUmar</option>
+                        <option value="HUnewearl">HUnewearl</option>
+                        <option value="HUcast" selected>HUcast</option>
+                        <option value="HUcaseal">HUcaseal</option>
+                    </optgroup>
+                    <optgroup label="Ranger">
+                        <option value="RAmar">RAmar</option>
+                        <option value="RAmarl">RAmarl</option>
+                        <option value="RAcast">RAcast</option>
+                        <option value="RAcaseal">RAcaseal</option>
+                    </optgroup>
+                    <optgroup label="Force">
+                        <option value="FOmar">FOmar</option>
+                        <option value="FOmarl">FOmarl</option>
+                        <option value="FOnewm">FOnewm</option>
+                        <option value="FOnewearl">FOnewearl</option>
+                    </optgroup>
+                </select>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-3 mb-1">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">Frame</div>
+                    </div>
+
+                    <select id="frame-select" class="form-control" aria-label="Frame Select">
+                        <option value="THIRTEEN" selected>Thirteen</option>
+                        <option value="DPARTS1">D-Parts ver1.01</option>
+                        <option value="CRIMSON_COAT">Crimson Coat</option>
+                        <option value="SAMURAI">Samurai Armor</option>
+                        <option value="SWEETHEART1">Sweetheart (1)</option>
+                        <option value="SWEETHEART2">Sweetheart (2)</option>
+                        <option value="SWEETHEART3">Sweetheart (3)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-3 mb-1">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">Barrier</div>
+                    </div>
+                    <select id="barrier-select" class="form-control" aria-label="Barrier Select">
+                        <option value="None">None</option>
+                        <option value="Red Ring" selected>Red Ring</option>
+                        <option value="Ranger Wall">Ranger Wall</option>
+                        <option value="Kasami Bracer">Kasami Bracer</option>
+                        <option value="Combat Gear">Combat Gear</option>
+                        <option value="Safety Heart">Safety Heart</option>
+                        <option value="S-Parts ver2.01">S-Parts ver2.01</option>
+                        <option value="Black Ring (1)">Black Ring (1)</option>
+                        <option value="Black Ring (2)">Black Ring (2)</option>
+                        <option value="Black Ring (3)">Black Ring (3)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-3 mb-1">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">Units</div>
+                    </div>
+                    <select id="unit-select" class="form-control" aria-label="Unit Select">
+                        <option value="NONE" selected>None</option>
+                        <option value="POSS1">Proof of Sword-Saint</option>
+                        <option value="POSS2">Proof of Sword-Saint x2</option>
+                        <option value="POSS3">Proof of Sword-Saint x3</option>
+                        <option value="POSS4">Proof of Sword-Saint x4</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 mb-1">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">ATP</div>
+                    </div>
+                    <input type="text" class="form-control" id="atpInput" value="1639" >
+                </div>
+            </div>
+            <div class="col-6 col-md-3 mb-1">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">ATA</div>
+                    </div>
+                    <input type="text" class="form-control" id="ataInput" value="191">
+                </div>
+            </div>
+            <div class="col-6 col-md-3 mb-1">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">Shifta</div>
+                    </div>
+                    <input type="text" class="form-control" id="shiftaInput" value="0">
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3 mb-1">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">Zalure</div>
+                    </div>
+                    <input type="text" class="form-control" id="zalureInput" value="0">
+                </div>
+            </div>
+
+        </div>
+        <div class="row psostats-content">
+            <div class="col-12">
+                <h3>Weapon</h3>
+            </div>
+
+            <div class="col-8 col-lg-4 col-xl-3 mb-1">
+                <select id="weapon-select" aria-label="Weapon Select">
+                    {{ range .Weapons }}
+                        <option value="{{.Name}}">{{.Name}}{{if (gt .Grind 0)}} +{{ .Grind }}{{end}}</option>
+                    {{ end }}
+                </select>
+            </div>
+            <div class="col-4 col-lg-3 col-xl-2 mb-1">
+                <select id="special-select" class="form-control special-select">
+                    <option value="None">None</option>
+                    <option value="Charge">Charge</option>
+                    <option value="Berserk">Berserk</option>
+                    <option value="Spirit">Spirit</option>
+                    <option value="Gush">Gush</option>
+                    <option value="Demon's">Demon&#39;s</option>
+                    <option value="Lavis">Lavis</option>
+                    <option value="TJS">TJS</option>
+                    <option value="Dark Flow">Dark Flow</option>
+                    <option value="Vjaya">Vjaya</option>
+                </select>
+            </div>
+            <div class="col-6 col-sm-3 col-lg-2 mb-1">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="sphereInput" value="0">
+                    <div class="input-group-append">
+                        <div class="input-group-text">%</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-sm-3 col-lg-2 mb-1">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="hitInput" value="0">
+                    <div class="input-group-append">
+                        <div class="input-group-text">Hit</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-3 mb-1">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">ATP</div>
+                    </div>
+                    <input type="text" class="form-control" id="minAtpInput" value="0">
+                    <input type="text" class="form-control" id="maxAtpInput" value="0">
+                </div>
+            </div>
+
+        </div>
+
+        <div class="row psostats-content">
+            <div class="col-12">
+                <h3>Combo</h3>
+            </div>
+            <div class="col-12 mb-1">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="ataGlitch">
+                    <label class="form-check-label" for="ataGlitch">Accuracy (SN) Glitch</label>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4 mb-1">
+                <div class="input-group" id="attack1InputGroup">
+                    <select id="attack1" class="form-control">
+                        <option value="NORMAL">Normal</option>
+                        <option value="HEAVY">Heavy</option>
+                        <option value="SPECIAL">Special</option>
+                        <option value="NONE">None</option>
+                    </select>
+                    <select id="hits1" class="form-control">
+                        <option value="1">1 Hit</option>
+                        <option value="2">2 Hits</option>
+                        <option value="3">3 Hits</option>
+                        <option value="4">4 Hits</option>
+                        <option value="5">5 Hits</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-12 col-md-4 mb-1">
+                <div class="input-group" id="attack2InputGroup">
+                    <select id="attack2" class="form-control" id="combo2Attack">
+                        <option value="NORMAL">Normal</option>
+                        <option value="HEAVY">Heavy</option>
+                        <option value="SPECIAL">Special</option>
+                        <option value="NONE">None</option>
+                    </select>
+                    <select id="hits2" class="form-control">
+                        <option value="1">1 Hit</option>
+                        <option value="2">2 Hits</option>
+                        <option value="3">3 Hits</option>
+                        <option value="4">4 Hits</option>
+                        <option value="5">5 Hits</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-12 col-md-4 mb-1">
+                <div class="input-group"  id="attack3InputGroup">
+                    <select id="attack3" class="form-control">
+                        <option value="NORMAL">Normal</option>
+                        <option value="HEAVY">Heavy</option>
+                        <option value="SPECIAL">Special</option>
+                        <option value="NONE">None</option>
+                    </select>
+                    <select id="hits3" class="form-control">
+                        <option value="1">1 Hit</option>
+                        <option value="2">2 Hits</option>
+                        <option value="3">3 Hits</option>
+                        <option value="4">4 Hits</option>
+                        <option value="5">5 Hits</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-12 mb-3" id="total-frames"></div>
+        </div>
+
+        <div class="row psostats-content">
+            <div class="col-12">
+                <h3>Enemies</h3>
+            </div>
+            <div class="col-12 mb-1">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="frozenCheckbox">
+                    <label class="form-check-label" for="frozenCheckbox">Frozen</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="paralyzedCheckbox">
+                    <label class="form-check-label" for="paralyzedCheckbox">Paralyzed</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="maxDamageCheckbox">
+                    <label class="form-check-label" for="maxDamageCheckbox">Max Damage</label>
+                </div>
+
+            </div>
+            <div class="col-12 mb-3">
+                <select id="enemy-select" multiple="multiple">
+                    <optgroup label="Forest">
+                        {{ range (index .Enemies "Forest") }}<option value="{{ .Name }}">{{ .Name }}</option>{{ end }}
+                    </optgroup>
+                    <optgroup label="Caves">
+                        {{ range (index .Enemies "Caves") }}<option value="{{ .Name }}">{{ .Name }}</option>{{ end }}
+                    </optgroup>
+                    <optgroup label="Mines">
+                        {{ range (index .Enemies "Mines") }}<option value="{{ .Name }}">{{ .Name }}</option>{{ end }}
+                    </optgroup>
+                    <optgroup label="Ruins">
+                        {{ range (index .Enemies "Ruins") }}<option value="{{ .Name }}">{{ .Name }}</option>{{ end }}
+                    </optgroup>
+                    <optgroup label="Temple">
+                        {{ range (index .Enemies "Temple") }}<option value="{{ .Name }}">{{ .Name }}</option>{{ end }}
+                    </optgroup>
+                    <optgroup label="Spaceship">
+                        {{ range (index .Enemies "Spaceship") }}<option value="{{ .Name }}">{{ .Name }}</option>{{ end }}
+                    </optgroup>
+                    <optgroup label="CCA">
+                        {{ range (index .Enemies "CCA") }}<option value="{{ .Name }}">{{ .Name }}</option>{{ end }}
+                    </optgroup>
+                    <optgroup label="Seabed">
+                        {{ range (index .Enemies "Seabed") }}<option value="{{ .Name }}">{{ .Name }}</option>{{ end }}
+                    </optgroup>
+                    <optgroup label="Tower">
+                        {{ range (index .Enemies "Tower") }}<option value="{{ .Name }}">{{ .Name }}</option>{{ end }}
+                    </optgroup>
+                    <optgroup label="Crater">
+                        {{ range (index .Enemies "Crater") }}<option value="{{ .Name }}">{{ .Name }}</option>{{ end }}
+                    </optgroup>
+                    <optgroup label="Desert">
+                        {{ range (index .Enemies "Desert") }}<option value="{{ .Name }}">{{ .Name }}</option>{{ end }}
+                    </optgroup>
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <table class="table table-dark table-bordered table-responsive-md" id="combo-calc-table">
+                <thead>
+                <tr>
+                    <th scope="col" colspan="2"><div style="width: 175px">Monster</div></th>
+                    <th scope="col" >Damage</th>
+                    <th scope="col" >Accuracy</th>
+                    <th scope="col" ><div style="width: 88px; ">Attack 1</div></th>
+                    <th scope="col" ><div style="width: 88px; ">Attack 2</div></th>
+                    <th scope="col" ><div style="width: 88px; ">Attack 3</div></th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        const classes = {
+        {{ range .Classes }}{{ .Name }}:{atp:{{ .Atp}},ata:{{.Ata}}},{{ end }}
+        }
+        const enemies = {
+        {{ range $location, $enemy := .Enemies }}{{ range $enemy }}"{{.Name}}": {name: "{{.Name}}", type: "{{.Type}}", hp: {{.Hp}}, atp: {{.Atp}}, dfp: {{.Dfp}}, evp: {{.Evp}}, location: "{{.Location}}", ccaMiniboss: {{.CcaMiniboss}},},{{ end }}{{ end }}
+        }
+        $('#class-select').change(function() {
+            updateAtpInput();
+            updateAtaInput();
+            updateDamageTable();
+            updateTotalFrames();
+        })
+        $('#frame-select').change(function() {
+            updateMinAtpInput();
+            updateMaxAtpInput();
+            updateAtaInput();
+            updateDamageTable();
+        });
+        $('#barrier-select').change(() => {
+            updateMinAtpInput();
+            updateMaxAtpInput();
+            updateAtaInput();
+            updateDamageTable();
+        });
+        $('#unit-select').change(() => {
+            updateMinAtpInput();
+            updateMaxAtpInput();
+            updateAtaInput();
+            updateDamageTable();
+        });
+        $('#weapon-select').change(() => {
+            const selectedWeapon = $('#weapon-select').val()
+            const weapon = weapons[selectedWeapon]
+            updateMinAtpInput();
+            updateMaxAtpInput();
+            if (weapon.maxHit === undefined) {
+                $('#hitInput').val(100)
+            } else {
+                $('#hitInput').val(weapon.maxHit)
+            }
+            if (weapon.maxAttr === undefined) {
+                $('#sphereInput').val(100)
+            } else {
+                $('#sphereInput').val(weapon.maxAttr)
+            }
+
+            if (weapon.special === undefined) {
+                $('#special-select').val("Charge")
+            } else {
+                $('#special-select').val(weapon.special)
+            }
+            if (!!weapon.combo) {
+                const combo = weapon.combo
+                if (!!combo.attack1Hits) {
+                    $('#hits1').val(combo.attack1Hits)
+                } else {
+                    $('#hits1').val(1)
+                }
+                if (!!combo.attack1) {
+                    $('#attack1').val(combo.attack1)
+                }
+                if (!!combo.attack2Hits) {
+                    $('#hits2').val(combo.attack2Hits)
+                } else {
+                    $('#hits2').val(1)
+                }
+                if (!!combo.attack2) {
+                    $('#attack2').val(combo.attack2)
+                }
+                if (!!combo.attack3Hits) {
+                    $('#hits3').val(combo.attack3Hits)
+                } else {
+                    $('#hits3').val(1)
+                }
+                if (!!combo.attack3) {
+                    $('#attack3').val(combo.attack3)
+                }
+            }
+            updateTotalFrames();
+            updateAtaInput();
+            updateDamageTable();
+        })
+        $('#attack1').change(() => {
+            updateTotalFrames();
+            updateDamageTable();
+        })
+        $('#attack2').change(() => {
+            updateTotalFrames();
+            updateDamageTable();
+        })
+        $('#attack3').change(() => {
+            updateTotalFrames();
+            updateDamageTable();
+        })
+        $('#hitInput').change(() => {
+            updateAtaInput();
+            updateDamageTable();
+        })
+        $('#special-select').change(updateDamageTable);
+        $('#sphereInput').change(updateDamageTable);
+        $('#minAtpInput').change(updateDamageTable);
+        $('#maxAtpInput').change(updateDamageTable);
+        $('#hits1').change(updateDamageTable)
+        $('#hits2').change(updateDamageTable)
+        $('#hits3').change(updateDamageTable)
+        $('#shiftaInput').change(updateDamageTable);
+        $('#zalureInput').change(updateDamageTable);
+        $('#ataGlitch').change(updateDamageTable);
+        $('#frozenCheckbox').change(updateDamageTable);
+        $('#paralyzedCheckbox').change(updateDamageTable);
+        $('#maxDamageCheckbox').change(updateDamageTable);
+
+        function updateAtpInput() {
+            const selectedClass = $('#class-select').val()
+            $('#atpInput').val(classes[selectedClass].atp)
+            $('#ataInput').val(classes[selectedClass].ata)
+        }
+        function updateAtaInput() {
+            const selectedClass = classes[$('#class-select').val()];
+            const selectedFrame = $('#frame-select').val();
+            const selectedBarrier = $('#barrier-select').val();
+            const selectedWeapon = $('#weapon-select').val()
+            const weapon = weapons[selectedWeapon]
+            const bonusAta = getSetEffectAta(weapon, selectedFrame, selectedBarrier)
+
+            $('#ataInput').val(
+                selectedClass.ata +
+                weapon.ata +
+                frames[selectedFrame].ata +
+                barriers[selectedBarrier].ata +
+                bonusAta +
+                Number($('#hitInput').val()))
+        }
+
+        function updateMinAtpInput() {
+            const selectedFrame = $('#frame-select').val();
+            const selectedBarrier = $('#barrier-select').val();
+            const selectedWeapon = $('#weapon-select').val()
+            const weapon = weapons[selectedWeapon]
+            const bonusAtp = getSetEffectAtp(weapon, selectedFrame, selectedBarrier)
+            $('#minAtpInput').val(
+                weapon.minAtp +
+                (2 * weapon.grind) +
+                frames[selectedFrame].atp +
+                barriers[selectedBarrier].atp +
+                bonusAtp
+            );
+        }
+
+        function updateMaxAtpInput() {
+            const selectedFrame = $('#frame-select').val();
+            const selectedBarrier = $('#barrier-select').val();
+            const selectedWeapon = $('#weapon-select').val()
+            const weapon = weapons[selectedWeapon]
+            const bonusAtp = getSetEffectAtp(weapon, selectedFrame, selectedBarrier)
+            $('#maxAtpInput').val(weapon.maxAtp + (2 * weapon.grind) + frames[selectedFrame].atp + barriers[selectedBarrier].atp + bonusAtp)
+        }
+
+
+    </script>
+    </body>
+
+    </html>
+{{ end }}

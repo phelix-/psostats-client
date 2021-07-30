@@ -104,6 +104,7 @@ type Event struct {
 
 type Game struct {
 	Id               string
+	IdInt            int
 	Player           string
 	PlayerNames      []string
 	PlayerClasses    []string

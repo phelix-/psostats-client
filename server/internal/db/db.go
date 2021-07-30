@@ -21,7 +21,7 @@ import (
 const (
 	GamesByIdTable           = "games_by_id"
 	QuestRecordsTable        = "quest_records"
-	RecentGamesByPlayerTable = "recent_games_by_player"
+	RecentGamesByPlayerTable = "recent_games_by_player_2"
 	RecentGamesByMonth       = "recent_games_by_month"
 	GameCountTable           = "games_counter"
 	gameCountPrimaryKey      = "game_count"
@@ -338,8 +338,42 @@ func GetPlayerRecentGames(player string, dynamoClient *dynamodb.DynamoDB, limit 
 		ExpressionAttributeNames:  requestExpression.Names(),
 		ExpressionAttributeValues: requestExpression.Values(),
 		KeyConditionExpression:    requestExpression.KeyCondition(),
+		ScanIndexForward:          aws.Bool(false),
 		Limit:                     aws.Int64(limit),
 		TableName:                 aws.String(RecentGamesByPlayerTable),
+	})
+	if err != nil {
+		return nil, err
+	}
+	games := make([]model.Game, 0)
+	err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &games)
+	if len(result.Items) < int(limit) {
+		oldGames, err := GetPlayerRecentGamesOld(player, dynamoClient)
+		if err != nil {
+			return nil, err
+		}
+		games = append(games, oldGames...)
+	}
+	sort.Slice(games, func(i, j int) bool { return games[i].Timestamp.After(games[j].Timestamp) })
+	if len(games) > int(limit) {
+		games = games[0:limit]
+	}
+	return games, err
+}
+
+func GetPlayerRecentGamesOld(player string, dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
+	requestExpression, err := expression.NewBuilder().
+		WithKeyCondition(expression.KeyEqual(expression.Key("Player"), expression.Value(player))).
+		Build()
+	if err != nil {
+		return nil, err
+	}
+	result, err := dynamoClient.Query(&dynamodb.QueryInput{
+		ExpressionAttributeNames:  requestExpression.Names(),
+		ExpressionAttributeValues: requestExpression.Values(),
+		KeyConditionExpression:    requestExpression.KeyCondition(),
+		ScanIndexForward:          aws.Bool(false),
+		TableName:                 aws.String("recent_games_by_player"),
 	})
 	if err != nil {
 		return nil, err
@@ -549,8 +583,10 @@ func summaryFromQuestRun(questRun model.QuestRun) model.Game {
 		playerGcs[i] = basePlayerInfo.GuildCard
 	}
 	playerIndex, _ := getPlayerIndex(questRun)
+	idInt, _ := strconv.Atoi(questRun.Id);
 	return model.Game{
 		Id:               questRun.Id,
+		IdInt:            idInt,
 		Player:           questRun.UserName,
 		PlayerNames:      playerNames,
 		PlayerClasses:    playerClasses,

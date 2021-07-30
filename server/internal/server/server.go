@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"github.com/phelix-/psostats/v2/pkg/common"
 	"github.com/phelix-/psostats/v2/server/internal/db"
+	"github.com/phelix-/psostats/v2/server/internal/enemies"
 	"github.com/phelix-/psostats/v2/server/internal/userdb"
+	"github.com/phelix-/psostats/v2/server/internal/weapons"
 	"io"
 	"log"
 	"net/http"
@@ -42,6 +44,7 @@ type Server struct {
 	playerTemplate       *template.Template
 	gameNotFoundTemplate *template.Template
 	recordsTemplate      *template.Template
+	comboCalcTemplate    *template.Template
 }
 
 func New(dynamo *dynamodb.DynamoDB) *Server {
@@ -70,6 +73,7 @@ func (s *Server) Run() {
 	s.app.Get("/info", s.InfoPage)
 	s.app.Get("/download", s.DownloadPage)
 	s.app.Get("/records", s.RecordsV2Page)
+	s.app.Get("/combo-calculator", s.ComboCalcPage)
 	s.app.Get("/players/:player", s.PlayerV2Page)
 	// API
 	s.app.Post("/api/game", s.PostGame)
@@ -82,6 +86,7 @@ func (s *Server) Run() {
 	s.downloadTemplate = ensureParsed("./server/internal/templates/download.gohtml")
 	s.gameNotFoundTemplate = ensureParsed("./server/internal/templates/gameNotFound.gohtml")
 	s.recordsTemplate = ensureParsed("./server/internal/templates/recordsV2.gohtml")
+	s.comboCalcTemplate = ensureParsed("./server/internal/templates/comboCalc.gohtml")
 
 	if certLocation, found := os.LookupEnv("CERT"); found {
 		keyLocation := os.Getenv("KEY")
@@ -132,6 +137,31 @@ func (s *Server) Index(c *fiber.Ctx) error {
 func (s *Server) InfoPage(c *fiber.Ctx) error {
 	infoModel := struct{}{}
 	err := s.infoTemplate.ExecuteTemplate(c.Response().BodyWriter(), "info", infoModel)
+	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
+	return err
+}
+
+func (s *Server) ComboCalcPage(c *fiber.Ctx) error {
+
+	sortedEnemies := make(map[string][]enemies.Enemy)
+	for _, enemy := range enemies.GetEnemiesUltMulti() {
+		enemiesInArea := sortedEnemies[enemy.Location]
+		if enemiesInArea == nil {
+			enemiesInArea = make([]enemies.Enemy, 0)
+		}
+		enemiesInArea = append(enemiesInArea, enemy)
+		sortedEnemies[enemy.Location] = enemiesInArea
+	}
+	infoModel := struct {
+		Classes []weapons.PsoClass
+		Enemies map[string][]enemies.Enemy
+		Weapons []weapons.Weapon
+	}{
+		Classes: weapons.GetClasses(),
+		Enemies: sortedEnemies,
+		Weapons: weapons.GetWeapons(),
+	}
+	err := s.comboCalcTemplate.ExecuteTemplate(c.Response().BodyWriter(), "combo-calc", infoModel)
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
 }
