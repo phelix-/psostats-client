@@ -111,6 +111,7 @@
                     $('#weapon-select').parent().find("input[type='text'].multiselect-search").focus();
                 },
             });
+            updateTotalFrames();
         });
     </script>
     <body>
@@ -143,7 +144,6 @@
         <div class="row">
             <div class="col">
                 <h1>Combo Calculator</h1>
-                <span>This is still heavily WIP if you somehow wound up here</span>
             </div>
         </div>
         <div class="row psostats-content">
@@ -179,7 +179,7 @@
                         <option value="THIRTEEN" selected>Thirteen</option>
                         <option value="DPARTS1">D-Parts ver1.01</option>
                         <option value="CRIMSON_COAT">Crimson Coat</option>
-                        <option value="Samurai Armor">Samurai Armor</option>
+                        <option value="SAMURAI">Samurai Armor</option>
                         <option value="SWEETHEART1">Sweetheart (1)</option>
                         <option value="SWEETHEART2">Sweetheart (2)</option>
                         <option value="SWEETHEART3">Sweetheart (3)</option>
@@ -274,6 +274,8 @@
                     <option value="Spirit">Spirit</option>
                     <option value="Gush">Gush</option>
                     <option value="Demon's">Demon&#39;s</option>
+                    <option value="Lavis">Lavis</option>
+                    <option value="TJS">TJS</option>
                     <option value="Dark Flow">Dark Flow</option>
                     <option value="Vjaya">Vjaya</option>
                 </select>
@@ -451,13 +453,11 @@
         const enemies = {
         {{ range $location, $enemy := .Enemies }}{{ range $enemy }}"{{.Name}}": {name: "{{.Name}}", type: "{{.Type}}", hp: {{.Hp}}, atp: {{.Atp}}, dfp: {{.Dfp}}, evp: {{.Evp}}, location: "{{.Location}}", ccaMiniboss: {{.CcaMiniboss}},},{{ end }}{{ end }}
         }
-        const frameData = {
-        {{ range $weapon, $frameData := .FrameData }}"{{ $weapon }}": {n1: {{$frameData.N1}}, n1c: {{$frameData.N1c}}, n2: {{$frameData.N2}}, n2c: {{$frameData.N2c}}, n3: {{$frameData.N3}}, h1: {{$frameData.H1}}, h1c: {{$frameData.H1c}}, h2: {{$frameData.H2}}, h2c: {{$frameData.H2c}}, h3: {{$frameData.H3}},},{{ end }}
-        }
         $('#class-select').change(function() {
             updateAtpInput();
             updateAtaInput();
             updateDamageTable();
+            updateTotalFrames();
         })
         $('#frame-select').change(function() {
             updateMinAtpInput();
@@ -545,9 +545,19 @@
             updateAtaInput();
             updateDamageTable();
         })
+        $('#special-select').change(updateDamageTable);
+        $('#sphereInput').change(updateDamageTable);
+        $('#minAtpInput').change(updateDamageTable);
+        $('#maxAtpInput').change(updateDamageTable);
         $('#hits1').change(updateDamageTable)
         $('#hits2').change(updateDamageTable)
         $('#hits3').change(updateDamageTable)
+        $('#shiftaInput').change(updateDamageTable);
+        $('#zalureInput').change(updateDamageTable);
+        $('#ataGlitch').change(updateDamageTable);
+        $('#frozenCheckbox').change(updateDamageTable);
+        $('#paralyzedCheckbox').change(updateDamageTable);
+        $('#maxDamageCheckbox').change(updateDamageTable);
 
         function updateAtpInput() {
             const selectedClass = $('#class-select').val()
@@ -555,67 +565,44 @@
             $('#ataInput').val(classes[selectedClass].ata)
         }
         function updateAtaInput() {
-            const selectedClass = $('#class-select').val();
-            const selectedWeapon = $('#weapon-select').val();
-            $('#ataInput').val(classes[selectedClass].ata + weapons[selectedWeapon].ata + Number($('#hitInput').val()))
+            const selectedClass = classes[$('#class-select').val()];
+            const selectedFrame = $('#frame-select').val();
+            const selectedBarrier = $('#barrier-select').val();
+            const selectedWeapon = $('#weapon-select').val()
+            const weapon = weapons[selectedWeapon]
+            const bonusAta = getSetEffectAta(weapon, selectedFrame, selectedBarrier)
+
+            $('#ataInput').val(
+                selectedClass.ata +
+                weapon.ata +
+                frames[selectedFrame].ata +
+                barriers[selectedBarrier].ata +
+                bonusAta +
+                Number($('#hitInput').val()))
         }
 
         function updateMinAtpInput() {
+            const selectedFrame = $('#frame-select').val();
             const selectedBarrier = $('#barrier-select').val();
             const selectedWeapon = $('#weapon-select').val()
-            const weaponMinAtp = weapons[selectedWeapon].minAtp + (2 * weapons[selectedWeapon].grind) + barriers[selectedBarrier].atp
-            $('#minAtpInput').val(weaponMinAtp)
-
+            const weapon = weapons[selectedWeapon]
+            const bonusAtp = getSetEffectAtp(weapon, selectedFrame, selectedBarrier)
+            $('#minAtpInput').val(
+                weapon.minAtp +
+                (2 * weapon.grind) +
+                frames[selectedFrame].atp +
+                barriers[selectedBarrier].atp +
+                bonusAtp
+            );
         }
 
         function updateMaxAtpInput() {
+            const selectedFrame = $('#frame-select').val();
             const selectedBarrier = $('#barrier-select').val();
             const selectedWeapon = $('#weapon-select').val()
-            $('#maxAtpInput').val(weapons[selectedWeapon].maxAtp + (2 * weapons[selectedWeapon].grind) + barriers[selectedBarrier].atp)
-        }
-
-        function updateTotalFrames() {
-            const selectedWeapon = $('#weapon-select').val();
-            const animation = weapons[selectedWeapon].animation;
-            const attack1 = $('#attack1').val();
-            const attack2 = $('#attack2').val();
-            const attack3 = $('#attack3').val();
-            var totalFrames = 0
-            if (attack1 === "NORMAL") {
-                if (attack2 === "NONE" && attack3 === "NONE") {
-                    totalFrames = frameData[animation].n1;
-                } else {
-                    totalFrames = frameData[animation].n1c;
-                }
-            } else if ((attack1 === "HEAVY" || attack1 === "SPECIAL")) {
-                if (attack2 === "NONE" && attack3 === "NONE") {
-                    totalFrames = frameData[animation].h1;
-                } else {
-                    totalFrames = frameData[animation].h1c;
-                }
-            }
-            if (attack2 === "NORMAL") {
-                if (attack3 === "NONE") {
-                    totalFrames += frameData[animation].n2;
-                } else {
-                    totalFrames += frameData[animation].n2c;
-                }
-            } else if ((attack2 === "HEAVY" || attack2 === "SPECIAL")) {
-                if (attack3 === "NONE") {
-                    totalFrames += frameData[animation].h2;
-                } else {
-                    totalFrames += frameData[animation].h2c;
-                }
-            }
-
-            if (attack3 === "NORMAL") {
-                totalFrames += frameData[animation].n3;
-            } else if ((attack3 === "HEAVY" || attack3 === "SPECIAL")) {
-                totalFrames += frameData[animation].h3;
-            }
-
-
-            $('#total-frames').text("Total Frames: " + totalFrames)
+            const weapon = weapons[selectedWeapon]
+            const bonusAtp = getSetEffectAtp(weapon, selectedFrame, selectedBarrier)
+            $('#maxAtpInput').val(weapon.maxAtp + (2 * weapon.grind) + frames[selectedFrame].atp + barriers[selectedBarrier].atp + bonusAtp)
         }
 
 

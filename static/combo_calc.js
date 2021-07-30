@@ -1,146 +1,771 @@
 'use strict';
 
 const weapons = {
-    "Unarmed": {                 minAtp: 0,   maxAtp: 0,   ata: 0,  grind: 0, maxHit: 0, maxAttr: 0, animation: "Fist", special: "None"},
+    "Unarmed": {
+        name: "Unarmed",
+        minAtp: 0,
+        maxAtp: 0,
+        ata: 0,
+        grind: 0,
+        maxHit: 0,
+        maxAttr: 0,
+        animation: "Fist",
+        special: "None"
+    },
 
-    "Saber": {                   animation: "Saber", minAtp: 40,  maxAtp: 55,  ata: 30, grind: 35},
-    "Brand": {                   animation: "Saber", minAtp: 80,  maxAtp: 100, ata: 33, grind: 32},
-    "Buster": {                  animation: "Saber", minAtp: 120, maxAtp: 160, ata: 35, grind: 30},
-    "Pallasch": {                animation: "Saber", minAtp: 170, maxAtp: 220, ata: 38, grind: 26},
-    "Gladius": {                 animation: "Saber", minAtp: 240, maxAtp: 280, ata: 40, grind: 18},
-    "Battledore": {              animation: "Saber", minAtp: 1,   maxAtp: 1,   ata: 1,  grind: 0},
-    "Red Saber": {               animation: "Saber", minAtp: 450, maxAtp: 489, ata: 51, grind: 78},
-    "Lame d'Argent": {           animation: "Saber", minAtp: 430, maxAtp: 465, ata: 40, grind: 35},
-    "Lavis Cannon": {            animation: "Saber", minAtp: 730, maxAtp: 750, ata: 54, grind: 0},
-    "Excalibur": {               animation: "Saber", minAtp: 900, maxAtp: 950, ata: 60, grind: 0},
-    "Galatine": {                animation: "Saber", minAtp: 990, maxAtp: 1260,ata: 77, grind: 9},
-    "ES Saber": {                animation: "Saber", minAtp: 150, maxAtp: 150, ata: 50, grind: 250},
-    "ES Axe": {                  animation: "Saber", minAtp: 200, maxAtp: 200, ata: 50, grind: 250, maxHit: 0, maxAttr: 0},
+    "Saber": {name: "Saber", animation: "Saber", minAtp: 40, maxAtp: 55, ata: 30, grind: 35},
+    "Brand": {name: "Brand", animation: "Saber", minAtp: 80, maxAtp: 100, ata: 33, grind: 32},
+    "Buster": {name: "Buster", animation: "Saber", minAtp: 120, maxAtp: 160, ata: 35, grind: 30},
+    "Pallasch": {name: "Pallasch", animation: "Saber", minAtp: 170, maxAtp: 220, ata: 38, grind: 26},
+    "Gladius": {name: "Gladius", animation: "Saber", minAtp: 240, maxAtp: 280, ata: 40, grind: 18},
+    "Battledore": {name: "Battledore", animation: "Saber", minAtp: 1, maxAtp: 1, ata: 1, grind: 0},
+    "Red Saber": {name: "Red Saber", animation: "Saber", minAtp: 450, maxAtp: 489, ata: 51, grind: 78},
+    "Lavis Cannon": {
+        name: "Lavis Cannon",
+        animation: "Saber",
+        minAtp: 730,
+        maxAtp: 750,
+        ata: 54,
+        grind: 0,
+        special: "Lavis"
+    },
+    "Excalibur": {
+        name: "Excalibur",
+        animation: "Saber",
+        minAtp: 900,
+        maxAtp: 950,
+        ata: 60,
+        grind: 0,
+        special: "Berserk"
+    },
+    "Galatine": {name: "Galatine", animation: "Saber", minAtp: 990, maxAtp: 1260, ata: 77, grind: 9, special: "Spirit"},
+    "ES Saber": {
+        name: "ES Saber", animation: "Saber", minAtp: 150, maxAtp: 150, ata: 50, grind: 250, maxHit: 0, maxAttr: 0,
+    },
+    "ES Axe": {
+        name: "ES Axe",
+        animation: "Saber",
+        minAtp: 200,
+        maxAtp: 200,
+        ata: 50,
+        grind: 250,
+        maxHit: 0,
+        maxAttr: 0
+    },
 
-    "Sword": {                   animation: "Sword", minAtp: 25,  maxAtp: 60,  ata: 15, grind: 46},
-    "Gigush": {                  animation: "Sword", minAtp: 55,  maxAtp: 100, ata: 18, grind: 32},
-    "Breaker": {                 animation: "Sword", minAtp: 100, maxAtp: 150, ata: 20, grind: 18},
-    "Claymore": {                animation: "Sword", minAtp: 150, maxAtp: 200, ata: 23, grind: 16},
-    "Calibur": {                 animation: "Sword", minAtp: 210, maxAtp: 255, ata: 25, grind: 10},
-    "Flowen's Sword (3084)": {   animation: "Sword", minAtp: 300, maxAtp: 320, ata: 34, grind: 85},
-    "Red Sword": {               animation: "Sword", minAtp: 400, maxAtp: 611, ata: 37, grind: 52},
-    "Chain Sawd": {              animation: "Sword", minAtp: 500, maxAtp: 525, ata: 36, grind: 15},
-    "Zanba": {                   animation: "Sword", minAtp: 310, maxAtp: 438, ata: 38, grind: 38},
-    "Sealed J-Sword": {          animation: "Sword", minAtp: 420, maxAtp: 525, ata: 35, grind: 0},
-    "Laconium Axe": {            animation: "Sword", minAtp: 700, maxAtp: 750, ata: 40, grind: 25},
-    "Dark Flow": {               animation: "Sword", minAtp: 756, maxAtp: 900, ata: 50, grind: 0, special: "Dark Flow", combo: {   "attack1": "SPECIAL",   "attack1Hits": 5,   "attack2": "NONE",   "attack3": "NONE" } },
-    "Tsumikiri J-Sword": {       animation: "Sword", minAtp: 700, maxAtp: 756, ata: 40, grind: 50, special: "TJS"},
-    "TypeSW/J-Sword": {          animation: "Sword", minAtp: 100, maxAtp: 150, ata: 40, grind: 125},
-    "ES Sword": {                animation: "Sword", minAtp: 200, maxAtp: 200, ata: 35, grind: 250, maxHit: 0, maxAttr: 0},
+    "Sword": {name: "Sword", animation: "Sword", minAtp: 25, maxAtp: 60, ata: 15, grind: 46},
+    "Gigush": {name: "Gigush", animation: "Sword", minAtp: 55, maxAtp: 100, ata: 18, grind: 32},
+    "Breaker": {name: "Breaker", animation: "Sword", minAtp: 100, maxAtp: 150, ata: 20, grind: 18},
+    "Claymore": {name: "Claymore", animation: "Sword", minAtp: 150, maxAtp: 200, ata: 23, grind: 16},
+    "Calibur": {name: "Calibur", animation: "Sword", minAtp: 210, maxAtp: 255, ata: 25, grind: 10},
+    "Flowen's Sword (3084)": {
+        name: "Flowen's Sword (3084)",
+        animation: "Sword",
+        minAtp: 300,
+        maxAtp: 320,
+        ata: 34,
+        grind: 85, special: "Spirit"
+    },
+    "Red Sword": {
+        name: "Red Sword",
+        animation: "Sword",
+        minAtp: 400,
+        maxAtp: 611,
+        ata: 37,
+        grind: 52,
+        special: "Arrest"
+    },
+    "Chain Sawd": {
+        name: "Chain Sawd",
+        animation: "Sword",
+        minAtp: 500,
+        maxAtp: 525,
+        ata: 36,
+        grind: 15,
+        special: "Gush"
+    },
+    "Zanba": {name: "Zanba", animation: "Sword", minAtp: 310, maxAtp: 438, ata: 38, grind: 38, special: "Berserk"},
+    "Sealed J-Sword": {
+        name: "Sealed J-Sword",
+        animation: "Sword",
+        minAtp: 420,
+        maxAtp: 525,
+        ata: 35,
+        grind: 0,
+        special: "Hell"
+    },
+    "Laconium Axe": {name: "Laconium Axe", animation: "Sword", minAtp: 700, maxAtp: 750, ata: 40, grind: 25},
+    "Dark Flow": {
+        name: "Dark Flow",
+        animation: "Sword",
+        minAtp: 756,
+        maxAtp: 900,
+        ata: 50,
+        grind: 0,
+        special: "Dark Flow",
+        combo: {"attack1": "SPECIAL", "attack1Hits": 5, "attack2": "NONE", "attack3": "NONE"}
+    },
+    "Tsumikiri J-Sword": {
+        name: "Tsumikiri J-Sword",
+        animation: "Sword",
+        minAtp: 700,
+        maxAtp: 756,
+        ata: 40,
+        grind: 50,
+        special: "TJS"
+    },
+    "TypeSW/J-Sword": {
+        name: "TypeSW/J-Sword",
+        animation: "Sword",
+        minAtp: 100,
+        maxAtp: 150,
+        ata: 40,
+        grind: 125,
+        special: "Spirit"
+    },
+    "ES Sword": {
+        name: "ES Sword",
+        animation: "Sword",
+        minAtp: 200,
+        maxAtp: 200,
+        ata: 35,
+        grind: 250,
+        maxHit: 0,
+        maxAttr: 0
+    },
 
-    "Dagger": {                  animation: "Dagger", minAtp: 25,  maxAtp: 40,  ata: 20, grind: 65, combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}},
-    "Knife": {                   animation: "Dagger", minAtp: 50,  maxAtp: 70,  ata: 22, grind: 50, combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}},
-    "Blade": {                   animation: "Dagger", minAtp: 80,  maxAtp: 100, ata: 24, grind: 35, combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}},
-    "Edge": {                    animation: "Dagger", minAtp: 105, maxAtp: 130, ata: 26, grind: 25, combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}},
-    "Ripper": {                  animation: "Dagger", minAtp: 125, maxAtp: 160, ata: 28, grind: 15, combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}},
-    "S-Beat's Blade": {          animation: "Dagger", minAtp: 210, maxAtp: 220, ata: 35, grind: 15, combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}},
-    "P-Arms' Blade": {           animation: "Dagger", minAtp: 250, maxAtp: 270, ata: 34, grind: 25, combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}},
-    "Red Dagger": {              animation: "Dagger", minAtp: 245, maxAtp: 280, ata: 35, grind: 65, combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}},
-    "S-Red's Blade": {           animation: "Dagger", minAtp: 340, maxAtp: 350, ata: 39, grind: 15, combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}},
-    "Two Kamui": {               animation: "Dagger", minAtp: 600, maxAtp: 650, ata: 50, grind: 0, combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}},
-    "Lavis Blade": {             animation: "Dagger", minAtp: 380, maxAtp: 450, ata: 40, grind: 0, combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}},
-    "Daylight Scar": {           animation: "Dagger", minAtp: 500, maxAtp: 550, ata: 48, grind: 25, combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}},
-    "ES Blade": {                animation: "Dagger", minAtp: 10,  maxAtp: 10,  ata: 35, grind: 200, combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}},
+    "Dagger": {
+        name: "Dagger",
+        animation: "Dagger",
+        minAtp: 25,
+        maxAtp: 40,
+        ata: 20,
+        grind: 65,
+        combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}
+    },
+    "Knife": {
+        name: "Knife",
+        animation: "Dagger",
+        minAtp: 50,
+        maxAtp: 70,
+        ata: 22,
+        grind: 50,
+        combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}
+    },
+    "Blade": {
+        name: "Blade",
+        animation: "Dagger",
+        minAtp: 80,
+        maxAtp: 100,
+        ata: 24,
+        grind: 35,
+        combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}
+    },
+    "Edge": {
+        name: "Edge",
+        animation: "Dagger",
+        minAtp: 105,
+        maxAtp: 130,
+        ata: 26,
+        grind: 25,
+        combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}
+    },
+    "Ripper": {
+        name: "Ripper",
+        animation: "Dagger",
+        minAtp: 125,
+        maxAtp: 160,
+        ata: 28,
+        grind: 15,
+        combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}
+    },
+    "S-Beat's Blade": {
+        name: "S-Beat's Blade",
+        animation: "Dagger",
+        minAtp: 210,
+        maxAtp: 220,
+        ata: 35,
+        grind: 15,
+        maxHit: 50,
+        combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}, special: "None"
+    },
+    "P-Arms' Blade": {
+        name: "P-Arms' Blade",
+        animation: "Dagger",
+        minAtp: 250,
+        maxAtp: 270,
+        ata: 34,
+        grind: 25,
+        maxHit: 50,
+        combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}
+    },
+    "Red Dagger": {
+        name: "Red Dagger",
+        animation: "Dagger",
+        minAtp: 245,
+        maxAtp: 280,
+        ata: 35,
+        grind: 65,
+        combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}
+    },
+    "S-Red's Blade": {
+        name: "S-Red's Blade",
+        animation: "Dagger",
+        minAtp: 340,
+        maxAtp: 350,
+        ata: 39,
+        grind: 15,
+        maxHit: 50,
+        combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}
+    },
+    "Two Kamui": {
+        name: "Two Kamui",
+        animation: "Dagger",
+        minAtp: 600,
+        maxAtp: 650,
+        ata: 50,
+        grind: 0,
+        maxHit: 0,
+        combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}, special: "None"
+    },
+    "Lavis Blade": {
+        name: "Lavis Blade",
+        animation: "Dagger",
+        minAtp: 380,
+        maxAtp: 450,
+        ata: 40,
+        grind: 0,
+        combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}, special: "Lavis"
+    },
+    "Daylight Scar": {
+        name: "Daylight Scar",
+        animation: "Dagger",
+        minAtp: 500,
+        maxAtp: 550,
+        ata: 48,
+        grind: 25,
+        combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}, special: "Berserk"
+    },
+    "ES Blade": {
+        name: "ES Blade",
+        animation: "Dagger",
+        minAtp: 10,
+        maxAtp: 10,
+        ata: 35,
+        grind: 200,
+        maxHit: 0, maxAttr: 0,
+        combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}
+    },
 
-    "Gungnir": {          animation: "Partisan", minAtp: 150, maxAtp: 180,   ata: 32, grind: 10},
-    "Vjaya": {            animation: "Partisan", minAtp: 160, maxAtp: 220,   ata: 36, grind: 15},
-    "Tyrell's Parasol": { animation: "Partisan", minAtp: 250, maxAtp: 300,   ata: 40, grind: 0},
-    "Madam's Umbrella": { animation: "Partisan", minAtp: 210, maxAtp: 280,   ata: 40, grind: 0},
-    "Plantain Huge Fan": {animation: "Partisan", minAtp: 265, maxAtp: 300,   ata: 38, grind: 9},
-    "Asteron Belt": {     animation: "Partisan", minAtp: 380, maxAtp: 400,   ata: 55, grind: 9},
-    "Yunchang": {         animation: "Partisan", minAtp: 300, maxAtp: 350,   ata: 49, grind: 25},
-    "ES Partisan": {      animation: "Partisan", minAtp: 10,  maxAtp: 10,    ata: 40, grind: 200},
-    "ES Scythe": {        animation: "Partisan", minAtp: 10,  maxAtp: 10,    ata: 40, grind: 180},
+    "Gungnir": {name: "Gungnir", animation: "Partisan", minAtp: 150, maxAtp: 180, ata: 32, grind: 10},
+    "Vjaya": {name: "Vjaya", animation: "Partisan", minAtp: 160, maxAtp: 220, ata: 36, grind: 15, special: "Vjaya"},
+    "Tyrell's Parasol": {name: "Tyrell's Parasol", animation: "Partisan", minAtp: 250, maxAtp: 300, ata: 40, grind: 0},
+    "Madam's Umbrella": {
+        name: "Madam's Umbrella",
+        animation: "Partisan",
+        minAtp: 210,
+        maxAtp: 280,
+        ata: 40,
+        grind: 0,
+        special: "Berserk"
+    },
+    "Plantain Huge Fan": {
+        name: "Plantain Huge Fan",
+        animation: "Partisan",
+        minAtp: 265,
+        maxAtp: 300,
+        ata: 38,
+        grind: 9
+    },
+    "Asteron Belt": {name: "Asteron Belt", animation: "Partisan", minAtp: 380, maxAtp: 400, ata: 55, grind: 9},
+    "Yunchang": {
+        name: "Yunchang",
+        animation: "Partisan",
+        minAtp: 300,
+        maxAtp: 350,
+        ata: 49,
+        grind: 25,
+        special: "Berserk"
+    },
+    "ES Partisan": {
+        name: "ES Partisan", animation: "Partisan", minAtp: 10, maxAtp: 10, ata: 40, grind: 200, maxHit: 0, maxAttr: 0,
+    },
+    "ES Scythe": {
+        name: "ES Scythe", animation: "Partisan", minAtp: 10, maxAtp: 10, ata: 40, grind: 180, maxHit: 0, maxAttr: 0,
+    },
 
-    "Diska": {                        animation: "Slicer", minAtp: 85,  maxAtp: 105, ata: 25, grind: 10},
-    "Diska of Braveman": {            animation: "Slicer", minAtp: 150, maxAtp: 167, ata: 31, grind: 9},
-    "Slicer of Fanatic": {            animation: "Slicer", minAtp: 340, maxAtp: 360, ata: 40, grind: 30},
-    "Red Slicer": {                   animation: "Slicer", minAtp: 190, maxAtp: 200, ata: 38, grind: 45},
-    "Rainbow Baton": {                animation: "Slicer", minAtp: 300, maxAtp: 320, ata: 40, grind: 24},
-    "ES Slicer": {                    animation: "Slicer", minAtp: 10,  maxAtp: 10,  ata: 35, grind: 140},
-    "ES J-Cutter": {                  animation: "Slicer", minAtp: 25,  maxAtp: 25,  ata: 35, grind: 150},
+    "Diska": {name: "Diska", animation: "Slicer", minAtp: 85, maxAtp: 105, ata: 25, grind: 10},
+    "Diska of Braveman": {
+        name: "Diska of Braveman",
+        animation: "Slicer",
+        minAtp: 150,
+        maxAtp: 167,
+        ata: 31,
+        grind: 9,
+        special: "Berserk"
+    },
+    "Slicer of Fanatic": {
+        name: "Slicer of Fanatic",
+        animation: "Slicer",
+        minAtp: 340,
+        maxAtp: 360,
+        ata: 40,
+        grind: 30,
+        special: "Demon's"
+    },
+    "Red Slicer": {name: "Red Slicer", animation: "Slicer", minAtp: 190, maxAtp: 200, ata: 38, grind: 45},
+    "Rainbow Baton": {name: "Rainbow Baton", animation: "Slicer", minAtp: 300, maxAtp: 320, ata: 40, grind: 24},
+    "ES Slicer": {
+        name: "ES Slicer", animation: "Slicer", minAtp: 10, maxAtp: 10, ata: 35, grind: 140, maxHit: 0, maxAttr: 0,
+    },
+    "ES J-Cutter": {
+        name: "ES J-Cutter", animation: "Slicer", minAtp: 25, maxAtp: 25, ata: 35, grind: 150, maxHit: 0, maxAttr: 0,
+    },
 
-    "Demolition Comet": {               animation: "Double Saber", minAtp: 530,  maxAtp: 530,  ata: 38, grind: 25, combo: {"attack1Hits": 2, "attack2Hits": 1, "attack3Hits": 3}},
-    "Girasole": {                       animation: "Double Saber", minAtp: 500,  maxAtp: 550,  ata: 50, grind: 0, combo: {"attack1Hits": 2, "attack2Hits": 1, "attack3Hits": 3}},
-    "Twin Blaze": {                     animation: "Double Saber", minAtp: 300,  maxAtp: 520,  ata: 40, grind: 9, combo: {"attack1Hits": 2, "attack2Hits": 1, "attack3Hits": 3}},
-    "Meteor Cudgel": {                  animation: "Double Saber", minAtp: 300,  maxAtp: 560,  ata: 42, grind: 15, combo: {"attack1Hits": 2, "attack2Hits": 1, "attack3Hits": 3}},
-    "Vivienne": {                       animation: "Double Saber", minAtp: 575,  maxAtp: 590,  ata: 49, grind: 50, combo: {"attack1Hits": 2, "attack2Hits": 1, "attack3Hits": 3}},
-    "Black King Bar": {                 animation: "Double Saber", minAtp: 590,  maxAtp: 600,  ata: 43, grind: 80, combo: {"attack1Hits": 2, "attack2Hits": 1, "attack3Hits": 3}},
-    "Double Cannon": {                  animation: "Double Saber", minAtp: 620,  maxAtp: 650,  ata: 45, grind: 0, combo: {"attack1Hits": 2, "attack2Hits": 1, "attack3Hits": 3}},
-    "ES Twin": {                        animation: "Double Saber", minAtp: 50,   maxAtp: 50,   ata: 40, grind: 250, combo: {"attack1Hits": 2, "attack2Hits": 1, "attack3Hits": 3}},
+    "Demolition Comet": {
+        name: "Demolition Comet",
+        animation: "Double Saber",
+        minAtp: 530,
+        maxAtp: 530,
+        ata: 38,
+        grind: 25,
+        combo: {"attack1Hits": 2, "attack2Hits": 1, "attack3Hits": 3}
+    },
+    "Girasole": {
+        name: "Girasole",
+        animation: "Double Saber",
+        minAtp: 500,
+        maxAtp: 550,
+        ata: 50,
+        grind: 0,
+        maxHit: 0,
+        combo: {"attack1Hits": 2, "attack2Hits": 1, "attack3Hits": 3}, special: "Lavis"
+    },
+    "Twin Blaze": {
+        name: "Twin Blaze",
+        animation: "Double Saber",
+        minAtp: 300,
+        maxAtp: 520,
+        ata: 40,
+        grind: 9,
+        combo: {"attack1Hits": 2, "attack2Hits": 1, "attack3Hits": 3}, special: "None"
+    },
+    "Meteor Cudgel": {
+        name: "Meteor Cudgel",
+        animation: "Double Saber",
+        minAtp: 300,
+        maxAtp: 560,
+        ata: 42,
+        grind: 15,
+        combo: {"attack1Hits": 2, "attack2Hits": 1, "attack3Hits": 3}
+    },
+    "Vivienne": {
+        name: "Vivienne",
+        animation: "Double Saber",
+        minAtp: 575,
+        maxAtp: 590,
+        ata: 49,
+        grind: 50,
+        combo: {"attack1Hits": 2, "attack2Hits": 1, "attack3Hits": 3}
+    },
+    "Black King Bar": {
+        name: "Black King Bar",
+        animation: "Double Saber",
+        minAtp: 590,
+        maxAtp: 600,
+        ata: 43,
+        grind: 80,
+        combo: {"attack1Hits": 2, "attack2Hits": 1, "attack3Hits": 3}
+    },
+    "Double Cannon": {
+        name: "Double Cannon",
+        animation: "Double Saber",
+        minAtp: 620,
+        maxAtp: 650,
+        ata: 45,
+        grind: 0,
+        combo: {"attack1Hits": 2, "attack2Hits": 1, "attack3Hits": 3},
+        special: "Lavis"
+    },
+    "ES Twin": {
+        name: "ES Twin",
+        animation: "Double Saber",
+        minAtp: 50,
+        maxAtp: 50,
+        ata: 40,
+        grind: 250,
+        maxHit: 0, maxAttr: 0,
+        combo: {"attack1Hits": 2, "attack2Hits": 1, "attack3Hits": 3}
+    },
 
-    "Toy Hammer": {                  animation: "Katana", minAtp: 1,   maxAtp: 400,  ata: 53, grind: 0},
-    "Raikiri": {                     animation: "Katana", minAtp: 550, maxAtp: 560,  ata: 30, grind: 0},
-    "Orotiagito": {                  animation: "Katana", minAtp: 750, maxAtp: 800,  ata: 55, grind: 0},
+    "Toy Hammer": {name: "Toy Hammer", animation: "Katana", minAtp: 1, maxAtp: 400, ata: 53, grind: 0},
+    "Raikiri": {name: "Raikiri", animation: "Katana", minAtp: 550, maxAtp: 560, ata: 30, grind: 0},
+    "Orotiagito": {
+        name: "Orotiagito",
+        animation: "Katana",
+        minAtp: 750,
+        maxAtp: 800,
+        ata: 55,
+        grind: 0,
+        maxHit: 0,
+        special: "Lavis"
+    },
 
-    "Musashi": {             animation: "Twin Sword", minAtp: 330, maxAtp: 350, ata: 35, grind: 40, combo: {"attack1Hits": 1, "attack2Hits": 2, "attack3Hits": 2}},
-    "Yamato": {              animation: "Twin Sword", minAtp: 380, maxAtp: 390, ata: 40, grind: 60, combo: {"attack1Hits": 1, "attack2Hits": 2, "attack3Hits": 2}},
-    "G-Assassin's Sabers": { animation: "Twin Sword", minAtp: 350, maxAtp: 360, ata: 35, grind: 25, combo: {"attack1Hits": 1, "attack2Hits": 2, "attack3Hits": 2}},
-    "Asuka": {               animation: "Twin Sword", minAtp: 560, maxAtp: 570, ata: 50, grind: 30, combo: {"attack1Hits": 1, "attack2Hits": 2, "attack3Hits": 2}},
-    "Sange & Yasha": {       animation: "Twin Sword", minAtp: 640, maxAtp: 650, ata: 50, grind: 30, combo: {"attack1Hits": 1, "attack2Hits": 2, "attack3Hits": 2}},
-    "Jizai": {               animation: "Twin Sword", minAtp: 800, maxAtp: 810, ata: 55, grind: 40, combo: {"attack1Hits": 1, "attack2Hits": 2, "attack3Hits": 2}},
-    "TypeSS/Swords": {       animation: "Twin Sword", minAtp: 150, maxAtp: 150, ata: 45, grind: 125, combo: {"attack1Hits": 1, "attack2Hits": 2, "attack3Hits": 2}},
-    "ES Swords": {           animation: "Twin Sword", minAtp: 180, maxAtp: 180, ata: 45, grind: 250, combo: {"attack1Hits": 1, "attack2Hits": 2, "attack3Hits": 2}},
+    "Musashi": {
+        name: "Musashi",
+        animation: "Twin Sword",
+        minAtp: 330,
+        maxAtp: 350,
+        ata: 35,
+        grind: 40,
+        combo: {"attack1Hits": 1, "attack2Hits": 2, "attack3Hits": 2}, special: "Berserk"
+    },
+    "Yamato": {
+        name: "Yamato",
+        animation: "Twin Sword",
+        minAtp: 380,
+        maxAtp: 390,
+        ata: 40,
+        grind: 60,
+        combo: {"attack1Hits": 1, "attack2Hits": 2, "attack3Hits": 2}, special: "Blizzard"
+    },
+    "G-Assassin's Sabers": {
+        name: "G-Assassin's Sabers",
+        animation: "Twin Sword",
+        minAtp: 350,
+        maxAtp: 360,
+        ata: 35,
+        grind: 25,
+        maxHit: 50,
+        combo: {"attack1Hits": 1, "attack2Hits": 2, "attack3Hits": 2}
+    },
+    "Asuka": {
+        name: "Asuka",
+        animation: "Twin Sword",
+        minAtp: 560,
+        maxAtp: 570,
+        ata: 50,
+        grind: 30,
+        combo: {"attack1Hits": 1, "attack2Hits": 2, "attack3Hits": 2}
+    },
+    "Sange & Yasha": {
+        name: "Sange & Yasha",
+        animation: "Twin Sword",
+        minAtp: 640,
+        maxAtp: 650,
+        ata: 50,
+        grind: 30,
+        combo: {"attack1Hits": 1, "attack2Hits": 2, "attack3Hits": 2}
+    },
+    "Jizai": {
+        name: "Jizai",
+        animation: "Twin Sword",
+        minAtp: 800,
+        maxAtp: 810,
+        ata: 55,
+        grind: 40,
+        combo: {"attack1Hits": 1, "attack2Hits": 2, "attack3Hits": 2}, special: "Hell"
+    },
+    "TypeSS/Swords": {
+        name: "TypeSS/Swords",
+        animation: "Twin Sword",
+        minAtp: 150,
+        maxAtp: 150,
+        ata: 45,
+        grind: 125,
+        combo: {"attack1Hits": 1, "attack2Hits": 2, "attack3Hits": 2}
+    },
+    "ES Swords": {
+        name: "ES Swords",
+        animation: "Twin Sword",
+        minAtp: 180,
+        maxAtp: 180,
+        ata: 45,
+        grind: 250,
+        maxHit: 0, maxAttr: 0,
 
-    "Raygun": {           animation: "Handgun", minAtp: 150, maxAtp: 180, ata: 35, grind: 15},
-    "Master Raven": {     animation: "Master Raven", minAtp: 350, maxAtp: 380, ata: 52, grind: 9, combo: {"attack1Hits": 3, "attack2": "NONE", "attack3": "NONE"}},
-    "Last Swan": {        animation: "Last Swan", minAtp: 80,  maxAtp: 90,  ata: 32, grind: 9, combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}},
-    "Heaven Striker": {   animation: "Handgun", minAtp: 550, maxAtp: 600, ata: 55, grind: 20},
+        combo: {"attack1Hits": 1, "attack2Hits": 2, "attack3Hits": 2}
+    },
 
-    "Laser": {           minAtp: 200, maxAtp: 210, ata: 50, grind: 25},
-    "Spread Needle": {   minAtp: 1,   maxAtp: 110, ata: 40, grind: 40},
-    "Bringer's Rifle": { minAtp: 330, maxAtp: 370, ata: 63, grind: 9},
-    "Frozen Shooter": {  minAtp: 240, maxAtp: 250, ata: 60, grind: 9},
-    "Snow Queen": {      minAtp: 330, maxAtp: 350, ata: 60, grind: 18, combo: {"attack2": "NONE", "attack3": "NONE"}},
-    "Holy Ray": {        minAtp: 290, maxAtp: 300, ata: 70, grind: 40},
-    "ES Rifle": {        minAtp: 10,  maxAtp: 10,  ata: 60, grind: 220},
-    "ES Needle": {       minAtp: 10,  maxAtp: 10,  ata: 40, grind: 70},
+    "Raygun": {name: "Raygun", animation: "Handgun", minAtp: 150, maxAtp: 180, ata: 35, grind: 15},
+    "Master Raven": {
+        name: "Master Raven",
+        animation: "Master Raven",
+        minAtp: 350,
+        maxAtp: 380,
+        ata: 52,
+        grind: 9,
+        maxHit: 0,
+        combo: {"attack1Hits": 3, "attack2": "NONE", "attack3": "NONE"}
+    },
+    "Last Swan": {
+        name: "Last Swan",
+        animation: "Last Swan",
+        minAtp: 80,
+        maxAtp: 90,
+        ata: 32,
+        grind: 9,
+        maxHit: 0,
+        combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}
+    },
+    "Heaven Striker": {
+        name: "Heaven Striker",
+        animation: "Handgun",
+        minAtp: 550,
+        maxAtp: 600,
+        ata: 55,
+        grind: 20,
+        special: "Berserk"
+    },
 
-    "Mechgun": {         minAtp: 2,   maxAtp: 4,   ata: 0,  grind: 9, combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}},
-    "Assault": {         minAtp: 5,   maxAtp: 8,   ata: 3,  grind: 9, combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}},
-    "Repeater": {        minAtp: 5,   maxAtp: 12,  ata: 6,  grind: 9, combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}},
-    "Gatling": {         minAtp: 5,   maxAtp: 16,  ata: 9,  grind: 9, combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}},
-    "Vulcan": {          minAtp: 5,   maxAtp: 20,  ata: 12, grind: 9, combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}},
-    "Samba Maracas": {   minAtp: 5,   maxAtp: 10,  ata: 10, grind: 0, combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}},
-    "Rocket Punch": {    minAtp: 50,  maxAtp: 300, ata: 10, grind: 50, combo: {"attack1Hits": 3, "attack2": "NONE", "attack3": "NONE"}},
-    "M&A60 Vise": {      minAtp: 15,  maxAtp: 25,  ata: 15, grind: 9, combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}},
-    "H&S25 Justice": {   minAtp: 15,  maxAtp: 30,  ata: 18, grind: 9, combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}},
-    "L&K14 Combat": {    minAtp: 15,  maxAtp: 30,  ata: 18, grind: 20, combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}},
-    "Twin Psychogun": {  minAtp: 35,  maxAtp: 40,  ata: 23, grind: 0},
-    "Red Mechgun": {     minAtp: 50,  maxAtp: 50,  ata: 25, grind: 30, combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}},
-    "Yasminkov 9000M": { minAtp: 40,  maxAtp: 80,  ata: 27, grind: 10, combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}},
-    "Rage de Feu": {     minAtp: 175, maxAtp: 185, ata: 40, grind: 9, combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}},
-    "Guld Milla": {      minAtp: 180, maxAtp: 200, ata: 30, grind: 9, combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}},
-    "Mille Marteaux": {  minAtp: 200, maxAtp: 220, ata: 45, grind: 12, combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}},
-    "Dual Bird": {       minAtp: 200, maxAtp: 210, ata: 22, grind: 21, combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}},
-    "TypeME/Mechgun": {  minAtp: 10,  maxAtp: 10,  ata: 20, grind: 30, combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}},
-    "ES Mechgun": {      minAtp: 10,  maxAtp: 10,  ata: 20, grind: 50, combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}},
-    "ES Psychogun": {    minAtp: 10,  maxAtp: 10,  ata: 20, grind: 50},
-    "ES Punch": {        minAtp: 10,  maxAtp: 10,  ata: 40, grind: 250, combo: {"attack1Hits": 3, "attack2": "NONE", "attack3": "NONE"}},
+    "Laser": {name: "Laser", minAtp: 200, maxAtp: 210, ata: 50, grind: 25},
+    "Spread Needle": {name: "Spread Needle", minAtp: 1, maxAtp: 110, ata: 40, grind: 40, special: "Seize"},
+    "Bringer's Rifle": {
+        name: "Bringer's Rifle",
+        minAtp: 330,
+        maxAtp: 370,
+        ata: 63,
+        grind: 9,
+        special: "Demon's",
+        maxHit: 50
+    },
+    "Frozen Shooter": {name: "Frozen Shooter", minAtp: 240, maxAtp: 250, ata: 60, grind: 9, special: "Lavis"},
+    "Snow Queen": {
+        name: "Snow Queen",
+        minAtp: 330,
+        maxAtp: 350,
+        ata: 60,
+        grind: 18,
+        combo: {"attack2": "NONE", "attack3": "NONE"}, special: "Lavis"
+    },
+    "Holy Ray": {name: "Holy Ray", minAtp: 290, maxAtp: 300, ata: 70, grind: 40, special: "Arrest"},
+    "ES Rifle": {
+        name: "ES Rifle", minAtp: 10, maxAtp: 10, ata: 60, grind: 220, maxHit: 0, maxAttr: 0,
+    },
+    "ES Needle": {
+        name: "ES Needle", minAtp: 10, maxAtp: 10, ata: 40, grind: 70, maxHit: 0, maxAttr: 0,
+    },
 
-    "Shot": {            animation: "Shot", minAtp: 20,  maxAtp: 25, 	  ata: 27, grind: 20},
-    "Spread": {          animation: "Shot", minAtp: 30,  maxAtp: 50, 	  ata: 28, grind: 20},
-    "Cannon": {          animation: "Shot", minAtp: 40,  maxAtp: 80, 	  ata: 30, grind: 15},
-    "Launcher": {        animation: "Shot", minAtp: 50,  maxAtp: 110, 	ata: 31, grind: 15},
-    "Arms": {            animation: "Shot", minAtp: 60,  maxAtp: 140, 	ata: 33, grind: 10},
-    "L&K38 Combat": {    animation: "L&K38 Combat", minAtp: 150, maxAtp: 250, 	ata: 40, grind: 25, combo: {"attack1Hits": 5, "attack2": "NONE", "attack3": "NONE" }},
-    "Rambling May": {    animation: "Shot", minAtp: 360, maxAtp: 450, 	ata: 45, grind: 0, combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}},
-    "Baranz Launcher": { animation: "Shot", maxHit: 50, minAtp: 230, maxAtp: 240, 	ata: 40, grind: 30},
-    "Dark Meteor": {     animation: "Shot", minAtp: 150, maxAtp: 280, 	ata: 45, grind: 25, combo: {"attack2": "NONE", "attack3": "NONE" }},
-    "TypeSH/Shot": {     animation: "Shot", minAtp: 10,  maxAtp: 10, 	  ata: 40, grind: 60},
-    "ES Shot": {         animation: "Shot", minAtp: 10,  maxAtp: 10, 	  ata: 40, grind: 125},
-    "ES Bazooka": {      animation: "Shot", minAtp: 10,  maxAtp: 10, 	  ata: 40, grind: 250},
+    "Mechgun": {
+        name: "Mechgun",
+        minAtp: 2,
+        maxAtp: 4,
+        ata: 0,
+        grind: 9,
+        combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}
+    },
+    "Assault": {
+        name: "Assault",
+        minAtp: 5,
+        maxAtp: 8,
+        ata: 3,
+        grind: 9,
+        combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}
+    },
+    "Repeater": {
+        name: "Repeater",
+        minAtp: 5,
+        maxAtp: 12,
+        ata: 6,
+        grind: 9,
+        combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}
+    },
+    "Gatling": {
+        name: "Gatling",
+        minAtp: 5,
+        maxAtp: 16,
+        ata: 9,
+        grind: 9,
+        combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}
+    },
+    "Vulcan": {
+        name: "Vulcan",
+        minAtp: 5,
+        maxAtp: 20,
+        ata: 12,
+        grind: 9,
+        combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}
+    },
+    "Rocket Punch": {
+        name: "Rocket Punch",
+        minAtp: 50,
+        maxAtp: 300,
+        ata: 10,
+        grind: 50,
+        combo: {"attack1Hits": 3, "attack2": "NONE", "attack3": "NONE"}
+    },
+    "M&A60 Vise": {
+        name: "M&A60 Vise",
+        minAtp: 15,
+        maxAtp: 25,
+        ata: 15,
+        grind: 9,
+        combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}, special: "Berserk"
+    },
+    "Red Mechgun": {
+        name: "Red Mechgun",
+        minAtp: 50,
+        maxAtp: 50,
+        ata: 25,
+        grind: 30,
+        combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}
+    },
+    "Yasminkov 9000M": {
+        name: "Yasminkov 9000M",
+        minAtp: 40,
+        maxAtp: 80,
+        ata: 27,
+        grind: 10,
+        combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}
+    },
+    "Rage de Feu": {
+        name: "Rage de Feu",
+        minAtp: 175,
+        maxAtp: 185,
+        ata: 40,
+        grind: 9,
+        combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}
+    },
+    "Guld Milla": {
+        name: "Guld Milla",
+        minAtp: 180,
+        maxAtp: 200,
+        ata: 30,
+        grind: 9,
+        combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}
+    },
+    "Mille Marteaux": {
+        name: "Mille Marteaux",
+        minAtp: 200,
+        maxAtp: 220,
+        ata: 45,
+        grind: 12,
+        combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}
+    },
+    "Dual Bird": {
+        name: "Dual Bird",
+        minAtp: 200,
+        maxAtp: 210,
+        ata: 22,
+        grind: 21,
+        maxHit: 0,
+        combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}
+    },
+    "TypeME/Mechgun": {
+        name: "TypeME/Mechgun",
+        minAtp: 10,
+        maxAtp: 10,
+        ata: 20,
+        grind: 30,
+        combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}
+    },
+    "ES Mechgun": {
+        name: "ES Mechgun",
+        minAtp: 10,
+        maxAtp: 10,
+        ata: 20,
+        grind: 50,
+        maxHit: 0, maxAttr: 0,
+        combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}
+    },
+    "ES Psychogun": {
+        name: "ES Psychogun", minAtp: 10, maxAtp: 10, ata: 20, grind: 50, maxHit: 0, maxAttr: 0,
+    },
+    "ES Punch": {
+        name: "ES Punch",
+        minAtp: 10,
+        maxAtp: 10,
+        ata: 40,
+        grind: 250,
+        maxHit: 0, maxAttr: 0,
+        combo: {"attack1Hits": 3, "attack2": "NONE", "attack3": "NONE"}
+    },
 
-    "Cannon Rouge": {     minAtp: 600, maxAtp: 750, ata: 45, grind: 30, combo: {"attack1Hits": 1, "attack2": "NONE", "attack3": "NONE"}},
+    "Shot": {name: "Shot", animation: "Shot", minAtp: 20, maxAtp: 25, ata: 27, grind: 20},
+    "Spread": {name: "Spread", animation: "Shot", minAtp: 30, maxAtp: 50, ata: 28, grind: 20},
+    "Cannon": {name: "Cannon", animation: "Shot", minAtp: 40, maxAtp: 80, ata: 30, grind: 15},
+    "Launcher": {name: "Launcher", animation: "Shot", minAtp: 50, maxAtp: 110, ata: 31, grind: 15},
+    "Arms": {name: "Arms", animation: "Shot", minAtp: 60, maxAtp: 140, ata: 33, grind: 10},
+    "L&K38 Combat": {
+        name: "L&K38 Combat",
+        animation: "L&K38 Combat",
+        minAtp: 150,
+        maxAtp: 250,
+        ata: 40,
+        grind: 25,
+        combo: {"attack1Hits": 5, "attack2": "NONE", "attack3": "NONE"}, special: "Burning"
+    },
+    "Rambling May": {
+        name: "Rambling May",
+        animation: "Shot",
+        minAtp: 360,
+        maxAtp: 450,
+        ata: 45,
+        grind: 0, maxHit: 0,
 
-    "Gal Wind": {         minAtp: 270,  maxAtp: 310, ata: 40, grind: 15, combo: {"attack1Hits": 1, "attack2Hits": 1, "attack3Hits": 3}},
-    "Guardianna": {       minAtp: 200,  maxAtp: 280, ata: 40, grind: 9, combo: {"attack1Hits": 1, "attack2Hits": 1, "attack3Hits": 3}},
-    "ES Cards": {         minAtp: 10,   maxAtp: 10,  ata: 45, grind: 150, combo: {"attack1Hits": 1, "attack2Hits": 1, "attack3Hits": 3}}
+        combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}, special: "Chaos"
+    },
+    "Baranz Launcher": {
+        name: "Baranz Launcher",
+        animation: "Shot",
+        maxHit: 50,
+        minAtp: 230,
+        maxAtp: 240,
+        ata: 40,
+        grind: 30
+    },
+    "Dark Meteor": {
+        name: "Dark Meteor",
+        animation: "Shot",
+        minAtp: 150,
+        maxAtp: 280,
+        ata: 45,
+        grind: 25,
+        combo: {"attack2": "NONE", "attack3": "NONE"}, special: "Dark Flow"
+    },
+    "TypeSH/Shot": {name: "TypeSH/Shot", animation: "Shot", minAtp: 10, maxAtp: 10, ata: 40, grind: 60},
+    "ES Shot": {
+        name: "ES Shot", animation: "Shot", minAtp: 10, maxAtp: 10, ata: 40, grind: 125, maxHit: 0, maxAttr: 0,
+    },
+    "ES Bazooka": {
+        name: "ES Bazooka", animation: "Shot", minAtp: 10, maxAtp: 10, ata: 40, grind: 250, maxHit: 0, maxAttr: 0,
+    },
+
+    "Cannon Rouge": {
+        name: "Cannon Rouge",
+        minAtp: 600,
+        maxAtp: 750,
+        ata: 45,
+        grind: 30,
+        combo: {"attack1Hits": 1, "attack2": "NONE", "attack3": "NONE"}
+    },
+
+    "Gal Wind": {
+        name: "Gal Wind",
+        minAtp: 270,
+        maxAtp: 310,
+        ata: 40,
+        grind: 15,
+        maxHit: 50,
+        combo: {"attack1Hits": 1, "attack2Hits": 1, "attack3Hits": 3}
+    },
+    "Guardianna": {
+        name: "Guardianna",
+        minAtp: 200,
+        maxAtp: 280,
+        ata: 40,
+        grind: 9,
+        combo: {"attack1Hits": 1, "attack2Hits": 1, "attack3Hits": 3}
+    },
+    "ES Cards": {
+        name: "ES Cards",
+        minAtp: 10,
+        maxAtp: 10,
+        ata: 45,
+        grind: 150,
+        maxHit: 0, maxAttr: 0,
+        combo: {"attack1Hits": 1, "attack2Hits": 1, "attack3Hits": 3}
+    }
 }
 
 const barriers = {
@@ -156,20 +781,20 @@ const barriers = {
     "Black Ring (3)": {atp: 150, ata: 0},
 }
 const classStats = {
-    HUmar: {atp: 1397, ata: 200},
-    HUnewearl: {atp: 1237, ata: 199},
-    HUcast: {atp: 1639, ata: 191},
-    HUcaseal: {atp: 1301, ata: 218},
-    RAmar: {atp: 1260, ata: 249},
-    RAmarl: {atp: 1145, ata: 241},
-    RAcast: {atp: 1350, ata: 224},
-    RAcaseal: {atp: 1175, ata: 231},
-    FOmar: {atp: 1002, ata: 163},
-    FOmarl: {atp: 872, ata: 170},
-    FOnewm: {atp: 814, ata: 180},
-    FOnewearl: {atp: 583, ata: 186}
+    HUmar: {animation: "male", atp: 1397, ata: 200},
+    HUnewearl: {animation: "female", atp: 1237, ata: 199},
+    HUcast: {animation: "male", atp: 1639, ata: 191},
+    HUcaseal: {animation: "female", atp: 1301, ata: 218},
+    RAmar: {animation: "male", atp: 1260, ata: 249},
+    RAmarl: {animation: "female", atp: 1145, ata: 241},
+    RAcast: {animation: "male", atp: 1350, ata: 224},
+    RAcaseal: {animation: "female", atp: 1175, ata: 231},
+    FOmar: {animation: "male", atp: 1002, ata: 163},
+    FOmarl: {animation: "female", atp: 872, ata: 170},
+    FOnewm: {animation: "male", atp: 814, ata: 180},
+    FOnewearl: {animation: "female", atp: 583, ata: 186}
 };
-const frameStats = {
+const frames = {
     NONE: {atp: 0, ata: 0},
     THIRTEEN: {atp: 0, ata: 0},
     D_PARTS101: {atp: 35, ata: 0},
@@ -207,6 +832,78 @@ const possWeapons = [
     "Sange & Yasha",
     "Yamato"
 ]
+const frameData = {
+    "Saber": {n1: 29, n1c: 13, n2: 24, n2c: 10, n3: 31, h1: 37, h1c: 21, h2: 29, h2c: 15, h3: 34},
+    "Sword": {n1: 39, n1c: 17, n2: 31, n2c: 15, n3: 43, h1: 46, h1c: 24, h2: 35, h2c: 19, h3: 43},
+    "Dagger": {n1: 40, n1c: 21, n2: 30, n2c: 15, n3: 50, h1: 46, h1c: 27, h2: 35, h2c: 20, h3: 49},
+    "Partisan": {n1: 39, n1c: 17, n2: 30, n2c: 14, n3: 33, h1: 46, h1c: 24, h2: 35, h2c: 19, h3: 35},
+    "Slicer": {n1: 40, n1c: 21, n2: 32, n2c: 12, n3: 42, h1: 47, h1c: 28, h2: 37, h2c: 17, h3: 43},
+    "Double Saber": {n1: 39, n1c: 22, n2: 27, n2c: 11, n3: 51, h1: 46, h1c: 29, h2: 32, h2c: 16, h3: 49},
+    "Claw": {n1: 27, n1c: 16, n2: 22, n2c: 11, n3: 37, h1: 35, h1c: 24, h2: 27, h2c: 16, h3: 39},
+    "Katana": {n1: 30, n1c: 14, n2: 29, n2c: 15, n3: 44, h1: 38, h1c: 22, h2: 33, h2c: 19, h3: 44},
+    "Twin Sword": {n1: 37, n1c: 18, n2: 34, n2c: 19, n3: 51, h1: 44, h1c: 25, h2: 37, h2c: 22, h3: 49},
+    "Fist": {n1: 26, n1c: 19, n2: 26, n2c: 19, n3: 35, h1: 33, h1c: 26, h2: 29, h2c: 22, h3: 36},
+    "Master Raven": {n1: 26, h1: 36},
+    "L&K38 Combat": {n1: 46, h1: 55},
+    "Handgun": {n1: 27, n1c: 14, n2: 25, n2c: 11, n3: 19, h1: 34, h1c: 22, h2: 30, h2c: 16, h3: 25},
+    "Rifle": {n1: 29, n1c: 15, n2: 25, n2c: 12, n3: 20, h1: 37, h1c: 23, h2: 30, h2c: 17, h3: 26},
+    "Mechgun": {n1: 49, n1c: 12, n2: 45, n2c: 10, n3: 42, h1: 58, h1c: 21, h2: 50, h2c: 15, h3: 48},
+    "Shot": {n1: 50, n1c: 25, n2: 43, n2c: 21, n3: 34, h1: 56, h1c: 31, h2: 46, h2c: 24, h3: 38},
+    "Launcher": {n1: 46, n1c: 21, n2: 41, n2c: 19, n3: 36, h1: 52, h1c: 27, h2: 44, h2c: 22, h3: 39},
+    "Cane": {n1: 29, n1c: 13, n2: 27, n2c: 13, n3: 39, h1: 37, h1c: 21, h2: 32, h2c: 18, h3: 40},
+    "Rod": {n1: 29, n1c: 14, n2: 27, n2c: 14, n3: 40, h1: 37, h1c: 22, h2: 32, h2c: 19, h3: 41},
+    "Wand": {n1: 30, n1c: 14, n2: 29, n2c: 15, n3: 40, h1: 37, h1c: 21, h2: 33, h2c: 19, h3: 41},
+    "Card": {n1: 33, n1c: 18, n2: 30, n2c: 17, n3: 47, h1: 40, h1c: 25, h2: 34, h2c: 21, h3: 47},
+}
+
+const femaleFrameData = {
+    "Saber": {n1: 29, n1c: 13, n2: 26, n2c: 12, n3: 35, h1: 37, h1c: 21, h2: 31, h2c: 17, h3: 37},
+    "Double Saber": {n1: 35, n1c: 18, n2: 26, n2c: 10, n3: 45, h1: 42, h1c: 25, h2: 31, h2c: 16, h3: 45},
+    "Claw": {n1: 27, n1c: 16, n2: 22, n2c: 11, n3: 34, h1: 35, h1c: 24, h2: 27, h2c: 16, h3: 36},
+    "Katana": {n1: 30, n1c: 14, n2: 29, n2c: 15, n3: 41, h1: 38, h1c: 22, h2: 33, h2c: 19, h3: 42},
+    "Fist": {n1: 25, n1c: 18, n2: 23, n2c: 16, n3: 39, h1: 32, h1c: 25, h2: 27, h2c: 20, h3: 39},
+    "Last Swan": {n1: 26, n1c: 14, n2: 25, n2c: 12, n3: 21, h1: 36, h1c: 24, h2: 32, h2c: 19, h3: 28},
+    "Cane": {n1: 30, n1c: 14, n2: 27, n2c: 13, n3: 39, h1: 38, h1c: 22, h2: 32, h2c: 18, h3: 40},
+    "Rod": {n1: 33, n1c: 18, n2: 30, n2c: 17, n3: 40, h1: 40, h1c: 25, h2: 34, h2c: 21, h3: 41},
+}
+
+const classSpecificFrameData = {
+    HUcaseal: {
+        "Dagger": {n1: 37, n1c: 18, n2: 29, n2c: 14, n3: 41, h1: 44, h1c: 25, h2: 33, h2c: 18, h3: 42},
+        "Double Saber": {n1: 35, n1c: 18, n2: 27, n2c: 11, n3: 45, h1: 42, h1c: 25, h2: 32, h2c: 16, h3: 45},
+        "Claw": {n1: 32, n1c: 21, n2: 25, n2c: 14, n3: 34, h1: 38, h1c: 27, h2: 29, h2c: 18, h3: 36},
+        "Fist": {n1: 22, n1c: 15, n2: 21, n2c: 14, n3: 36, h1: 30, h1c: 23, h2: 26, h2c: 19, h3: 38},
+    },
+    RAmarl: {
+        "Claw": {n1: 32, n1c: 21, n2: 25, n2c: 14, n3: 34, h1: 38, h1c: 27, h2: 29, h2c: 18, h3: 36},
+        "Handgun": {n1: 26, n1c: 13, n2: 24, n2c: 10, n3: 19, h1: 34, h1c: 21, h2: 29, h2c: 15, h3: 25},
+    },
+    FOmar: {
+        "Claw": {n1: 32, n1c: 21, n2: 22, n2c: 11, n3: 41, h1: 38, h1c: 27, h2: 27, h2c: 16, h3: 42},
+        "Fist": {n1: 24, n1c: 17, n2: 23, n2c: 16, n3: 45, h1: 31, h1c: 24, h2: 27, h2c: 20, h3: 45},
+        "Rod": {n1: 31, n1c: 16, n2: 27, n2c: 14, n3: 40, h1: 38, h1c: 23, h2: 32, h2c: 19, h3: 41},
+        "Wand": {n1: 30, n1c: 14, n2: 30, n2c: 16, n3: 42, h1: 37, h1c: 21, h2: 34, h2c: 20, h3: 42},
+    },
+    FOmarl: {
+        "Saber": {n1: 31, n1c: 15, n2: 26, n2c: 12, n3: 37, h1: 39, h1c: 23, h2: 31, h2c: 17, h3: 39},
+        "Sword": {n1: 38, n1c: 16, n2: 31, n2c: 15, n3: 53, h1: 45, h1c: 23, h2: 35, h2c: 19, h3: 51},
+        "Dagger": {n1: 42, n1c: 23, n2: 34, n2c: 19, n3: 53, h1: 48, h1c: 29, h2: 37, h2c: 22, h3: 51},
+        "Partisan": {n1: 38, n1c: 16, n2: 32, n2c: 16, n3: 42, h1: 46, h1c: 24, h2: 36, h2c: 20, h3: 42},
+        "Slicer": {n1: 39, n1c: 20, n2: 33, n2c: 13, n3: 38, h1: 45, h1c: 26, h2: 38, h2c: 18, h3: 40},
+        "Double Saber": {n1: 38, n1c: 21, n2: 27, n2c: 11, n3: 48, h1: 44, h1c: 27, h2: 32, h2c: 16, h3: 47},
+        "Claw": {n1: 27, n1c: 16, n2: 22, n2c: 11, n3: 34, h1: 35, h1c: 24, h2: 27, h2c: 16, h3: 36},
+        "Katana": {n1: 30, n1c: 14, n2: 29, n2c: 15, n3: 41, h1: 38, h1c: 22, h2: 33, h2c: 19, h3: 42},
+        "Fist": {n1: 24, n1c: 17, n2: 21, n2c: 14, n3: 33, h1: 31, h1c: 24, h2: 25, h2c: 18, h3: 35},
+        "Handgun": {n1: 30, n1c: 17, n2: 28, n2c: 14, n3: 23, h1: 37, h1c: 24, h2: 32, h2c: 18, h3: 28},
+        "Last Swan": {n1: 27, n1c: 15, n2: 25, n2c: 12, n3: 21, h1: 36, h1c: 24, h2: 32, h2c: 19, h3: 28},
+        "Rifle": {n1: 31, n1c: 17, n2: 28, n2c: 15, n3: 26, h1: 38, h1c: 24, h2: 32, h2c: 19, h3: 30},
+        "Shot": {n1: 43, n1c: 18, n2: 32, n2c: 10, n3: 27, h1: 50, h1c: 25, h2: 37, h2c: 15, h3: 32},
+        "L&K38 Combat": {n1: 45, h1: 54},
+        "Cane": {n1: 29, n1c: 13, n2: 27, n2c: 13, n3: 39, h1: 37, h1c: 21, h2: 32, h2c: 18, h3: 40},
+        "Rod": {n1: 31, n1c: 16, n2: 27, n2c: 14, n3: 36, h1: 38, h1c: 23, h2: 32, h2c: 19, h3: 38},
+        "Wand": {n1: 30, n1c: 14, n2: 30, n2c: 16, n3: 40, h1: 37, h1c: 21, h2: 34, h2c: 20, h3: 41},
+    }
+}
 
 function accuracyModifierForAttackType(attackType, special) {
     if (attackType === 'NORMAL') {
@@ -219,7 +916,7 @@ function accuracyModifierForAttackType(attackType, special) {
 }
 
 function getSpecialAccuracyModifier(special) {
-    if (special === 'Vjaya' || special === "Dark Flow") {
+    if (special === 'Vjaya' || special === "Dark Flow" || special === "Lavis") {
         return 0.7;
     } else {
         return 0.5;
@@ -243,7 +940,7 @@ function getSpecialDamageModifier(special) {
         return 3.32;
     } else if (special === 'Vjaya') {
         return 5.56;
-    } else if (special === 'Dark Flow') {
+    } else if (special === 'Dark Flow' || special === 'Lavis' || special === 'TJS') {
         return 1.89;
     } else {
         return 0;
@@ -397,7 +1094,7 @@ function updateDamageTable() {
     let frozen = $('#frozenCheckbox').is(":checked");
     let paralyzed = $('#paralyzedCheckbox').is(":checked");
     let snGlitch = $('#ataGlitch').is(":checked");
-    let base_ata = $('#ataInput').val();
+    let base_ata = Number($('#ataInput').val());
     let evpModifier = getEvpModifier(frozen, paralyzed);
     // let opm = $('#opm_checkbox').is(":checked");
 
@@ -423,73 +1120,8 @@ function updateDamageTable() {
     for (let index in selectedEnemies) {
         var enemy = enemies[selectedEnemies[index]];
         var row = createMonsterRow(enemy, evpModifier, base_ata, snGlitch, atpInput, comboInput)
-        // row.append($('<th scope="row" colspan="2">' + enemy.name + '</th>'))
-        // row.append($('<td style="padding: 0"><div style="height: 100%; background-color: rgba(255,150,150,0.1)"><div style="padding: .75rem; width: 25%; height: 100%; background-color: rgb(73,73,61);">100</div></div></td>'))
-        // row.append($('<td style="background-color: rgb(73,73,61)">85%</td>'))
-        // row.append($('<td>1000 (85%)</td>'))
-        // row.append($('<td>1000 (100%)</td>'))
-        // row.append($('<td>1000 (100%)</td>'))
         tbody.append(row)
     }
-
-    // $('#combo-calc-table').append(tbody)
-    //
-    // let enemyValues = $('#enemy').dropdown('get values');
-    // if (!!enemyValues) {
-    //     enemyValues.forEach(function(enemyName) {
-    //         let enemy = enemiesByName[enemyName];
-    //         $('#accuracy_table_body').append(createMonsterRow(enemy, evpModifier, base_ata, snGlitch, atpInput, comboInput));
-    //     })
-    // }
-}
-
-function applyPreset() {
-    let playerClass = classStats[$('#playerClass').dropdown('get value')];
-    let frameName = $('#frame').dropdown('get value');
-    let frame = frameStats[frameName];
-    let barrierName = $('#barrier').dropdown('get value');
-    let barrier = barrierStats[barrierName];
-    let hit = $('#hit_input').val();
-    hit = !!hit ? Number(hit) : 0
-    let weaponName = $('#weapon').dropdown('get value');
-    let weapon = !!weaponName ? weaponsByName[weaponName] : weaponsByName['None'];
-    let unitName = $('#unit').dropdown('get value');
-
-    let setEffectAta = getSetEffectAta(weapon, frameName, barrierName, unitName);
-    let setEffectAtp = getSetEffectAtp(weapon, frameName, barrierName);
-
-    $('#ata_input').val(playerClass.ata + weapon.ata + hit + frame.ata + barrier.ata + setEffectAta);
-    $('#min_atp_input').val(weapon.minAtp + (2 * weapon.grind) + setEffectAtp + barrier.atp + frame.atp);
-    $('#max_atp_input').val(weapon.maxAtp + (2 * weapon.grind) + setEffectAtp + barrier.atp + frame.atp);
-    $('#base_atp_input').val(playerClass.atp);
-}
-
-function applyWeaponStats() {
-    let weaponName = $('#weapon').dropdown('get value');
-    let weapon = !!weaponName ? weaponsByName[weaponName] : weaponsByName['None'];
-    let hits = !!weapon.comboPreset && !!weapon.comboPreset.attack1Hits ? weapon.comboPreset.attack1Hits : 1;
-    $('#hits1_input').val(hits).change();
-    hits = !!weapon.comboPreset && !!weapon.comboPreset.attack2Hits ? weapon.comboPreset.attack2Hits : 1
-    $('#hits2_input').val(hits).change();
-    hits = !!weapon.comboPreset && !!weapon.comboPreset.attack3Hits ? weapon.comboPreset.attack3Hits : 1
-    $('#hits3_input').val(hits).change();
-
-    if (!!weapon.comboPreset && !!weapon.comboPreset.attack1) {
-        $('#attack1_input').val(weapon.comboPreset.attack1).change();
-    } else if ($('#attack1').dropdown('get value') === 'NONE') {
-        $('#attack1_input').val('N').change();
-    }
-    if (!!weapon.comboPreset && !!weapon.comboPreset.attack2) {
-        $('#attack2_input').val(weapon.comboPreset.attack2).change();
-    } else if ($('#attack2').dropdown('get value') === 'NONE') {
-        $('#attack2_input').val('N').change();
-    }
-    if (!!weapon.comboPreset && !!weapon.comboPreset.attack3) {
-        $('#attack3_input').val(weapon.comboPreset.attack3).change();
-    } else if ($('#attack3').dropdown('get value') === 'NONE') {
-        $('#attack3_input').val('N').change();
-    }
-    applyPreset();
 }
 
 function getSetEffectAtp(weapon, frameName, barrierName) {
@@ -497,7 +1129,7 @@ function getSetEffectAtp(weapon, frameName, barrierName) {
     if (frameName === "THIRTEEN" && weapon.name === "Diska of Braveman") {
         atpBonus += (weapon.minAtp + (2 * weapon.grind)) * 0.5
     }
-    if (frameName === "CRIMSON" && weapon.name === "Red Slicer") {
+    if (frameName === "CRIMSON_COAT" && weapon.name === "Red Slicer") {
         atpBonus += (weapon.minAtp + (2 * weapon.grind)) * 0.5
     }
     if (frameName === "SAMURAI" && weapon.name === "Orotiagito") {
@@ -517,7 +1149,7 @@ function getSetEffectAtp(weapon, frameName, barrierName) {
 
 function getSetEffectAta(weapon, frameName, barrierName, unitName) {
     let ataBonus = 0;
-    if (barrierName === "SAFETY_HEART" && weapon.name === "Rambling May") {
+    if (barrierName === "Safety Heart" && weapon.name === "Rambling May") {
         ataBonus += 30;
     }
     if (frameName === "THIRTEEN" && weapon.name === "Diska of Braveman") {
@@ -529,17 +1161,77 @@ function getSetEffectAta(weapon, frameName, barrierName, unitName) {
     if (frameName === "SAMURAI" && weapon.name === "Orotiagito") {
         ataBonus += 20
     }
-    if (unitName === "POSS" && possWeapons.includes(weapon.name)) {
+    if (unitName === "POSS1" && possWeapons.includes(weapon.name)) {
         ataBonus += 30
     }
-    if (unitName === "2POSS" && possWeapons.includes(weapon.name)) {
+    if (unitName === "POSS2" && possWeapons.includes(weapon.name)) {
         ataBonus += 60
     }
-    if (unitName === "3POSS" && possWeapons.includes(weapon.name)) {
+    if (unitName === "POSS3" && possWeapons.includes(weapon.name)) {
         ataBonus += 90
     }
-    if (unitName === "4POSS" && possWeapons.includes(weapon.name)) {
+    if (unitName === "POSS4" && possWeapons.includes(weapon.name)) {
         ataBonus += 120
     }
     return ataBonus;
+}
+
+function updateTotalFrames() {
+    const selectedWeapon = $('#weapon-select').val();
+    const animation = weapons[selectedWeapon].animation;
+    const attack1 = $('#attack1').val();
+    const attack2 = $('#attack2').val();
+    const attack3 = $('#attack3').val();
+    let className = $('#class-select').val();
+    const classAnimation = classStats[className].animation;
+    let animationFrameData = null;
+    let animationSource = ""
+    if (!!classSpecificFrameData[className]) {
+        animationFrameData = classSpecificFrameData[className][animation];
+        animationSource = " (class specific animation)";
+    }
+
+    if (!animationFrameData && classAnimation === "female") {
+        animationFrameData = femaleFrameData[animation];
+        animationSource = " (female animation)";
+    }
+    if (!animationFrameData) {
+        animationFrameData = frameData[animation];
+        animationSource = " (base animation)";
+    }
+    let totalFrames = 0
+    if (attack1 === "NORMAL") {
+        if (attack2 === "NONE" && attack3 === "NONE") {
+            totalFrames = animationFrameData.n1;
+        } else {
+            totalFrames = animationFrameData.n1c;
+        }
+    } else if ((attack1 === "HEAVY" || attack1 === "SPECIAL")) {
+        if (attack2 === "NONE" && attack3 === "NONE") {
+            totalFrames = animationFrameData.h1;
+        } else {
+            totalFrames = animationFrameData.h1c;
+        }
+    }
+    if (attack2 === "NORMAL") {
+        if (attack3 === "NONE") {
+            totalFrames += animationFrameData.n2;
+        } else {
+            totalFrames += animationFrameData.n2c;
+        }
+    } else if ((attack2 === "HEAVY" || attack2 === "SPECIAL")) {
+        if (attack3 === "NONE") {
+            totalFrames += animationFrameData.h2;
+        } else {
+            totalFrames += animationFrameData.h2c;
+        }
+    }
+
+    if (attack3 === "NORMAL") {
+        totalFrames += animationFrameData.n3;
+    } else if ((attack3 === "HEAVY" || attack3 === "SPECIAL")) {
+        totalFrames += animationFrameData.h3;
+    }
+
+    $('#total-frames').text("Total Frames: " + totalFrames + animationSource)
 }

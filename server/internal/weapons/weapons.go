@@ -45,45 +45,6 @@ func GetClasses() []PsoClass {
 	}
 }
 
-type FrameData struct {
-	N1  int
-	N1c int
-	N2  int
-	N2c int
-	N3  int
-	H1  int
-	H1c int
-	H2  int
-	H2c int
-	H3  int
-}
-
-func GetClassFrameData() map[string]FrameData {
-	return map[string]FrameData{
-		"Saber":         {N1: 29, N1c: 13, N2: 24, N2c: 10, N3: 31, H1: 37, H1c: 21, H2: 29, H2c: 15, H3: 34},
-		"Sword":         {N1: 39, N1c: 17, N2: 31, N2c: 15, N3: 43, H1: 46, H1c: 24, H2: 35, H2c: 19, H3: 43},
-		"Dagger":       {N1: 40, N1c: 21, N2: 30, N2c: 15, N3: 50, H1: 46, H1c: 27, H2: 35, H2c: 20, H3: 49},
-		"Partisan":     {N1: 39, N1c: 17, N2: 30, N2c: 14, N3: 33, H1: 46, H1c: 24, H2: 35, H2c: 19, H3: 35},
-		"Slicer":       {N1: 40, N1c: 21, N2: 32, N2c: 12, N3: 42, H1: 47, H1c: 28, H2: 37, H2c: 17, H3: 43},
-		"Double Saber": {N1: 39, N1c: 22, N2: 27, N2c: 11, N3: 51, H1: 46, H1c: 29, H2: 32, H2c: 16, H3: 49},
-		"Claw":         {N1: 27, N1c: 16, N2: 22, N2c: 11, N3: 37, H1: 35, H1c: 24, H2: 27, H2c: 16, H3: 39},
-		"Katana":       {N1: 30, N1c: 14, N2: 29, N2c: 15, N3: 44, H1: 38, H1c: 22, H2: 33, H2c: 19, H3: 44},
-		"Twin Sword":   {N1: 37, N1c: 18, N2: 34, N2c: 19, N3: 51, H1: 44, H1c: 25, H2: 37, H2c: 22, H3: 49},
-		"Fist":         {N1: 26, N1c: 19, N2: 26, N2c: 19, N3: 35, H1: 33, H1c: 26, H2: 29, H2c: 22, H3: 36},
-		"Master Raven":  {N1: 26, H1: 36},
-		"L&K38 Combat":  {N1: 46, H1: 55},
-		"Handgun":      {N1: 27, N1c: 14, N2: 25, N2c: 11, N3: 19, H1: 34, H1c: 22, H2: 30, H2c: 16, H3: 25},
-		"Rifle":        {N1: 29, N1c: 15, N2: 25, N2c: 12, N3: 20, H1: 37, H1c: 23, H2: 30, H2c: 17, H3: 26},
-		"Mechgun":      {N1: 49, N1c: 12, N2: 45, N2c: 10, N3: 42, H1: 58, H1c: 21, H2: 50, H2c: 15, H3: 48},
-		"Shot":         {N1: 50, N1c: 25, N2: 43, N2c: 21, N3: 34, H1: 56, H1c: 31, H2: 46, H2c: 24, H3: 38},
-		"Launcher":     {N1: 46, N1c: 21, N2: 41, N2c: 19, N3: 36, H1: 52, H1c: 27, H2: 44, H2c: 22, H3: 39},
-		"Cane":         {N1: 29, N1c: 13, N2: 27, N2c: 13, N3: 39, H1: 37, H1c: 21, H2: 32, H2c: 18, H3: 40},
-		"Rod":          {N1: 29, N1c: 14, N2: 27, N2c: 14, N3: 40, H1: 37, H1c: 22, H2: 32, H2c: 19, H3: 41},
-		"Wand":         {N1: 30, N1c: 14, N2: 29, N2c: 15, N3: 40, H1: 37, H1c: 21, H2: 33, H2c: 19, H3: 41},
-		"Card":         {N1: 33, N1c: 18, N2: 30, N2c: 17, N3: 47, H1: 40, H1c: 25, H2: 34, H2c: 21, H3: 47},
-	}
-}
-
 func GetWeapons() []Weapon {
 	return []Weapon{
 		{Name: "Unarmed", MinAtp: 0, MaxAtp: 0, Ata: 0, Grind: 0, MaxHit: 0, MaxAttr: 0, Animation: "Fist", Special: ""},

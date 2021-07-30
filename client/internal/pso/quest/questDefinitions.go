@@ -83,7 +83,7 @@ func getAllQuests() []Quest {
 		// Rappy's Holiday
 		// RFR
 		// Soul of Steel
-		// FF
+		{Episode: 1, Name: "Forsaken Friends", Start: warpIn(), End: register(99)},
 		// DR2.0
 		// TMBTP
 
