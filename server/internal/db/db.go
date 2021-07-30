@@ -355,7 +355,10 @@ func GetPlayerRecentGames(player string, dynamoClient *dynamodb.DynamoDB, limit 
 		games = append(games, oldGames...)
 	}
 	sort.Slice(games, func(i, j int) bool { return games[i].Timestamp.After(games[j].Timestamp) })
-	return games[0:limit], err
+	if len(games) > int(limit) {
+		games = games[0:limit]
+	}
+	return games, err
 }
 
 func GetPlayerRecentGamesOld(player string, dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
