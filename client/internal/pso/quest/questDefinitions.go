@@ -241,7 +241,15 @@ func getAllQuests() []Quest {
 		{Episode: 2, Name: "Sweep-up Operation #5", Start: register(210), End: register(254)},
 		{Episode: 2, Name: "Sweep-up Operation #6", Start: register(210), End: register(254)},
 		{Episode: 2, Name: "Sweep-up Operation #7", Start: register(210), End: register(254)},
-		{Episode: 2, Name: "Sweep-up Operation #8", Start: register(210), End: register(254)},
+		{Episode: 2, Name: "Sweep-up Operation #8", Start: register(210), End: register(254), Splits: []Split{
+			{Name: "First Rooms", Trigger: floorSwitch(10, 27)},
+			{Name: "Delbiters", Trigger: floorSwitch(10, 23)},
+			{Name: "Morfos Room", Trigger: floorSwitch(10, 34)},
+			{Name: "Delbiters+", Trigger: floorSwitch(10, 36)},
+			{Name: "Reco Room", Trigger: floorSwitch(10, 38)},
+			{Name: "Small Rooms", Trigger: floorSwitch(10, 6)},
+			{Name: "Final Room", Trigger: floorSwitch(10, 13)},
+		}},
 		{Episode: 2, Name: "Sweep-up Operation #9", Start: register(210), End: register(254), Splits: []Split{
 			{Name: "10f & 9f", Trigger: floorSwitch(17, 9)},
 			{Name: "8f", Trigger: floorSwitch(17, 8)},

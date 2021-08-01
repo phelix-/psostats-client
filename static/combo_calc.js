@@ -799,7 +799,7 @@ const frames = {
     THIRTEEN: {atp: 0, ata: 0},
     D_PARTS101: {atp: 35, ata: 0},
     SAMURAI: {atp: 0, ata: 0},
-    CRIMSON: {atp: 0, ata: 0},
+    CRIMSON_COAT: {atp: 0, ata: 0},
     SWEETHEART1: {atp: 0, ata: 0},
     SWEETHEART2: {atp: 0, ata: 0},
     SWEETHEART3: {atp: 0, ata: 0},
@@ -1129,7 +1129,9 @@ function getSetEffectAtp(weapon, frameName, barrierName) {
     if (frameName === "THIRTEEN" && weapon.name === "Diska of Braveman") {
         atpBonus += (weapon.minAtp + (2 * weapon.grind)) * 0.5
     }
-    if (frameName === "CRIMSON_COAT" && weapon.name === "Red Slicer") {
+    if (frameName === "CRIMSON_COAT" && (
+        weapon.name === "Red Slicer" || weapon.name === "Red Dagger" || weapon.name === "Red Saber"
+    )) {
         atpBonus += (weapon.minAtp + (2 * weapon.grind)) * 0.5
     }
     if (frameName === "SAMURAI" && weapon.name === "Orotiagito") {
