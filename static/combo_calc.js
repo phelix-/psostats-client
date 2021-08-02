@@ -518,10 +518,11 @@ const weapons = {
         special: "Berserk"
     },
 
-    "Laser": {name: "Laser", minAtp: 200, maxAtp: 210, ata: 50, grind: 25},
-    "Spread Needle": {name: "Spread Needle", minAtp: 1, maxAtp: 110, ata: 40, grind: 40, special: "Seize"},
+    "Laser": {name: "Laser", animation: "Rifle", minAtp: 200, maxAtp: 210, ata: 50, grind: 25},
+    "Spread Needle": {name: "Spread Needle", animation: "Rifle", minAtp: 1, maxAtp: 110, ata: 40, grind: 40, special: "Seize"},
     "Bringer's Rifle": {
         name: "Bringer's Rifle",
+        animation: "Rifle",
         minAtp: 330,
         maxAtp: 370,
         ata: 63,
@@ -529,18 +530,19 @@ const weapons = {
         special: "Demon's",
         maxHit: 50
     },
-    "Frozen Shooter": {name: "Frozen Shooter", minAtp: 240, maxAtp: 250, ata: 60, grind: 9, special: "Lavis"},
+    "Frozen Shooter": {name: "Frozen Shooter", animation: "Rifle", minAtp: 240, maxAtp: 250, ata: 60, grind: 9, special: "Lavis"},
     "Snow Queen": {
         name: "Snow Queen",
+        animation: "Rifle",
         minAtp: 330,
         maxAtp: 350,
         ata: 60,
         grind: 18,
         combo: {"attack2": "NONE", "attack3": "NONE"}, special: "Lavis"
     },
-    "Holy Ray": {name: "Holy Ray", minAtp: 290, maxAtp: 300, ata: 70, grind: 40, special: "Arrest"},
+    "Holy Ray": {name: "Holy Ray", animation: "Rifle", minAtp: 290, maxAtp: 300, ata: 70, grind: 40, special: "Arrest"},
     "ES Rifle": {
-        name: "ES Rifle", minAtp: 10, maxAtp: 10, ata: 60, grind: 220, maxHit: 0, maxAttr: 0,
+        name: "ES Rifle", animation: "Rifle", minAtp: 10, maxAtp: 10, ata: 60, grind: 220, maxHit: 0, maxAttr: 0,
     },
     "ES Needle": {
         name: "ES Needle", minAtp: 10, maxAtp: 10, ata: 40, grind: 70, maxHit: 0, maxAttr: 0,
@@ -548,6 +550,7 @@ const weapons = {
 
     "Mechgun": {
         name: "Mechgun",
+        animation: "Mechgun",
         minAtp: 2,
         maxAtp: 4,
         ata: 0,
@@ -556,6 +559,7 @@ const weapons = {
     },
     "Assault": {
         name: "Assault",
+        animation: "Mechgun",
         minAtp: 5,
         maxAtp: 8,
         ata: 3,
@@ -564,6 +568,7 @@ const weapons = {
     },
     "Repeater": {
         name: "Repeater",
+        animation: "Mechgun",
         minAtp: 5,
         maxAtp: 12,
         ata: 6,
@@ -572,6 +577,7 @@ const weapons = {
     },
     "Gatling": {
         name: "Gatling",
+        animation: "Mechgun",
         minAtp: 5,
         maxAtp: 16,
         ata: 9,
@@ -580,6 +586,7 @@ const weapons = {
     },
     "Vulcan": {
         name: "Vulcan",
+        animation: "Mechgun",
         minAtp: 5,
         maxAtp: 20,
         ata: 12,
@@ -588,6 +595,7 @@ const weapons = {
     },
     "Rocket Punch": {
         name: "Rocket Punch",
+        animation: "Mechgun",
         minAtp: 50,
         maxAtp: 300,
         ata: 10,
@@ -596,6 +604,7 @@ const weapons = {
     },
     "M&A60 Vise": {
         name: "M&A60 Vise",
+        animation: "Mechgun",
         minAtp: 15,
         maxAtp: 25,
         ata: 15,
@@ -604,6 +613,7 @@ const weapons = {
     },
     "Red Mechgun": {
         name: "Red Mechgun",
+        animation: "Mechgun",
         minAtp: 50,
         maxAtp: 50,
         ata: 25,
@@ -612,6 +622,7 @@ const weapons = {
     },
     "Yasminkov 9000M": {
         name: "Yasminkov 9000M",
+        animation: "Mechgun",
         minAtp: 40,
         maxAtp: 80,
         ata: 27,
@@ -620,6 +631,7 @@ const weapons = {
     },
     "Rage de Feu": {
         name: "Rage de Feu",
+        animation: "Mechgun",
         minAtp: 175,
         maxAtp: 185,
         ata: 40,
@@ -628,6 +640,7 @@ const weapons = {
     },
     "Guld Milla": {
         name: "Guld Milla",
+        animation: "Mechgun",
         minAtp: 180,
         maxAtp: 200,
         ata: 30,
@@ -636,6 +649,7 @@ const weapons = {
     },
     "Mille Marteaux": {
         name: "Mille Marteaux",
+        animation: "Mechgun",
         minAtp: 200,
         maxAtp: 220,
         ata: 45,
@@ -644,6 +658,7 @@ const weapons = {
     },
     "Dual Bird": {
         name: "Dual Bird",
+        animation: "Mechgun",
         minAtp: 200,
         maxAtp: 210,
         ata: 22,
@@ -653,6 +668,7 @@ const weapons = {
     },
     "TypeME/Mechgun": {
         name: "TypeME/Mechgun",
+        animation: "Mechgun",
         minAtp: 10,
         maxAtp: 10,
         ata: 20,
@@ -661,6 +677,7 @@ const weapons = {
     },
     "ES Mechgun": {
         name: "ES Mechgun",
+        animation: "Mechgun",
         minAtp: 10,
         maxAtp: 10,
         ata: 20,
@@ -669,10 +686,11 @@ const weapons = {
         combo: {"attack1Hits": 3, "attack2Hits": 3, "attack3Hits": 3}
     },
     "ES Psychogun": {
-        name: "ES Psychogun", minAtp: 10, maxAtp: 10, ata: 20, grind: 50, maxHit: 0, maxAttr: 0,
+        name: "ES Psychogun", animation: "Mechgun", minAtp: 10, maxAtp: 10, ata: 20, grind: 50, maxHit: 0, maxAttr: 0,
     },
     "ES Punch": {
         name: "ES Punch",
+        animation: "Mechgun",
         minAtp: 10,
         maxAtp: 10,
         ata: 40,
@@ -733,6 +751,7 @@ const weapons = {
 
     "Cannon Rouge": {
         name: "Cannon Rouge",
+        animation: "Launcher",
         minAtp: 600,
         maxAtp: 750,
         ata: 45,
@@ -742,6 +761,7 @@ const weapons = {
 
     "Gal Wind": {
         name: "Gal Wind",
+        animation: "Card",
         minAtp: 270,
         maxAtp: 310,
         ata: 40,
@@ -751,6 +771,7 @@ const weapons = {
     },
     "Guardianna": {
         name: "Guardianna",
+        animation: "Card",
         minAtp: 200,
         maxAtp: 280,
         ata: 40,
@@ -759,6 +780,7 @@ const weapons = {
     },
     "ES Cards": {
         name: "ES Cards",
+        animation: "Card",
         minAtp: 10,
         maxAtp: 10,
         ata: 45,
