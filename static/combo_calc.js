@@ -548,7 +548,7 @@ const weapons = {
         name: "ES Rifle", animation: "Rifle", minAtp: 10, maxAtp: 10, ata: 60, grind: 220, maxHit: 0, maxAttr: 0,
     },
     "ES Needle": {
-        name: "ES Needle", minAtp: 10, maxAtp: 10, ata: 40, grind: 70, maxHit: 0, maxAttr: 0,
+        name: "ES Needle", animation: "Rifle", minAtp: 10, maxAtp: 10, ata: 40, grind: 70, maxHit: 0, maxAttr: 0,
     },
 
     "Mechgun": {
