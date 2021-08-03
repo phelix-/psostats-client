@@ -5,10 +5,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/gizak/termui/v3/widgets"
+	"io/fs"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"syscall"
 	"time"
 
 	"github.com/hishboy/gocommons/lang"
@@ -42,7 +45,15 @@ func New(clientInfo model.ClientInfo) (*Client, error) {
 	}
 	completeGameChannel := make(chan pso.QuestRun)
 	pso := pso.New(completeGameChannel)
-	clientConfig := config.ReadFromFile("./config.yaml")
+	clientConfig, err := config.ReadFromFile("./config.yaml")
+	if err != nil {
+		if pathErr, ok := err.(*fs.PathError); ok && pathErr.Err == syscall.ERROR_FILE_NOT_FOUND {
+			showMissingConfigUi(ui)
+			log.Fatalf("Missing config file, shutting down")
+		} else {
+			log.Fatalf("Unable to start client %v", err)
+		}
+	}
 
 	return &Client{
 		pso:           pso,
@@ -103,6 +114,26 @@ func (c *Client) Run() error {
 		case err := <-c.errChan:
 			close(c.done)
 			return fmt.Errorf("run: error returned on error channel %w", err)
+		}
+	}
+}
+
+func showMissingConfigUi(cui *consoleui.ConsoleUI) {
+	width, _ := termui.TerminalDimensions()
+	cui.DrawLogo(width)
+	paragraph := widgets.NewParagraph()
+	paragraph.Text = "Config file missing. Press any key to quit"
+	offset := (width - 44) / 2
+	paragraph.SetRect(offset, 10, offset + 48, 13)
+	paragraph.Border = false
+	termui.Render(paragraph)
+	uiEvents := termui.PollEvents()
+	for {
+		select {
+		case e := <- uiEvents:
+			if e.Type == termui.KeyboardEvent {
+				return
+			}
 		}
 	}
 }

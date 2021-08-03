@@ -43,18 +43,18 @@ func (config *Config) GetServerBaseUrl() string {
 	}
 }
 
-func ReadFromFile(fileLocation string) *Config {
+func ReadFromFile(fileLocation string) (*Config, error) {
 	config := Config{}
 	data, err := ioutil.ReadFile(fileLocation)
 	if err != nil {
-		log.Fatalf("Error reading configuration file %v", err)
+		return nil, err
 	}
 
 	err = yaml.Unmarshal(data, &config)
 	if err != nil {
-		log.Fatalf("Error parsing config file %v", err)
+		return nil, err
 	}
-	return &config
+	return &config, nil
 }
 
 func (config *Config) AutoUploadEnabled() bool {

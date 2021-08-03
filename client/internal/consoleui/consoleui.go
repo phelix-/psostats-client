@@ -56,6 +56,7 @@ func (cui *ConsoleUI) ClearScreen() {
 	ui.Clear()
 	cui.termWidth = 0
 }
+
 func (cui *ConsoleUI) DrawScreen(
 	playerData *player.BasePlayerInfo,
 	gameState *pso.GameState,
@@ -71,7 +72,7 @@ func (cui *ConsoleUI) DrawScreen(
 		}
 		cui.termWidth = termWidth
 	}
-	cui.drawLogo(termWidth)
+	cui.DrawLogo(termWidth)
 	cui.drawMotd(termWidth)
 	cui.drawConnection(termWidth)
 	cui.drawRecording(gameState, termWidth)
@@ -91,7 +92,7 @@ func (cui *ConsoleUI) SetConnectionStatus(connected bool, statusString string) {
 	cui.data.Status = statusString
 }
 
-func (cui *ConsoleUI) drawLogo(width int) {
+func (cui *ConsoleUI) DrawLogo(width int) {
 	logo := widgets.NewParagraph()
 	logo1 := ` ▄▄▄·.▄▄ ·       .▄▄ · ▄▄▄▄▄ ▄▄▄· ▄▄▄▄▄.▄▄ · 
 ▐█ ▄█▐█ ▀. ▪     ▐█ ▀. •██  ▐█ ▀█ •██  ▐█ ▀. 
