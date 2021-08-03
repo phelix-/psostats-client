@@ -1,5 +1,8 @@
 'use strict';
 
+let sortColumn = "";
+let sortAscending = null;
+
 const weapons = {
     "Unarmed": {
         name: "Unarmed",
@@ -1015,48 +1018,67 @@ function createMonsterRow(enemy, evpModifier, base_ata, snGlitch, atpInput, comb
     let a3Damage = getDamageModifierForAttackType(a3Type, special) * damageToUse;
 
     let comboDamage = (a1Damage * comboInput.a1Hits) + (a2Damage * comboInput.a2Hits) + (a3Damage * comboInput.a3Hits);
-    let comboKill = comboDamage > enemy.hp;
     let percentDamage = 100 * (comboDamage / enemy.hp);
     if (percentDamage > 100) {
         percentDamage = 100;
     }
 
+    return {
+        name: enemy.name,
+        hp: enemy.hp,
+        percentDamage: percentDamage,
+        comboDamage: comboDamage,
+        overallAccuracy: overallAccuracy,
+        a1Damage: a1Damage,
+        a1Type: a1Type,
+        a1Accuracy: a1Accuracy,
+        a2Type: a2Type,
+        a2Damage: a2Damage,
+        a2Accuracy: a2Accuracy,
+        a3Type: a3Type,
+        a3Damage: a3Damage,
+        a3Accuracy: a3Accuracy,
+    }
+}
+
+function appendMosterRow(rowEntry) {
+    let comboKill = rowEntry.comboDamage > rowEntry.hp;
     let damageBgColor = comboKill ? 'rgb(61,73,61)' : 'rgb(73,73,61)';
 
     return $('<tr/>')
         .append($('<th/>', {
             'colspan': 2,
             'data-label': 'monster',
-            'text': enemy.name
+            'text': rowEntry.name
         }))
         .append($('<td/>', {
             'style': 'padding: 0'
         }).append($('<div>', {
             'style': 'background: rgba(255,150,150,0.1)'
         }).append($('<div>', {
-            'style': 'background: ' + damageBgColor + '; padding: 0.78571429em 0.78571429em; width: ' + percentDamage + '%',
-            'text': comboDamage.toFixed(0),
-            'title': comboDamage.toFixed(0) + '/' + enemy.hp
+            'style': 'background: ' + damageBgColor + '; padding: 0.78571429em 0.78571429em; width: ' + rowEntry.percentDamage + '%',
+            'text': rowEntry.comboDamage.toFixed(0),
+            'title': rowEntry.comboDamage.toFixed(0) + '/' + rowEntry.hp
         }))))
         .append($('<td/>', {
             'data-label': 'accuracy',
-            'text': overallAccuracy.toFixed(2) + '%',
-            'style': overallAccuracy >= 100.0 ? 'background: rgba(150,255,150,0.1)' : 'background: rgba(255,150,150,0.1)'
+            'text': rowEntry.overallAccuracy.toFixed(2) + '%',
+            'style': rowEntry.overallAccuracy >= 100.0 ? 'background: rgba(150,255,150,0.1)' : 'background: rgba(255,150,150,0.1)'
         }))
         .append($('<td/>', {
             'data-label': 'a1-accuracy',
-            'text': a1Damage.toFixed(0) + ' (' + a1Accuracy.toFixed(0) + '%)',
-            'style': a1Type === 'NONE' ? 'color: rgba(255,255,255,0.3)' : 'color: rgba(255,255,255,0.9)'
+            'text': rowEntry.a1Damage.toFixed(0) + ' (' + rowEntry.a1Accuracy.toFixed(0) + '%)',
+            'style': rowEntry.a1Type === 'NONE' ? 'color: rgba(255,255,255,0.3)' : 'color: rgba(255,255,255,0.9)'
         }))
         .append($('<td/>', {
             'data-label': 'a2-accuracy',
-            'text': a2Damage.toFixed(0) + ' (' + a2Accuracy.toFixed(0) + '%)',
-            'style': a2Type === 'NONE' ? 'color: rgba(255,255,255,0.3)' : 'color: rgba(255,255,255,0.9)'
+            'text': rowEntry.a2Damage.toFixed(0) + ' (' + rowEntry.a2Accuracy.toFixed(0) + '%)',
+            'style': rowEntry.a2Type === 'NONE' ? 'color: rgba(255,255,255,0.3)' : 'color: rgba(255,255,255,0.9)'
         }))
         .append($('<td/>', {
             'data-label': 'a3-accuracy',
-            'text': a3Damage.toFixed(0) + ' (' + a3Accuracy.toFixed(0) + '%)',
-            'style': a3Type === 'NONE' ? 'color: rgba(255,255,255,0.3)' : 'color: rgba(255,255,255,0.9)'
+            'text': rowEntry.a3Damage.toFixed(0) + ' (' + rowEntry.a3Accuracy.toFixed(0) + '%)',
+            'style': rowEntry.a3Type === 'NONE' ? 'color: rgba(255,255,255,0.3)' : 'color: rgba(255,255,255,0.9)'
         }));
 }
 
@@ -1112,6 +1134,22 @@ function calculateAccuracy(baseAta, attackType, special, comboModifier, totalEvp
     return accuracy;
 }
 
+function pushSort(colName) {
+    if (colName === sortColumn) {
+        if (sortAscending === null) {
+            sortAscending = true;
+        } else if (sortAscending === true) {
+            sortAscending = false;
+        } else {
+            sortAscending = null;
+        }
+    } else {
+        sortColumn = colName;
+        sortAscending = true;
+    }
+    updateDamageTable();
+}
+
 function updateDamageTable() {
     let frozen = $('#frozenCheckbox').is(":checked");
     let paralyzed = $('#paralyzedCheckbox').is(":checked");
@@ -1139,10 +1177,40 @@ function updateDamageTable() {
     var tbody = $('#combo-calc-table tbody');
     tbody.empty();
     const selectedEnemies = $('#enemy-select').val();
+    let rows = [];
     for (let index in selectedEnemies) {
         var enemy = enemies[selectedEnemies[index]];
         var row = createMonsterRow(enemy, evpModifier, base_ata, snGlitch, atpInput, comboInput)
-        tbody.append(row)
+        rows.push(row);
+    }
+
+    rows.sort((a, b) => {
+        if (sortAscending === null) {
+            return 0;
+        }
+        if (sortColumn === "name") {
+            if (sortAscending === true) {
+                return a.name.localeCompare(b.name);
+            } else {
+                return b.name.localeCompare(a.name);
+            }
+        } else if (sortColumn === "damage") {
+            if (sortAscending === true) {
+                return a.percentDamage - b.percentDamage;
+            } else {
+                return b.percentDamage - a.percentDamage;
+            }
+        } else if (sortColumn === "accuracy") {
+            if (sortAscending === true) {
+                return a.overallAccuracy - b.overallAccuracy;
+            } else {
+                return b.overallAccuracy - a.overallAccuracy;
+            }
+        }
+    })
+
+    for (let index in rows) {
+        tbody.append(appendMosterRow(rows[index]))
     }
 }
 
@@ -1179,7 +1247,9 @@ function getSetEffectAta(weapon, frameName, barrierName, unitName) {
     if (frameName === "THIRTEEN" && weapon.name === "Diska of Braveman") {
         ataBonus += 30
     }
-    if (frameName === "CRIMSON" && weapon.name === "Red Slicer") {
+    if (frameName === "CRIMSON_COAT" && (
+        weapon.name === "Red Slicer" || weapon.name === "Red Dagger" || weapon.name === "Red Saber"
+    )) {
         ataBonus += 22
     }
     if (frameName === "SAMURAI" && weapon.name === "Orotiagito") {

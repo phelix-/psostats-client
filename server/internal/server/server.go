@@ -73,7 +73,8 @@ func (s *Server) Run() {
 	s.app.Get("/info", s.InfoPage)
 	s.app.Get("/download", s.DownloadPage)
 	s.app.Get("/records", s.RecordsV2Page)
-	s.app.Get("/combo-calculator", s.ComboCalcPage)
+	s.app.Get("/combo-calculator", s.ComboCalcMultiPage)
+	s.app.Get("/combo-calculator/opm", s.ComboCalcOpmPage)
 	s.app.Get("/players/:player", s.PlayerV2Page)
 	// API
 	s.app.Post("/api/game", s.PostGame)
@@ -141,10 +142,24 @@ func (s *Server) InfoPage(c *fiber.Ctx) error {
 	return err
 }
 
-func (s *Server) ComboCalcPage(c *fiber.Ctx) error {
+func (s *Server) ComboCalcOpmPage(c *fiber.Ctx) error {
+	return s.comboCalcPage(true, c)
+}
 
+func (s *Server) ComboCalcMultiPage(c *fiber.Ctx) error {
+	return s.comboCalcPage(false, c)
+}
+
+func (s *Server) comboCalcPage(opm bool, c *fiber.Ctx) error {
 	sortedEnemies := make(map[string][]enemies.Enemy)
-	for _, enemy := range enemies.GetEnemiesUltMulti() {
+
+	var allEnemies []enemies.Enemy
+	if opm {
+		allEnemies = enemies.GetEnemiesUltOpm()
+	} else {
+		allEnemies = enemies.GetEnemiesUltMulti()
+	}
+	for _, enemy := range allEnemies {
 		enemiesInArea := sortedEnemies[enemy.Location]
 		if enemiesInArea == nil {
 			enemiesInArea = make([]enemies.Enemy, 0)
@@ -153,15 +168,20 @@ func (s *Server) ComboCalcPage(c *fiber.Ctx) error {
 		sortedEnemies[enemy.Location] = enemiesInArea
 	}
 	infoModel := struct {
+		Opm     bool
 		Classes []weapons.PsoClass
 		Enemies map[string][]enemies.Enemy
 		Weapons []weapons.Weapon
 	}{
+		Opm:     opm,
 		Classes: weapons.GetClasses(),
 		Enemies: sortedEnemies,
 		Weapons: weapons.GetWeapons(),
 	}
-	err := s.comboCalcTemplate.ExecuteTemplate(c.Response().BodyWriter(), "combo-calc", infoModel)
+	t := ensureParsed("./server/internal/templates/comboCalc.gohtml")
+	//err := s.comboCalcTemplate.ExecuteTemplate(c.Response().BodyWriter(), "combo-calc", infoModel)
+	err := t.ExecuteTemplate(c.Response().BodyWriter(), "combo-calc", infoModel)
+
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
 }

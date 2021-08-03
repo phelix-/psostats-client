@@ -3,7 +3,7 @@
     <head>
         <meta name="viewport" content="width=device-width">
         <meta property="og:site_name" content="PSOStats"/>
-        <meta property="og:title" content="Combo Calculator"/>
+        <meta property="og:title" content="Combo Calculator - {{ if .Opm }}OPM{{ else }}Multi{{ end }}"/>
         <title>Combo Calculator - PSOStats</title>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
         <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
@@ -53,6 +53,9 @@
         .form-check-label {
 
             color: #ccc;
+        }
+        .sortable {
+            cursor: pointer;
         }
         .form-control {
             color: #ddd;
@@ -145,7 +148,8 @@
         </div>
         <div class="row">
             <div class="col">
-                <h1>Combo Calculator</h1>
+                <h1>Combo Calculator {{ if .Opm }}OPM{{ else }}Multiplayer{{ end }}</h1>
+                {{ if .Opm }}<a href="/combo-calculator">Switch to Multiplayer</a>{{ else }}<a href="/combo-calculator/opm">Switch to OPM</a>{{ end }}
             </div>
         </div>
         <div class="row psostats-content">
@@ -436,9 +440,9 @@
             <table class="table table-dark table-bordered table-responsive-md" id="combo-calc-table">
                 <thead>
                 <tr>
-                    <th scope="col" colspan="2"><div style="width: 175px">Monster</div></th>
-                    <th scope="col" >Damage</th>
-                    <th scope="col" >Accuracy</th>
+                    <th scope="col" class="sortable" id="monsters-header" colspan="2"><div style="width: 175px">Monster</div></th>
+                    <th scope="col" class="sortable" id="damage-header" >Damage</th>
+                    <th scope="col" class="sortable" id="accuracy-header" >Accuracy</th>
                     <th scope="col" ><div style="width: 88px; ">Attack 1</div></th>
                     <th scope="col" ><div style="width: 88px; ">Attack 2</div></th>
                     <th scope="col" ><div style="width: 88px; ">Attack 3</div></th>
@@ -607,6 +611,43 @@
             const bonusAtp = getSetEffectAtp(weapon, selectedFrame, selectedBarrier)
             $('#maxAtpInput').val(weapon.maxAtp + (2 * weapon.grind) + frames[selectedFrame].atp + barriers[selectedBarrier].atp + bonusAtp)
         }
+
+        $('#monsters-header').click(() => {
+            pushSort("name");
+            if (sortAscending === null) {
+                $('#monsters-header div').text("Monster")
+            } else if (sortAscending) {
+                $('#monsters-header div').text("Monster ▲")
+            } else {
+                $('#monsters-header div').text("Monster ▼")
+            }
+            $('#damage-header').text("Damage")
+            $('#accuracy-header').text("Accuracy")
+        });
+        $('#damage-header').click(() => {
+            pushSort("damage");
+            if (sortAscending === null) {
+                $('#damage-header').text("Damage")
+            } else if (sortAscending) {
+                $('#damage-header').text("Damage ▲")
+            } else {
+                $('#damage-header').text("Damage ▼")
+            }
+            $('#monsters-header div').text("Monster")
+            $('#accuracy-header').text("Accuracy")
+        });
+        $('#accuracy-header').click(() => {
+            pushSort("accuracy");
+            if (sortAscending === null) {
+                $('#accuracy-header').text("Accuracy")
+            } else if (sortAscending) {
+                $('#accuracy-header').text("Accuracy ▲")
+            } else {
+                $('#accuracy-header').text("Accuracy ▼")
+            }
+            $('#monsters-header div').text("Monster")
+            $('#damage-header').text("Damage")
+        });
 
 
     </script>
