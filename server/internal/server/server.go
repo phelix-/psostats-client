@@ -44,7 +44,9 @@ type Server struct {
 	playerTemplate       *template.Template
 	gameNotFoundTemplate *template.Template
 	recordsTemplate      *template.Template
+	anniversaryTemplate *template.Template
 	comboCalcTemplate    *template.Template
+	anniversaryQuests    map[string]struct{}
 }
 
 func New(dynamo *dynamodb.DynamoDB) *Server {
@@ -61,6 +63,19 @@ func New(dynamo *dynamodb.DynamoDB) *Server {
 		recentGamesCount: 0,
 		recentGamesSize:  cacheSize,
 		webhookUrl:       webhookUrl,
+		anniversaryQuests: map[string]struct{}{
+			"Maximum Attack E: Forest": {},
+			"Maximum Attack E: Caves":  {},
+			"Maximum Attack E: Mines":  {},
+			"Maximum Attack E: Ruins":  {},
+			"Maximum Attack E: Temple": {},
+			"Maximum Attack E: Space":  {},
+			"Maximum Attack E: CCA":    {},
+			"Maximum Attack E: Seabed": {},
+			"Maximum Attack E: Tower":  {},
+			"Maximum Attack E: Crater": {},
+			"Maximum Attack E: Desert": {},
+		},
 	}
 }
 
@@ -73,6 +88,7 @@ func (s *Server) Run() {
 	s.app.Get("/info", s.InfoPage)
 	s.app.Get("/download", s.DownloadPage)
 	s.app.Get("/records", s.RecordsV2Page)
+	s.app.Get("/anniv2021", s.Anniv2021RecordsPage)
 	s.app.Get("/combo-calculator", s.ComboCalcMultiPage)
 	s.app.Get("/combo-calculator/opm", s.ComboCalcOpmPage)
 	s.app.Get("/players/:player", s.PlayerV2Page)
@@ -87,6 +103,7 @@ func (s *Server) Run() {
 	s.downloadTemplate = ensureParsed("./server/internal/templates/download.gohtml")
 	s.gameNotFoundTemplate = ensureParsed("./server/internal/templates/gameNotFound.gohtml")
 	s.recordsTemplate = ensureParsed("./server/internal/templates/recordsV2.gohtml")
+	s.anniversaryTemplate = ensureParsed("./server/internal/templates/anniv2021.gohtml")
 	s.comboCalcTemplate = ensureParsed("./server/internal/templates/comboCalc.gohtml")
 
 	if certLocation, found := os.LookupEnv("CERT"); found {
@@ -103,7 +120,7 @@ func (s *Server) Run() {
 }
 
 func ensureParsed(templatePath string) *template.Template {
-	t, err := template.ParseFiles(templatePath)
+	t, err := template.ParseFiles("./server/internal/templates/navbar.gohtml", templatePath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -197,7 +214,7 @@ func (s *Server) PlayerV2Page(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	games, err := db.GetQuestRecords(s.dynamoClient)
+	games, err := db.GetQuestRecords(db.QuestRecordsTable, s.dynamoClient)
 	if err != nil {
 		return err
 	}
@@ -555,13 +572,25 @@ func convertToXY(values []int16) map[int]int16 {
 }
 
 func (s *Server) RecordsV2Page(c *fiber.Ctx) error {
-	games, err := db.GetQuestRecords(s.dynamoClient)
+	games, err := db.GetQuestRecords(db.QuestRecordsTable, s.dynamoClient)
 	if err != nil {
 		return err
 	}
 	recordModel := sortGames(games)
 
 	err = s.recordsTemplate.ExecuteTemplate(c.Response().BodyWriter(), "index", recordModel)
+	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
+	return err
+}
+
+func (s *Server) Anniv2021RecordsPage(c *fiber.Ctx) error {
+	games, err := db.GetQuestRecords(db.Anniv2021RecordsTable, s.dynamoClient)
+	if err != nil {
+		return err
+	}
+	recordModel := sortGames(games)
+
+	err = s.anniversaryTemplate.ExecuteTemplate(c.Response().BodyWriter(), "index", recordModel)
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
 }
@@ -664,8 +693,8 @@ func (s *Server) PostMotd(c *fiber.Ctx) error {
 		return err
 	}
 	message := fmt.Sprintf("Logged in as %v, up to date", user)
-	if clientInfo.VersionMajor < 0 || clientInfo.VersionMinor < 9 || clientInfo.VersionPatch < 1 {
-		message = "0.9.1 - Endless EP1, fixed crash! https://psostats.com/download"
+	if clientInfo.VersionMajor < 1 || clientInfo.VersionMinor < 0 || clientInfo.VersionPatch < 0 {
+		message = "1.0.0 - quest support. https://psostats.com/download"
 	}
 	motd := model.MessageOfTheDay{
 		Authorized: authorized,

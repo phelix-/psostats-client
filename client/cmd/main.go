@@ -23,9 +23,9 @@ func main() {
 
 	defer file.Close()
 	version := model.ClientInfo{
-		VersionMajor: 0,
-		VersionMinor: 9,
-		VersionPatch: 1,
+		VersionMajor: 1,
+		VersionMinor: 0,
+		VersionPatch: 0,
 	}
 
 	log.SetOutput(file)

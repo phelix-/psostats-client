@@ -8,30 +8,7 @@
     </head>
     <body>
     <div class="container">
-        <div class="row psostats-nav">
-            <div class="col">
-                <ul class="nav">
-                    <li class="nav-item">
-                        <img src="/static/egotrap.png" height="48" width="48" alt="PSOStats"/>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">Recent</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/records">Records</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/info">Info</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/download">Download</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/combo-calculator">Combo Calculator</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
+        {{ template "navbar" }}
         <div class="row">
             <div class="col">
                 <h1>Categorization</h1>

@@ -109,9 +109,9 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 		} else if matchingGame != nil {
 			if topRun == nil {
 				log.Printf("Matching game but no topRun, almost definitely a bug")
-			} else {
-				record = matchingGame.Id == topRun.Id
-				if err := db.AddPovToRecord(questRun, s.dynamoClient); err != nil {
+			} else if matchingGame.Id == topRun.Id {
+				record = true
+				if err := db.AddPovToRecord(db.QuestRecordsTable, questRun, s.dynamoClient); err != nil {
 					log.Printf("failed to add pov to record")
 				}
 			}
@@ -124,6 +124,7 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 				log.Printf("failed to update leaderboard for game %v - %v", questRun.Id, err)
 			}
 		}
+		s.updateAnniv2020Record(questRun, matchingGame)
 		s.recordsLock.Unlock()
 
 		playerPb, err := db.GetPlayerPB(questRun.QuestName, user, numPlayers, questRun.PbCategory, s.dynamoClient)
@@ -156,6 +157,32 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 	log.Printf("got quest: %v %v, %v, %v, %v",
 		questRun.Id, questRun.QuestName, questRun.PlayerName, questRun.Server, questRun.UserName)
 	return nil
+}
+
+func (s *Server) updateAnniv2020Record(questRun model.QuestRun, matchingGame *model.QuestRun) {
+	_,anniversaryQuest := s.anniversaryQuests[questRun.QuestName]
+	if questRun.PbCategory || !anniversaryQuest || questRun.Server != "ephinea" {
+		return
+	}
+	numPlayers := len(questRun.AllPlayers)
+	topRun, err := db.GetAnniv2021Record(questRun.QuestName, numPlayers, questRun.PbCategory, s.dynamoClient)
+	if err != nil {
+		log.Printf("failed to get top quest runs for gameId:%v - %v", questRun.Id, err)
+	} else if matchingGame != nil {
+		if topRun == nil {
+			log.Printf("Matching game but no topRun, almost definitely a bug")
+		} else if matchingGame.Id == topRun.Id {
+			if err := db.AddPovToRecord(db.Anniv2021RecordsTable, questRun, s.dynamoClient); err != nil {
+				log.Printf("failed to add pov to anniv record")
+			}
+		}
+	} else if isBetterRun(questRun, topRun) {
+		log.Printf("new record for %v %vp pb:%v - %v",
+			questRun.QuestName, numPlayers, questRun.PbCategory, questRun.Id)
+		if err = db.WriteAnniv2021Record(&questRun, s.dynamoClient); err != nil {
+			log.Printf("failed to update anniv leaderboard for game %v - %v", questRun.Id, err)
+		}
+	}
 }
 
 func isNewRecord(

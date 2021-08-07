@@ -21,6 +21,7 @@ import (
 const (
 	GamesByIdTable           = "games_by_id"
 	QuestRecordsTable        = "quest_records"
+	Anniv2021RecordsTable    = "records_anniv_2021"
 	RecentGamesByPlayerTable = "recent_games_by_player_2"
 	RecentGamesByMonth       = "recent_games_by_month"
 	GameCountTable           = "games_counter"
@@ -169,7 +170,7 @@ func AttachGameToId(questRun model.QuestRun, id string, dynamoClient *dynamodb.D
 	return err
 }
 
-func AddPovToRecord(questRun model.QuestRun, dynamoClient *dynamodb.DynamoDB) error {
+func AddPovToRecord(tableName string, questRun model.QuestRun, dynamoClient *dynamodb.DynamoDB) error {
 	gameSummary := summaryFromQuestRun(questRun)
 	playerIndex, err := getPlayerIndex(questRun)
 	if err != nil {
@@ -190,7 +191,7 @@ func AddPovToRecord(questRun model.QuestRun, dynamoClient *dynamodb.DynamoDB) er
 		Key:                       key,
 		UpdateExpression:          aws.String(fmt.Sprintf("SET P%dHasStats = :h", playerIndex)),
 		ExpressionAttributeValues: values,
-		TableName:                 aws.String(QuestRecordsTable),
+		TableName:                 aws.String(tableName),
 	}
 	_, err = dynamoClient.UpdateItem(&updateItemInput)
 	return err
@@ -240,7 +241,7 @@ func compressGame(questRun *model.QuestRun) ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
-func WriteGameByQuestRecord(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) error {
+func writeRecord(tableName string, questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) error {
 	gameSummary := summaryFromQuestRun(*questRun)
 	marshalledSummary, err := dynamodbattribute.MarshalMap(gameSummary)
 	delete(marshalledSummary, "GameGzip")
@@ -255,13 +256,27 @@ func WriteGameByQuestRecord(questRun *model.QuestRun, dynamoClient *dynamodb.Dyn
 	}
 	gamesByQuestInput := &dynamodb.PutItemInput{
 		Item:      marshalledSummary,
-		TableName: aws.String(QuestRecordsTable),
+		TableName: aws.String(tableName),
 	}
 	_, err = dynamoClient.PutItem(gamesByQuestInput)
 	return err
 }
 
-func GetQuestRecord(quest string, numPlayers int, pbCategory bool, dynamoClient *dynamodb.DynamoDB) (*model.Game, error) {
+func WriteGameByQuestRecord(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) error {
+	return writeRecord(QuestRecordsTable, questRun, dynamoClient)
+}
+
+func WriteAnniv2021Record(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) error {
+	return writeRecord(Anniv2021RecordsTable, questRun, dynamoClient)
+}
+
+func getRecord(
+	tableName string,
+	quest string,
+	numPlayers int,
+	pbCategory bool,
+	dynamoClient *dynamodb.DynamoDB,
+) (*model.Game, error) {
 	category := getCategoryString(numPlayers, pbCategory)
 	requestExpression, err := expression.NewBuilder().
 		WithKeyCondition(expression.KeyEqual(expression.Key("Quest"), expression.Value(quest)).
@@ -274,7 +289,7 @@ func GetQuestRecord(quest string, numPlayers int, pbCategory bool, dynamoClient 
 		ExpressionAttributeNames:  requestExpression.Names(),
 		ExpressionAttributeValues: requestExpression.Values(),
 		KeyConditionExpression:    requestExpression.KeyCondition(),
-		TableName:                 aws.String(QuestRecordsTable),
+		TableName:                 aws.String(tableName),
 	})
 	if err != nil {
 		return nil, err
@@ -288,13 +303,21 @@ func GetQuestRecord(quest string, numPlayers int, pbCategory bool, dynamoClient 
 	}
 }
 
-func GetQuestRecords(dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
+func GetQuestRecord(quest string, numPlayers int, pbCategory bool, dynamoClient *dynamodb.DynamoDB, ) (*model.Game, error) {
+	return getRecord(QuestRecordsTable, quest, numPlayers, pbCategory, dynamoClient)
+}
+
+func GetAnniv2021Record(quest string, numPlayers int, pbCategory bool, dynamoClient *dynamodb.DynamoDB, ) (*model.Game, error) {
+	return getRecord(Anniv2021RecordsTable, quest, numPlayers, pbCategory, dynamoClient)
+}
+
+func GetQuestRecords(tableName string, dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
 	scanInput := dynamodb.ScanInput{
 		AttributesToGet: aws.StringSlice([]string{"Id", "Category", "Episode", "Quest",
 			"Time", "Player", "Timestamp", "PlayerNames", "PlayerClasses", "PlayerGcs",
 			"P1HasStats", "P2HasStats", "P3HasStats", "P4HasStats", "Points"}),
 		Limit:     aws.Int64(1000),
-		TableName: aws.String(QuestRecordsTable),
+		TableName: aws.String(tableName),
 	}
 	scan, err := dynamoClient.Scan(&scanInput)
 	if err != nil {
@@ -583,7 +606,7 @@ func summaryFromQuestRun(questRun model.QuestRun) model.Game {
 		playerGcs[i] = basePlayerInfo.GuildCard
 	}
 	playerIndex, _ := getPlayerIndex(questRun)
-	idInt, _ := strconv.Atoi(questRun.Id);
+	idInt, _ := strconv.Atoi(questRun.Id)
 	return model.Game{
 		Id:               questRun.Id,
 		IdInt:            idInt,

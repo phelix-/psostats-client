@@ -1,0 +1,86 @@
+{{define "index"}}
+    <html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width">
+        <meta property="og:site_name" content="PSOStats"/>
+        <meta property="og:title" content="Ephinea Anniversary 2021 Records"/>
+        <title>Ephinea Anniversary 2021 - PSOStats</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+        <link href="/static/main2.css" rel="stylesheet" type="text/css">
+    </head>
+    <style>
+        h5 {
+            margin-top: 12px
+        }
+        .episode-header {
+            background-color: #222;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            padding-top: 8px;
+            margin-top: 8px;
+        }
+    </style>
+    <body>
+    <div class="container">
+        {{ template "navbar" }}
+        <div class="row">
+            <div class="col">
+                <h1>Ephinea Anniversary 2021 Records</h1>
+            </div>
+        </div>
+
+        {{ range $episode, $games := .}}
+            <div class="row episode-header">
+                <div class="col">
+                    <h2>Episode {{ $episode}}</h2>
+                </div>
+            </div>
+            {{ range $quest, $val := $games }}
+
+                <div class="row quest-row">
+                    <div class="col-12 col-md-4">
+                        <h5>{{ $quest }}</h5>
+                    </div>
+                    <div class="col-12 col-md-8">
+                        {{ range $category, $game := $val }}
+                            <div class="col-12 category-row">
+                                <div class="row">
+                                    <div class="col-3 col-xl-2">
+                                <span class="quest-category">{{ $game.NumPlayers }}P
+                                    {{ if $game.PbRun }}
+                                        <img src="/static/twins_cropped.png" height="24px" width="24px" alt="PB" title="PB" style="margin-bottom: 4px"/><span aria-hidden="true" class="invisible-label">PB</span>
+                                    {{ else }}
+                                        <img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/>
+                                    {{ end }}</span>
+                                    </div>
+                                    <div class="col-3">
+                                        {{ if lt (len (index $game.Players 0).Name) 1}}
+                                            <a href="/game/{{ $game.Id }}" class="quest-time">{{ $game.Time}}</a>
+                                        {{ else }}
+                                            <span class="quest-time">{{ $game.Time }}</span>
+                                        {{ end }}
+                                    </div>
+                                    <div class="col-9 col-md-6 col-xl-7 offset-3 offset-md-0">
+                                        {{ range $index,$player := $game.Players }}
+                                            {{ if gt (len .Name) 0 }}
+                                                <div>
+                                                    {{ if $player.HasPov}}
+                                                        <a href="/game/{{ $game.Id }}/{{ $index }}"><span style="width:85px; display: inline-block">{{ index $player.Class }}</span>{{ $player.Name }}</a>
+                                                    {{ else }}
+                                                        <span style="width:85px; display: inline-block">{{ index .Class }}</span>{{ .Name }}
+                                                    {{ end }}
+                                                </div>
+                                            {{ end }}
+                                        {{ end }}
+                                    </div>
+                                </div>
+                            </div>
+                        {{ end }}
+                    </div>
+                </div>
+            {{ end }}
+        {{ end }}
+    </div>
+    </body>
+    </html>
+{{end}}
