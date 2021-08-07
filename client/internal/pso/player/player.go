@@ -38,6 +38,7 @@ type BasePlayerInfo struct {
 	Class               string
 	Meseta              uint32
 	Warping             bool
+	AccountMode         constants.EphineaAccountMode
 	ActionState         uint16
 }
 
@@ -90,6 +91,16 @@ func GetPlayerData(handle w32.HANDLE, playerAddress uintptr, server string) (Bas
 		return BasePlayerInfo{}, err
 	}
 	basePlayerInfo.GuildCard = guildcard
+
+	basePlayerInfo.AccountMode = constants.Normal
+	if server == constants.EphineaServerName {
+		mode, err := getEphineaAccountMode(handle, playerAddress)
+		if err != nil {
+			return BasePlayerInfo{}, err
+		}
+		basePlayerInfo.AccountMode = mode
+	}
+
 	return basePlayerInfo, nil
 }
 
@@ -131,6 +142,26 @@ func getGuildCard(handle w32.HANDLE, playerAddress uintptr, server string) (stri
 		guildCard = strings.Split(guildCard, "\u0000")[0]
 	}
 	return guildCard, nil
+}
+
+func getEphineaAccountMode(handle w32.HANDLE, playerAddress uintptr) (constants.EphineaAccountMode, error) {
+	buf, _, ok := w32.ReadProcessMemory(handle, playerAddress+0x948, 3)
+	if !ok {
+		return constants.Normal, errors.New("unable to getEphineaAccountMode")
+	}
+
+	// TODO: Add support for hardcore
+	//red := buf[1] & 0xFF
+	//green := (buf[0] & 0xFF00) >> 8
+	blue := buf[0] & 0xFF
+
+	mode := constants.Normal
+
+	if blue == 0x23 {
+		mode = constants.Sandbox
+	}
+
+	return mode, nil
 }
 
 func getClass(classBits uint16) string {
