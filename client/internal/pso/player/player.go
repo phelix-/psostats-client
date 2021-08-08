@@ -99,6 +99,8 @@ func GetPlayerData(handle w32.HANDLE, playerAddress uintptr, server string) (Bas
 			return BasePlayerInfo{}, err
 		}
 		basePlayerInfo.AccountMode = mode
+	} else if server == constants.UnseenServerName {
+		basePlayerInfo.AccountMode = constants.Sandbox
 	}
 
 	return basePlayerInfo, nil

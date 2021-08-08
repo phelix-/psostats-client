@@ -693,8 +693,8 @@ func (s *Server) PostMotd(c *fiber.Ctx) error {
 		return err
 	}
 	message := fmt.Sprintf("Logged in as %v, up to date", user)
-	if clientInfo.VersionMajor < 1 || clientInfo.VersionMinor < 0 || clientInfo.VersionPatch < 0 {
-		message = "1.0.0 - quest support. https://psostats.com/download"
+	if clientInfo.VersionMajor < 1 || clientInfo.VersionMinor < 1 || clientInfo.VersionPatch < 0 {
+		message = "Update available: fixes MAE Cave and Mine. https://psostats.com/download"
 	}
 	motd := model.MessageOfTheDay{
 		Authorized: authorized,

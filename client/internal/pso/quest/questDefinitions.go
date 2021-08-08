@@ -96,6 +96,7 @@ func getAllQuests() []Quest {
 			{Name: "Room 3", Trigger: floorSwitch(2, 3)},
 			{Name: "Room 4", Trigger: register(50)},
 		}},
+		{Episode: 1, Name: "Maximum Attack E: Cave", Remap: remap("Maximum Attack E: Caves")},
 		{Episode: 1, Name: "Maximum Attack E: Caves", Start: floorSwitch(4, 0), End: register(50), Splits: []Split{
 			{Name: "Room 1", Trigger: floorSwitch(4, 1)},
 			{Name: "Room 2", Trigger: floorSwitch(4, 2)},
@@ -105,6 +106,7 @@ func getAllQuests() []Quest {
 			{Name: "Room 6", Trigger: floorSwitch(4, 6)},
 			{Name: "Room 7", Trigger: register(50)},
 		}},
+		{Episode: 1, Name: "Maximum Attack E: Mine", Remap: remap("Maximum Attack E: Mines")},
 		{Episode: 1, Name: "Maximum Attack E: Mines", Start: floorSwitch(6, 0), End: register(50), Splits: []Split{
 			{Name: "Room 1", Trigger: floorSwitch(6, 1)},
 			{Name: "Room 2", Trigger: floorSwitch(6, 2)},
