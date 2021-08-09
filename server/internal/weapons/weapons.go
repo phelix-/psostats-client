@@ -38,7 +38,7 @@ func GetClasses() []PsoClass {
 		{Name: "RAmarl", Atp: 1145, Ata: 241},
 		{Name: "RAcast", Atp: 1350, Ata: 224},
 		{Name: "RAcaseal", Atp: 1175, Ata: 231},
-		{Name: "FOmar", Atp: 1102, Ata: 163},
+		{Name: "FOmar", Atp: 1002, Ata: 163},
 		{Name: "FOmarl", Atp: 872, Ata: 170},
 		{Name: "FOnewm", Atp: 814, Ata: 180},
 		{Name: "FOnewearl", Atp: 583, Ata: 186},
