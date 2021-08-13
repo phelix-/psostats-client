@@ -303,11 +303,11 @@ func getRecord(
 	}
 }
 
-func GetQuestRecord(quest string, numPlayers int, pbCategory bool, dynamoClient *dynamodb.DynamoDB, ) (*model.Game, error) {
+func GetQuestRecord(quest string, numPlayers int, pbCategory bool, dynamoClient *dynamodb.DynamoDB) (*model.Game, error) {
 	return getRecord(QuestRecordsTable, quest, numPlayers, pbCategory, dynamoClient)
 }
 
-func GetAnniv2021Record(quest string, numPlayers int, pbCategory bool, dynamoClient *dynamodb.DynamoDB, ) (*model.Game, error) {
+func GetAnniv2021Record(quest string, numPlayers int, pbCategory bool, dynamoClient *dynamodb.DynamoDB) (*model.Game, error) {
 	return getRecord(Anniv2021RecordsTable, quest, numPlayers, pbCategory, dynamoClient)
 }
 
@@ -661,12 +661,12 @@ func incrementAndGetGameId(dynamoClient *dynamodb.DynamoDB) (int, error) {
 func GetRecentGames(dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
 	thisMonth := time.Now().UTC().Format("01/2006")
 	lastMonth := time.Now().UTC().AddDate(0, -1, 0).Format("01/2006")
-	games, err := GetGamesForMonth(thisMonth, dynamoClient)
+	games, err := GetGamesForMonth(thisMonth, 30, dynamoClient)
 	if err != nil {
 		return nil, err
 	}
 	if len(games) < 30 {
-		lastMonthGames, err := GetGamesForMonth(lastMonth, dynamoClient)
+		lastMonthGames, err := GetGamesForMonth(lastMonth, 30, dynamoClient)
 		if err != nil {
 			return nil, err
 		}
@@ -680,7 +680,7 @@ func GetRecentGames(dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
 	return games, err
 }
 
-func GetGamesForMonth(month string, dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
+func GetGamesForMonth(month string, limit int, dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
 	requestExpression, err := expression.NewBuilder().
 		WithKeyCondition(expression.KeyEqual(expression.Key("Month"), expression.Value(month))).
 		Build()
@@ -691,6 +691,8 @@ func GetGamesForMonth(month string, dynamoClient *dynamodb.DynamoDB) ([]model.Ga
 		ExpressionAttributeNames:  requestExpression.Names(),
 		ExpressionAttributeValues: requestExpression.Values(),
 		KeyConditionExpression:    requestExpression.KeyCondition(),
+		ScanIndexForward:          aws.Bool(false),
+		Limit:                     aws.Int64(int64(limit)),
 		TableName:                 aws.String(RecentGamesByMonth),
 	})
 
