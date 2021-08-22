@@ -481,32 +481,30 @@
             } else {
                 $('#special-select').val(weapon.special)
             }
-            if (!!weapon.combo) {
-                const combo = weapon.combo
-                if (!!combo.attack1Hits) {
-                    $('#hits1').val(combo.attack1Hits)
-                } else {
-                    $('#hits1').val(1)
-                }
-                if (!!combo.attack1) {
-                    $('#attack1').val(combo.attack1)
-                }
-                if (!!combo.attack2Hits) {
-                    $('#hits2').val(combo.attack2Hits)
-                } else {
-                    $('#hits2').val(1)
-                }
-                if (!!combo.attack2) {
-                    $('#attack2').val(combo.attack2)
-                }
-                if (!!combo.attack3Hits) {
-                    $('#hits3').val(combo.attack3Hits)
-                } else {
-                    $('#hits3').val(1)
-                }
-                if (!!combo.attack3) {
-                    $('#attack3').val(combo.attack3)
-                }
+            const combo = weapon.combo
+            if (!!combo && !!weapon.combo.attack1Hits) {
+                $('#hits1').val(combo.attack1Hits)
+            } else {
+                $('#hits1').val(1)
+            }
+            if (!!combo && !!combo.attack1) {
+                $('#attack1').val(combo.attack1)
+            }
+            if (!!combo && !!combo.attack2Hits) {
+                $('#hits2').val(combo.attack2Hits)
+            } else {
+                $('#hits2').val(1)
+            }
+            if (!!combo && !!combo.attack2) {
+                $('#attack2').val(combo.attack2)
+            }
+            if (!!combo && !!combo.attack3Hits) {
+                $('#hits3').val(combo.attack3Hits)
+            } else {
+                $('#hits3').val(1)
+            }
+            if (!!combo && !!combo.attack3) {
+                $('#attack3').val(combo.attack3)
             }
             updateTotalFrames();
             updateAtaInput();
