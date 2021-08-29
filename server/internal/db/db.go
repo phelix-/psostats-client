@@ -153,7 +153,7 @@ func AttachGameToId(questRun model.QuestRun, id string, dynamoClient *dynamodb.D
 	month := questRun.QuestStartTime.UTC().Format("01/2006")
 	monthAttribute := dynamodb.AttributeValue{S: aws.String(month)}
 	byMonthKey := map[string]*dynamodb.AttributeValue{
-		"Id":    &idAttribute,
+		"IdInt": {N: aws.String(id)},
 		"Month": &monthAttribute,
 	}
 	values = map[string]*dynamodb.AttributeValue{
