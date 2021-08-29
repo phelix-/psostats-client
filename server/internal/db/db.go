@@ -23,7 +23,7 @@ const (
 	QuestRecordsTable        = "quest_records"
 	Anniv2021RecordsTable    = "records_anniv_2021"
 	RecentGamesByPlayerTable = "recent_games_by_player_2"
-	RecentGamesByMonth       = "recent_games_by_month"
+	RecentGamesByMonth       = "recent_games_by_month_2"
 	GameCountTable           = "games_counter"
 	gameCountPrimaryKey      = "game_count"
 	PlayerPbTable            = "player_pb"
