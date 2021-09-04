@@ -7,6 +7,8 @@
         <title>Ephinea Anniversary 2021 - PSOStats</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
         <link href="/static/main2.css" rel="stylesheet" type="text/css">
+        <script src='https://code.jquery.com/jquery-1.11.3.min.js'></script>
+        <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     </head>
     <style>
         h5 {
@@ -19,6 +21,10 @@
             padding-top: 8px;
             margin-top: 8px;
         }
+        .psostats-chart {
+            background-color: #444;
+            margin-bottom: 4px;
+        }
     </style>
     <body>
     <div class="container">
@@ -29,58 +35,2038 @@
             </div>
         </div>
 
-        {{ range $episode, $games := .}}
-            <div class="row episode-header">
-                <div class="col">
-                    <h2>Episode {{ $episode}}</h2>
+        <div class="row episode-header">
+            <div class="col">
+                <h2>Total Games - 9,798</h2>
+            </div>
+        </div>
+        <div class="row psostats-chart">
+            <div class="col-12">
+                <h3>Overall Lap</h3>
+                <table class="table table-dark">
+                    <thead>
+                    <tr><th scope="col">Time</th><th scope="col">Player</th></tr>
+                    </thead>
+                    <tr><th scope="row">44:48</th><td><a href="/players/No Hit"> No Hit</a></td></tr>
+                    <tr><th scope="row">45:10</th><td><a href="/players/phelix">phelix</a></td></tr>
+                    <tr><th scope="row">47:13</th><td><a href="/players/Ender">Ender</a></td></tr>
+                    <tr><th scope="row">51:06</th><td><a href="/players/spaceBORT">spaceBORT</a></td></tr>
+                    <tr><th scope="row">52:02</th><td><a href="/players/Eis">Eis</a></td></tr>
+                    <tr><th scope="row">52:24</th><td><a href="/players/Dizzy">Dizzy</a></td></tr>
+                    <tr><th scope="row">52:41</th><td><a href="/players/Alisaryn">Alisaryn</a></td></tr>
+                    <tr><th scope="row">52:59</th><td><a href="/players/Mike">Mike</a></td></tr>
+                    <tr><th scope="row">53:04</th><td><a href="/players/Sam">Sam</a></td></tr>
+                    <tr><th scope="row">53:28</th><td><a href="/players/atal">atal</a></td></tr>
+                </table>
+            </div>
+        </div>
+        <div class="row psostats-chart">
+            <div class="col-12">
+                <div id="quests-played-chart"></div>
+            </div>
+            <div class="col-4">
+                <div id="allclasses-donut"></div>
+            </div>
+            <div class="col-4">
+                <div id="allshifta-donut"></div>
+            </div>
+            <div class="col-4">
+                <div id="allplayers-donut"></div>
+            </div>
+            <div class="col-6">
+                <div id="class-death-chart"></div>
+            </div>
+            <div class="col-6">
+                <div id="meseta-charged-chart"></div>
+            </div>
+            <div class="col-6">
+                <div id="quest-death-chart"></div>
+            </div>
+        </div>
+
+
+        <div class="row episode-header">
+            <div class="col">
+                <h2>Forest - 1,202 Games</h2>
+            </div>
+        </div>
+        <div class="row psostats-chart">
+            <div class="col-3 mt-3">
+                <h3>1P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 4:02.574</h3>
+                <div><a href="/game/10428/0"><span style="width:85px; display: inline-block">RAmar</span>Flim</a></div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>2P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 4:36.373</h3>
+                <div><a href="/game/2593/0"><span style="width:85px; display: inline-block">FOnewm</span>Lameron</a></div>
+                <div><span style="width:85px; display: inline-block">RAmar</span>249 ATA</div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>3P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 4:16.537</h3>
+                <div><a href="/game/4815/0"><span style="width:85px; display: inline-block">RAmarl</span>Amy</a></div>
+                <div><span style="width:85px; display: inline-block">RAmar</span>Infy</div>
+                <div><span style="width:85px; display: inline-block">RAcast</span>Ajax</div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>4P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 3:25.204</h3>
+                <div><a href="/game/11101/0"><span style="width:85px; display: inline-block">HUnewearl</span>Falafel</a></div>
+                <div><a href="/game/11101/1"><span style="width:85px; display: inline-block">HUcast</span>Melt㏗ace</a></div>
+                <div><a href="/game/11101/2"><span style="width:85px; display: inline-block">HUcast</span>rust</a></div>
+                <div><a href="/game/11101/3"><span style="width:85px; display: inline-block">HUcast</span>Speck</a></div>
+            </div>
+            <div class="col-12">
+                <div id="forest-chart"></div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="forest-donut"></div>
                 </div>
             </div>
-            {{ range $quest, $val := $games }}
-
-                <div class="row quest-row">
-                    <div class="col-12 col-md-4">
-                        <h5>{{ $quest }}</h5>
-                    </div>
-                    <div class="col-12 col-md-8">
-                        {{ range $category, $game := $val }}
-                            <div class="col-12 category-row">
-                                <div class="row">
-                                    <div class="col-3 col-xl-2">
-                                <span class="quest-category">{{ $game.NumPlayers }}P
-                                    {{ if $game.PbRun }}
-                                        <img src="/static/twins_cropped.png" height="24px" width="24px" alt="PB" title="PB" style="margin-bottom: 4px"/><span aria-hidden="true" class="invisible-label">PB</span>
-                                    {{ else }}
-                                        <img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/>
-                                    {{ end }}</span>
-                                    </div>
-                                    <div class="col-3">
-                                        {{ if lt (len (index $game.Players 0).Name) 1}}
-                                            <a href="/game/{{ $game.Id }}" class="quest-time">{{ $game.Time}}</a>
-                                        {{ else }}
-                                            <span class="quest-time">{{ $game.Time }}</span>
-                                        {{ end }}
-                                    </div>
-                                    <div class="col-9 col-md-6 col-xl-7 offset-3 offset-md-0">
-                                        {{ range $index,$player := $game.Players }}
-                                            {{ if gt (len .Name) 0 }}
-                                                <div>
-                                                    {{ if $player.HasPov}}
-                                                        <a href="/game/{{ $game.Id }}/{{ $index }}"><span style="width:85px; display: inline-block">{{ index $player.Class }}</span>{{ $player.Name }}</a>
-                                                    {{ else }}
-                                                        <span style="width:85px; display: inline-block">{{ index .Class }}</span>{{ .Name }}
-                                                    {{ end }}
-                                                </div>
-                                            {{ end }}
-                                        {{ end }}
-                                    </div>
-                                </div>
-                            </div>
-                        {{ end }}
-                    </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="forest-shifta"></div>
                 </div>
-            {{ end }}
-        {{ end }}
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="forest-players"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row episode-header">
+            <div class="col">
+                <h2>Cave - 644 Games</h2>
+            </div>
+        </div>
+        <div class="row psostats-chart">
+            <div class="col-3 mt-3">
+                <h3>1P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 4:54.478</h3>
+                <div><a href="/game/2996/0"><span style="width:85px; display: inline-block">RAmar</span>Flim</a></div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>2P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 5:23.805</h3>
+                <div><a href="/game/2593/0"><span style="width:85px; display: inline-block">FOnewm</span>Lameron</a></div>
+                <div><span style="width:85px; display: inline-block">RAmar</span>249 ATA</div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>3P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 5:41.143</h3>
+                <div><span style="width:85px; display: inline-block">RAcast</span>RestaPls</div>
+                <div><a href="/game/9269/1"><span style="width:85px; display: inline-block">RAcast</span>Arsuru</a></div>
+                <div><span style="width:85px; display: inline-block">FOnewearl</span>YoureWaifu</div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>4P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 3:29.753</h3>
+                <div><a href="/game/5151/0"><span style="width:85px; display: inline-block">HUnewearl</span>Falafel</a></div>
+                <div><a href="/game/5151/1"><span style="width:85px; display: inline-block">HUcast</span>Bo✗ Energy</a></div>
+                <div><a href="/game/5151/2"><span style="width:85px; display: inline-block">HUcast</span>Reflektor</a></div>
+                <div><a href="/game/5151/3"><span style="width:85px; display: inline-block">HUcast</span>rust</a></div>
+            </div>
+            <div class="col-12">
+                <div id="cave-chart"></div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="cave-donut"></div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="cave-shifta"></div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="cave-players"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row episode-header">
+            <div class="col">
+                <h2>Mine - 954 Games</h2>
+            </div>
+        </div>
+        <div class="row psostats-chart">
+            <div class="col-3 mt-3">
+                <h3>1P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 4:56.856</h3>
+                <div><a href="/game/5518/0"><span style="width:85px; display: inline-block">HUcast</span>Bo✗ Energy</a></div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>2P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/></h3>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>3P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 3:51.110</h3>
+                <div><a href="/game/6357/0"><span style="width:85px; display: inline-block">HUcast</span>God</a></div>
+                <div><a href="/game/6357/1"><span style="width:85px; display: inline-block">HUcast</span>Bo✗ Energy</a></div>
+                <div><a href="/game/6357/2"><span style="width:85px; display: inline-block">FOnewm</span>haskell</a></div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>4P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 3:31.770</h3>
+                <div><a href="/game/7821/0"><span style="width:85px; display: inline-block">HUcast</span>God</a></div>
+                <div><a href="/game/7821/1"><span style="width:85px; display: inline-block">HUcast</span>Bo✗ Energy</a></div>
+                <div><a href="/game/7821/2"><span style="width:85px; display: inline-block">HUcast</span>Speck</a></div>
+                <div><a href="/game/7821/3"><span style="width:85px; display: inline-block">FOnewm</span>phelix</a></div>
+            </div>
+            <div class="col-12">
+                <div id="mine-chart"></div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="mine-donut"></div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="mine-shifta"></div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="mine-players"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row episode-header">
+            <div class="col">
+                <h2>Ruins - 680 Games</h2>
+            </div>
+        </div>
+        <div class="row psostats-chart">
+            <div class="col-3 mt-3">
+                <h3>1P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 4:59.275</h3>
+                <div><a href="/game/5817/0"><span style="width:85px; display: inline-block">HUcast</span>Bo✗ Energy</a></div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>2P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 4:41.806</h3>
+                <div><a href="/game/10644/0"><span style="width:85px; display: inline-block">HUcast</span>Melt㏗ace</a></div>
+                <div><a href="/game/10644/1"><span style="width:85px; display: inline-block">HUnewearl</span>Hwaryun</a></div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>3P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 4:38.354</h3>
+                <div><a href="/game/7715/0"><span style="width:85px; display: inline-block">FOnewearl</span>Étoile</a></div>
+                <div><a href="/game/7715/1"><span style="width:85px; display: inline-block">HUcast</span>rust</a></div>
+                <div><a href="/game/7715/2"><span style="width:85px; display: inline-block">HUcast</span>Bo✗ Energy</a></div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>4P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 4:18.999</h3>
+                <div><a href="/game/5960/0"><span style="width:85px; display: inline-block">HUcaseal</span>Chutney</a></div>
+                <div><a href="/game/5960/1"><span style="width:85px; display: inline-block">HUcast</span>Bo✗ Energy</a></div>
+                <div><span style="width:85px; display: inline-block">HUcaseal</span>Stargazer</div>
+                <div><a href="/game/5960/3"><span style="width:85px; display: inline-block">FOmarl</span>Alisaryn</a></div>
+            </div>
+            <div class="col-12">
+                <div id="ruins-chart"></div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="ruins-donut"></div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="ruins-shifta"></div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="ruins-players"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row episode-header">
+            <div class="col">
+                <h2>Temple - 723 Games</h2>
+            </div>
+        </div>
+        <div class="row psostats-chart">
+            <div class="col-3 mt-3">
+                <h3>1P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 5:27.140</h3>
+                <div><a href="/game/3490/0"><span style="width:85px; display: inline-block">RAmar</span>Flim</a></div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>2P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/></h3>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>3P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 3:54.958</h3>
+                <div><a href="/game/8247/0"><span style="width:85px; display: inline-block">RAmar</span>Flim</a></div>
+                <div><a href="/game/8247/1"><span style="width:85px; display: inline-block">HUcast</span>God</a></div>
+                <div><a href="/game/8247/2"><span style="width:85px; display: inline-block">HUcast</span>bvelix</a></div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>4P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 4:04.234</h3>
+                <div><a href="/game/9067/0"><span style="width:85px; display: inline-block">RAmarl</span>divinity</a></div>
+                <div><a href="/game/9067/1"><span style="width:85px; display: inline-block">RAcast</span>Cortado</a></div>
+                <div><a href="/game/9067/2"><span style="width:85px; display: inline-block">FOmarl</span>Hisui</a></div>
+                <div><a href="/game/9067/3"><span style="width:85px; display: inline-block">RAcaseal</span>"tonight"</a></div>
+            </div>
+            <div class="col-12">
+                <div id="temple-chart"></div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="temple-donut"></div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="temple-shifta"></div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="temple-players"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row episode-header">
+            <div class="col">
+                <h2>Spaceship - 923 Games</h2>
+            </div>
+        </div>
+        <div class="row psostats-chart">
+            <div class="col-3 mt-3">
+                <h3>1P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 4:36.740</h3>
+                <div><a href="/game/8437/0"><span style="width:85px; display: inline-block">RAcaseal</span>Alisaryn</a></div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>2P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 4:36.681</h3>
+                <div><a href="/game/5560/0"><span style="width:85px; display: inline-block">HUcast</span>Bo✗ Energy</a></div>
+                <div><a href="/game/5560/1"><span style="width:85px; display: inline-block">RAmar</span>cornered</a></div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>3P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 3:36.270</h3>
+                <div><a href="/game/11690/0"><span style="width:85px; display: inline-block">HUcast</span>Melt㏗ace</a></div>
+                <div><a href="/game/11690/1"><span style="width:85px; display: inline-block">HUcast</span>Ethereal</a></div>
+                <div><a href="/game/11690/2"><span style="width:85px; display: inline-block">RAmar</span>phelix</a></div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>4P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 4:05.640</h3>
+                <div><span style="width:85px; display: inline-block">RAcast</span>iPhone</div>
+                <div><span style="width:85px; display: inline-block">RAmarl</span>mod</div>
+                <div><a href="/game/11018/2"><span style="width:85px; display: inline-block">FOnewearl</span>Sarvanga</a></div>
+                <div><a href="/game/11018/3"><span style="width:85px; display: inline-block">RAcast</span>99 Ranged</a></div>
+            </div>
+            <div class="col-12">
+                <div id="space-chart"></div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="space-donut"></div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="space-shifta"></div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="space-players"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row episode-header">
+            <div class="col">
+                <h2>CCA - 879 Games</h2>
+            </div>
+        </div>
+        <div class="row psostats-chart">
+            <div class="col-3 mt-3">
+                <h3>1P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 8:34.095</h3>
+                <div><a href="/game/8399/0"><span style="width:85px; display: inline-block">RAcast</span>Alspacka</a></div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>2P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 5:32.535</h3>
+                <div><a href="/game/5836/0"><span style="width:85px; display: inline-block">RAmar</span>Flim</a></div>
+                <div><a href="/game/5836/1"><span style="width:85px; display: inline-block">HUcast</span>⚡</a></div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>3P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 4:28.474</h3>
+                <div><a href="/game/7848/0"><span style="width:85px; display: inline-block">HUcast</span>rust</a></div>
+                <div><a href="/game/7848/1"><span style="width:85px; display: inline-block">RAmar</span>Flim</a></div>
+                <div><a href="/game/7848/2"><span style="width:85px; display: inline-block">HUcast</span>⚡</a></div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>4P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 3:32.246</h3>
+                <div><a href="/game/7478/0"><span style="width:85px; display: inline-block">HUcast</span>rust</a></div>
+                <div><a href="/game/7478/1"><span style="width:85px; display: inline-block">RAmarl</span>Merry</a></div>
+                <div><a href="/game/7478/2"><span style="width:85px; display: inline-block">HUcast</span>Bo✗ Energy</a></div>
+                <div><a href="/game/7478/3"><span style="width:85px; display: inline-block">RAcaseal</span>Alisaryn</a></div>
+            </div>
+            <div class="col-12">
+                <div id="cca-chart"></div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="cca-donut"></div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="cca-shifta"></div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="cca-players"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row episode-header">
+            <div class="col">
+                <h2>Seabed - 705 Games</h2>
+            </div>
+        </div>
+        <div class="row psostats-chart">
+            <div class="col-3 mt-3">
+                <h3>1P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 6:54.765</h3>
+                <div><a href="/game/8387/0"><span style="width:85px; display: inline-block">RAcast</span>Alspacka</a></div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>2P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/></h3>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>3P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 5:03.817</h3>
+                <div><span style="width:85px; display: inline-block">RAmar</span>Brenten</div>
+                <div><a href="/game/4713/1"><span style="width:85px; display: inline-block">HUcast</span>Bo✗ Energy</a></div>
+                <div><span style="width:85px; display: inline-block">RAcast</span>✂</div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>4P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 4:41.167</h3>
+                <div><a href="/game/7428/0"><span style="width:85px; display: inline-block">HUcaseal</span>Go Plastic</a></div>
+                <div><a href="/game/7428/1"><span style="width:85px; display: inline-block">HUcaseal</span>Chutney</a></div>
+                <div><a href="/game/7428/2"><span style="width:85px; display: inline-block">RAcaseal</span>C.C. Lemon</a></div>
+                <div><span style="width:85px; display: inline-block">FOmarl</span>Crepuscule</div>
+            </div>
+            <div class="col-12">
+                <div id="seabed-chart"></div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="seabed-donut"></div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="seabed-shifta"></div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="seabed-players"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row episode-header">
+            <div class="col">
+                <h2>Tower - 714 Games</h2>
+            </div>
+        </div>
+        <div class="row psostats-chart">
+            <div class="col-3 mt-3">
+                <h3>1P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 10:22.347</h3>
+                <div><a href="/game/8814/0"><span style="width:85px; display: inline-block">HUcast</span>Bo✗ Energy</a></div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>2P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 10:34.035</h3>
+                <div><a href="/game/8724/0"><span style="width:85px; display: inline-block">RAcaseal</span>JC</a></div>
+                <div><span style="width:85px; display: inline-block">FOnewearl</span>Violet</div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>3P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 7:28.181</h3>
+                <div><span style="width:85px; display: inline-block">HUcast</span>Klekt</div>
+                <div><span style="width:85px; display: inline-block">FOnewm</span>Tola</div>
+                <div><a href="/game/6794/2"><span style="width:85px; display: inline-block">RAcast</span>500ryu.</a></div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>4P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 5:46.824</h3>
+                <div><a href="/game/8043/0"><span style="width:85px; display: inline-block">HUcast</span>Bo✗ Energy</a></div>
+                <div><a href="/game/8043/1"><span style="width:85px; display: inline-block">RAmar</span>Ender</a></div>
+                <div><span style="width:85px; display: inline-block">HUcast</span>?XD</div>
+                <div><a href="/game/8043/3"><span style="width:85px; display: inline-block">HUcast</span>Ghostcat</a></div>
+            </div>
+            <div class="col-12">
+                <div id="tower-chart"></div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="tower-donut"></div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="tower-shifta"></div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="tower-players"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row episode-header">
+            <div class="col">
+                <h2>Crater - 1,120 Games</h2>
+            </div>
+        </div>
+        <div class="row psostats-chart">
+            <div class="col-3 mt-3">
+                <h3>1P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 5:44.354</h3>
+                <div><a href="/game/8189/0"><span style="width:85px; display: inline-block">FOnewm</span>Weyoun</a></div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>2P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/></h3>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>3P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 6:02.587</h3>
+                <div><a href="/game/4221/0"><span style="width:85px; display: inline-block">RAcaseal</span>readth</a></div>
+                <div><span style="width:85px; display: inline-block">HUcast</span>Yeezus</div>
+                <div><a href="/game/4221/2"><span style="width:85px; display: inline-block">FOnewm</span>Lameron</a></div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>4P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 4:16.625</h3>
+                <div><a href="/game/3894/0"><span style="width:85px; display: inline-block">FOnewm</span>bgmctrl</a></div>
+                <div><a href="/game/3894/1"><span style="width:85px; display: inline-block">HUcast</span>Bo✗ Energy</a></div>
+                <div><span style="width:85px; display: inline-block">HUcast</span>蛍光の　</div>
+                <div><span style="width:85px; display: inline-block">HUcast</span>Scotty</div>
+            </div>
+            <div class="col-12">
+                <div id="crater-chart"></div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="crater-donut"></div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="crater-shifta"></div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="crater-players"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row episode-header">
+            <div class="col">
+                <h2>Desert - 1,254 Games</h2>
+            </div>
+        </div>
+        <div class="row psostats-chart">
+            <div class="col-3 mt-3">
+                <h3>1P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 6:39.301</h3>
+                <div><a href="/game/7773/0"><span style="width:85px; display: inline-block">FOnewearl</span>Hexacast</a></div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>2P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 6:55.029</h3>
+                <div><a href="/game/4993/0"><span style="width:85px; display: inline-block">FOnewm</span>Lameron</a></div>
+                <div><a href="/game/4993/1"><span style="width:85px; display: inline-block">RAcast</span>_</a></div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>3P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 4:15.135</h3>
+                <div><a href="/game/9808/0"><span style="width:85px; display: inline-block">FOnewm</span>phelix</a></div>
+                <div><a href="/game/9808/1"><span style="width:85px; display: inline-block">HUcast</span>Ethereal</a></div>
+                <div><a href="/game/9808/2"><span style="width:85px; display: inline-block">HUcast</span>Melt㏗ace</a></div>
+            </div>
+            <div class="col-3 mt-3">
+                <h3>4P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/> 4:25.463</h3>
+                <div><a href="/game/5754/0"><span style="width:85px; display: inline-block">RAcast</span>500ryu.</a></div>
+                <div><span style="width:85px; display: inline-block">FOnewm</span>✇</div>
+                <div><a href="/game/5754/2"><span style="width:85px; display: inline-block">HUcast</span>Bo✗ Energy</a></div>
+                <div><span style="width:85px; display: inline-block">HUcast</span>-10.0</div>
+            </div>
+            <div class="col-12">
+                <div id="desert-chart"></div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="desert-donut"></div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="desert-shifta"></div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="psostats-chart">
+                    <div id="desert-players"></div>
+                </div>
+            </div>
+        </div>
     </div>
     </body>
+    <script>
+        window.Apex = {
+            chart: {
+                foreColor: '#ccc',
+                toolbar: {
+                    show: false
+                },
+                width: "100%",
+                height: 230,
+            },
+            tooltip: {
+                theme: 'dark'
+            },
+            stroke: {
+                curve: 'stepline',
+            },
+            dataLabels: {
+                enabled: false
+            },
+            xaxis: { tickAmount: 10 },
+        };
+
+
+        const questDataArray = [
+            {
+                locationName: "forest",
+                tickAmount: 3,
+                min:180000000000,
+                max:360000000000,
+                twentyFifthPercentile: 313178000000,
+                median: 288476000000,
+                seventyFifthPercentile: 269371000000,
+                classUsage: [198, 238, 624, 448, 357, 610, 923, 334, 215, 122, 318, 181],
+                shiftaUsage: [7, 65, 336, 789],
+                playerCounts: [61, 8, 41, 1092],
+                recordTimes: [
+                    [
+                        [1628351749000, 291676385000],
+                        [1628351853000, 272613755000],
+                        [1628352103000, 262323844200],
+                        [1628352203000, 258517608800],
+                        [1628353012000, 254517093300],
+                        [1628387843000, 253276673000],
+                        [1628391631000, 239451061800],
+                        [1628392272000, 236146100700],
+                        [1628558031000, 235831741900],
+                        [1628596640000, 222182039500],
+                        [1628597968000, 217551235600],
+                        [1628634488000, 214953057200],
+                        [1630557183000, 205204275100],
+                        [new Date("09/04/2021").getTime(), 205204275100],
+                    ], [
+                        [1628351889000, 324816858700],
+                        [1628388636000, 284561166500],
+                        [1628460560000, 270921000000],
+                        [1628958095000, 256537057700],
+                        [new Date("09/04/2021").getTime(), 256537057700],
+                    ], [
+                        [1628453713000, 276372929500],
+                        [new Date("09/04/2021").getTime(), 276372929500],
+                    ], [
+                        [1628541773000, 316600087300],
+                        [1628542330000, 292459837900],
+                        [1628542760000, 274235124000],
+                        [1628543891000, 271800198600],
+                        [1628545201000, 268170337400],
+                        [1630013794000, 266316645900],
+                        [1630014594000, 262762043400],
+                        [1630017655000, 254155276500],
+                        [1630023785000, 253214311800],
+                        [1630031263000, 249885929700],
+                        [1630308325000, 248700004000],
+                        [1630312349000, 248447034300],
+                        [1630313350000, 242573834700],
+                        [new Date("09/04/2021").getTime(), 242573834700],
+                    ]
+                ],
+                recordNames: [
+                    [
+                        "Revenata (HUcaseal), Brasshat (HUcaseal), Eisbecher (FOmar), Millenia (RAmarl)",
+                        "Lady Evil (HUcaseal), Plotinus (FOnewm), rust (HUcast), La Fleur (HUcast)",
+                        "Lameron (FOnewm), Firkraag (HUcaseal), tantalos (RAcast), Zen (RAcast)",
+                        "ゲーム (RAcast), 。 (RAcast), Squall     (HUnewearl), SS-Hobo (RAcaseal)",
+                        "Lady Evil (HUcaseal), rust (HUcast), La Fleur (HUcast), Plotinus (FOnewm)",
+                        "Neithird (HUnewearl), Violet (FOnewearl), Pub Queen (RAcaseal), Brasshat (HUcaseal)",
+                        "Erinnerung (HUcaseal), Go! S㎀stic (HUcast), 蛍光の　 (HUcast), nrvnqsr (FOmar)",
+                        "Erinnerung (HUcaseal), Go! S㎀stic (HUcast), nrvnqsr (FOmar), 蛍光の　 (HUcast)",
+                        "BOOM (RAcast), Eisbecher (FOmar), Ironhide (RAcast), Mike (RAcast)",
+                        "Infy (RAmar), VOLTRON (RAcast), Ajax (RAcast), Tungsten   (FOmar)",
+                        "Infy (RAmar), Ajax (RAcast), VOLTRON (RAcast), Tungsten   (FOmar)",
+                        "Mike (RAcast), Laura (RAcaseal), Ajax (RAcast), Eisbecher (FOmar)",
+                        "Falafel (HUnewearl), Melt㏗ace (HUcast), rust (HUcast), Speck (HUcast)",
+                        "Falafel (HUnewearl), Melt㏗ace (HUcast), rust (HUcast), Speck (HUcast)",
+                    ],
+                    [
+                        "Faie (RAmarl), JC (RAcaseal), Annie (RAmarl)",
+                        "Neithird (HUnewearl), Pub Queen (RAcaseal), Violet (FOnewearl)",
+                        "Cast (RAcast), Eisbecher (FOmar),  AkTsH (RAcast)",
+                        "Amy (RAmarl), Infy (RAmar), Ajax (RAcast)",
+                        "Amy (RAmarl), Infy (RAmar), Ajax (RAcast)",
+                    ],
+                    [
+                        "Lameron (FOnewm), 249 ATA (RAmar)",
+                        "Lameron (FOnewm), 249 ATA (RAmar)",
+                    ],
+                    [
+                        "Flim (RAmar)",
+                        "Flim (RAmar)",
+                        "Flim (RAmar)",
+                        "Flim (RAmar)",
+                        "Flim (RAmar)",
+                        "Flim (RAmar)",
+                        "Flim (RAmar)",
+                        "Flim (RAmar)",
+                        "Flim (RAmar)",
+                        "Flim (RAmar)",
+                        "Flim (RAmar)",
+                        "Flim (RAmar)",
+                        "Flim (RAmar)",
+                        "Flim (RAmar)",
+                    ]
+                ]
+            },
+            {
+                locationName: "cave",
+                tickAmount: 4,
+                min: 180000000000,
+                max: 420000000000,
+                twentyFifthPercentile: 404209000000,
+                median: 357817000000,
+                seventyFifthPercentile: 326854000000,
+                classUsage: [77, 130, 425, 266, 191, 190, 516, 157, 133, 97, 191, 131,],
+                shiftaUsage: [5, 30, 111, 498],
+                playerCounts: [17, 5, 11, 611],
+                recordTimes: [
+                    [
+                        [1628352167000, 380642334800],
+                        [1628352441000, 343122646100],
+                        [1628352841000, 335288329800],
+                        [1628353932000, 335043417800],
+                        [1628354408000, 327227377300],
+                        [1628355843000, 323418727200],
+                        [1628375134000, 319186924700],
+                        [1628392794000, 274033259500],
+                        [1628620632000, 260855454600],
+                        [1628996097000, 245059425500],
+                        [1628996491000, 230182906200],
+                        [1628998968000, 229172206900],
+                        [1628999740000, 221557612500],
+                        [1629000123000, 214938598600],
+                        [1629001392000, 211130928500],
+                        [1629005301000, 209753396200],
+                        [new Date("09/04/2021").getTime(), 209753396200],
+                    ], [
+                        [1628368024000, 391387758300],
+                        [1629998343000, 349236593500],
+                        [1629998860000, 341143117400],
+                        [new Date("09/04/2021").getTime(), 341143117400],
+                    ], [
+                        [1629245624000, 371619878000],
+                        [1629246190000, 337189083700],
+                        [1629251119000, 323804752700],
+                        [new Date("09/04/2021").getTime(), 323804752700],
+                    ], [
+                        [1628537255000, 338645170800],
+                        [1628538328000, 311324623600],
+                        [1628538736000, 302885088400],
+                        [1628539356000, 300134749000],
+                        [1628539869000, 294477805800],
+                        [new Date("09/04/2021").getTime(), 294477805800],
+                    ]
+                ],
+                recordNames: [
+                    [
+                        "Eisbecher (FOmar), Revenata (HUcaseal), Millenia (RAmarl), Brasshat (HUcaseal)",
+                        "Lameron (FOnewm), Firkraag (HUcaseal), Zen (RAcast), tantalos (RAcast)",
+                        "Mike (FOnewm), Ironhide (RAcast), Ajax (RAcast), BOOM (RAcast)",
+                        "bvelix (HUcast), Plotinus (FOnewm), La Fleur (HUcast), Lady Evil (HUcaseal)",
+                        "bvelix (HUcast), Lady Evil (HUcaseal), Plotinus (FOnewm), La Fleur (HUcast)",
+                        "bvelix (HUcast), Plotinus (FOnewm), Lady Evil (HUcaseal), La Fleur (HUcast)",
+                        "Violet (HUnewearl), Thund'r (HUnewearl), Faust (FOnewm), 249 ATA (RAmar)",
+                        "Erinnerung (HUcaseal), Go! S㎀stic (HUcast), 蛍光の　 (HUcast), Kohaku (HUnewearl)",
+                        "Eisbecher (FOmar), Ajax (RAcast), VOLTRON (RAcast), Infy (RAmar)",
+                        "Falafel (HUnewearl), Reflektor (HUcast), Ciel (HUcaseal), Bo✗ Energy (HUcast)",
+                        "Falafel (HUnewearl), Bo✗ Energy (HUcast), Ciel (HUcaseal), Reflektor (HUcast)",
+                        "Falafel (HUnewearl), Ciel (HUcaseal), Bo✗ Energy (HUcast), Reflektor (HUcast)",
+                        "Falafel (HUnewearl), Bo✗ Energy (HUcast), Reflektor (HUcast), rust (HUcast)",
+                        "Falafel (HUnewearl), rust (HUcast), Reflektor (HUcast), Bo✗ Energy (HUcast)",
+                        "Falafel (HUnewearl), Reflektor (HUcast), rust (HUcast), Bo✗ Energy (HUcast)",
+                        "Falafel (HUnewearl), Bo✗ Energy (HUcast), Reflektor (HUcast), rust (HUcast)",
+                        "Falafel (HUnewearl), Bo✗ Energy (HUcast), Reflektor (HUcast), rust (HUcast)",
+                    ],
+                    [
+                        "Arsuru (RAcast), Thund'r (HUnewearl), Cpt.Toilet (RAmar)",
+                        "RestaPls (RAcast), Arsuru (RAcast), YoureWaifu (FOnewearl)",
+                        "RestaPls (RAcast), Arsuru (RAcast), YoureWaifu (FOnewearl)",
+                        "RestaPls (RAcast), Arsuru (RAcast), YoureWaifu (FOnewearl)",
+                    ],
+                    [
+                        "Alspacka (RAcast), Eltnum (RAmarl)",
+                        "Alspacka (RAcast), Eltnum (RAmarl)",
+                        "Bo✗ Energy (HUcast), Kohaku (HUnewearl)",
+                        "Bo✗ Energy (HUcast), Kohaku (HUnewearl)",
+                    ],
+                    [
+                        "Flim (RAmar)",
+                        "Flim (RAmar)",
+                        "Flim (RAmar)",
+                        "Flim (RAmar)",
+                        "Flim (RAmar)",
+                        "Flim (RAmar)",
+                    ]
+                ]
+            },
+            {
+                locationName: "mine",
+                tickAmount: 3,
+                min: 210000000000,
+                max: 390000000000,
+                twentyFifthPercentile: 358295000000,
+                median: 321772000000,
+                seventyFifthPercentile: 296268000000,
+                classUsage: [145, 149, 674, 297, 169, 232, 866, 262, 178, 93, 442, 162,],
+                shiftaUsage: [21, 16, 81, 817],
+                playerCounts: [33, 0, 48, 873],
+                recordTimes: [
+                    [
+                        [1628352894000, 314133267400],
+                        [1628353720000, 308660157300],
+                        [1628356440000, 293273099500],
+                        [1628387643000, 288253387100],
+                        [1628388047000, 284056270200],
+                        [1628388476000, 271869704700],
+                        [1628389306000, 264623266600],
+                        [1628582751000, 262111627400],
+                        [1628583528000, 255107345400],
+                        [1628973506000, 249301076500],
+                        [1628973920000, 247259411700],
+                        [1628974354000, 242327134500],
+                        [1629593905000, 238569994100],
+                        [1629594730000, 226594083500],
+                        [1629595341000, 224967177500],
+                        [1629596093000, 223087953000],
+                        [1629602203000, 218469114200],
+                        [1629603512000, 215795889100],
+                        [1629609072000, 211769951800],
+                        [new Date("09/04/2021").getTime(), 211769951800],
+                    ], [
+                        [1628385237000, 303167169100],
+                        [1628386847000, 292704967700],
+                        [1628581282000, 291308456400],
+                        [1628582010000, 290058412100],
+                        [1628582370000, 287928316200],
+                        [1629258685000, 274664267400],
+                        [1629259071000, 263354758000],
+                        [1629259955000, 255952056800],
+                        [1629260386000, 250815233300],
+                        [1629261859000, 246231295900],
+                        [1629263746000, 241101084300],
+                        [1629264856000, 235762221400],
+                        [1629267339000, 233862789600],
+                        [1629270747000, 231110394600],
+                        [new Date("09/04/2021").getTime(), 231110394600],
+                    ], [
+
+                    ], [
+                        [1628977777000, 351059950500],
+                        [1628979333000, 342973211300],
+                        [1628980267000, 321870663900],
+                        [1628982268000, 318004684000],
+                        [1629073950000, 315975585900],
+                        [1629074437000, 296856368900],
+                        [new Date("09/04/2021").getTime(), 296856368900],
+                    ]
+                ],
+                recordNames: [
+                    [
+                        "tantalos (RAcast), Lameron (FOnewm), Firkraag (HUcaseal), Zen (RAcast)",
+                        "Ajax (RAcast), BOOM (RAcast), Ironhide (RAcast), Mike (FOnewm)",
+                        "rust (HUcast), Plotinus (FOnewm), La Fleur (HUcast), Lady Evil (HUcaseal)",
+                        "nrvnqsr (FOmar), Go! S㎀stic (HUcast), 蛍光の　 (HUcast), Stargazer (HUcaseal)",
+                        "nrvnqsr (FOmar), Stargazer (HUcaseal), Go! S㎀stic (HUcast), 蛍光の　 (HUcast)",
+                        "nrvnqsr (FOmar), Go! S㎀stic (HUcast), Stargazer (HUcaseal), 蛍光の　 (HUcast)",
+                        "nrvnqsr (FOmar), Go! S㎀stic (HUcast), Stargazer (HUcaseal), 蛍光の　 (HUcast)",
+                        "Ajax (RAcast), Tom (FOnewm), CHERVIL (RAcaseal), Sakura (HUcast)",
+                        "Ajax (RAcast), Tom (FOnewm), CHERVIL (RAcaseal), Sakura (HUcast)",
+                        "Ajax (RAcast), Mike (RAcast), Infy (RAmar), Tom (FOnewm)",
+                        "Ajax (RAcast), Tom (FOnewm), Infy (RAmar), Mike (RAcast)",
+                        "Ajax (RAcast), Infy (RAmar), Tom (FOnewm), Mike (RAcast)",
+                        "God (HUcast), phelix (FOnewm), Speck (HUcast), Bo✗ Energy (HUcast)",
+                        "God (HUcast), phelix (FOnewm), Bo✗ Energy (HUcast), Speck (HUcast)",
+                        "God (HUcast), Speck (HUcast), Bo✗ Energy (HUcast), phelix (FOnewm)",
+                        "God (HUcast), phelix (FOnewm), Bo✗ Energy (HUcast), Speck (HUcast)",
+                        "God (HUcast), Bo✗ Energy (HUcast), phelix (FOnewm), Speck (HUcast)",
+                        "God (HUcast), phelix (FOnewm), Bo✗ Energy (HUcast), Speck (HUcast)",
+                        "God (HUcast), Bo✗ Energy (HUcast), Speck (HUcast), phelix (FOnewm)",
+                        "God (HUcast), Bo✗ Energy (HUcast), Speck (HUcast), phelix (FOnewm)",
+                    ],
+                    [
+                        "Klekt (HUcast), Tom (FOnewm), 249 ATA (RAmar)",
+                        "Klekt (HUcast), Tom (FOnewm), 249 ATA (RAmar)",
+                        "Ajax (RAcast), Sakura (HUcast), Tom (FOnewm)",
+                        "Ajax (RAcast), Tom (FOnewm), Sakura (HUcast)",
+                        "Ajax (RAcast), Tom (FOnewm), Sakura (HUcast)",
+                        "haskell (FOnewm), Bo✗ Energy (HUcast), God (HUcast)",
+                        "haskell (FOnewm), Bo✗ Energy (HUcast), God (HUcast)",
+                        "haskell (FOnewm), Bo✗ Energy (HUcast), God (HUcast)",
+                        "haskell (FOnewm), God (HUcast), Bo✗ Energy (HUcast)",
+                        "haskell (FOnewm), God (HUcast), Bo✗ Energy (HUcast)",
+                        "haskell (FOnewm), God (HUcast), Bo✗ Energy (HUcast)",
+                        "haskell (FOnewm), God (HUcast), Bo✗ Energy (HUcast)",
+                        "God (HUcast), haskell (FOnewm), Bo✗ Energy (HUcast)",
+                        "God (HUcast), Bo✗ Energy (HUcast), haskell (FOnewm)",
+                        "God (HUcast), Bo✗ Energy (HUcast), haskell (FOnewm)",
+                    ],
+                    [
+
+                    ],
+                    [
+                        "Bo✗ Energy (HUcast)",
+                        "Bo✗ Energy (HUcast)",
+                        "Bo✗ Energy (HUcast)",
+                        "Bo✗ Energy (HUcast)",
+                        "Bo✗ Energy (HUcast)",
+                        "Bo✗ Energy (HUcast)",
+                        "Bo✗ Energy (HUcast)",
+                    ]
+                ]
+            },
+            {
+                locationName: "ruins",
+                tickAmount: 3,
+                min: 240000000000,
+                max: 420000000000,
+                twentyFifthPercentile: 409292000000,
+                median: 360219000000,
+                seventyFifthPercentile: 329207000000,
+                classUsage: [95, 142, 482, 280, 170, 179, 525, 175, 152, 90, 202, 134,],
+                shiftaUsage: [15, 24, 100, 541],
+                playerCounts: [17, 13, 17, 633],
+                recordTimes: [
+                    [
+                        [1628353289000, 357670933700],
+                        [1628354221000, 357511200400],
+                        [1628355489000, 332242028100],
+                        [1628360826000, 311119808700],
+                        [1628361809000, 291442800400],
+                        [1628369136000, 291124177900],
+                        [1628397193000, 287344226100],
+                        [1628398207000, 278929137300],
+                        [1629178000000, 258999008000],
+                        [new Date("09/04/2021").getTime(), 258999008000],
+                    ], [
+                        [1628416028000, 513408562100],
+                        [1628455189000, 455308382500],
+                        [1629062451000, 339011129400],
+                        [1629588785000, 299656664100],
+                        [1629589375000, 282574633200],
+                        [1629590388000, 278353981900],
+                        [new Date("09/04/2021").getTime(), 278353981900],
+                    ], [
+                        [1628911483000, 370052856800],
+                        [1628912011000, 355501754000],
+                        [1629684437000, 341971840400],
+                        [1629685038000, 326511947400],
+                        [1630380819000, 294014734200],
+                        [1630386242000, 286048952200],
+                        [1630387607000, 284708496900],
+                        [1630392241000, 281805812300],
+                        [new Date("09/04/2021").getTime(), 281805812300],
+                    ], [
+                        [1628623025000, 319519797000],
+                        [1628722713000, 308911213700],
+                        [1629155233000, 302229153500],
+                        [1629156363000, 299275317000],
+                        [new Date("09/04/2021").getTime(), 299275317000],
+                    ]
+                ],
+                recordNames: [
+                    [
+                        "Firkraag (HUcaseal), Zen (RAcast), Lameron (FOnewm), tantalos (RAcast)",
+                        "Annie (RAmarl), Pub Queen (RAcaseal), JC (RAcaseal), faie (RAmarl)",
+                        "Tungsten   (FOmar), BOOM (RAcast), Ajax (RAcast), Mike (RAcast)",
+                        "Spleen (FOnewm), § (RAcast), Ni pa (HUcast), readth (RAcaseal)",
+                        "La Fleur (HUcast), rust (HUcast), Plotinus (FOnewm), Stargazer (HUcaseal)",
+                        "Light (RAcast), Eisbecher (FOmar), Brasshat (HUcaseal), Jenova (HUcast)",
+                        "Go! S㎀stic (HUcast), 蛍光の　 (HUcast), Kohaku (HUnewearl), Stargazer (HUcaseal)",
+                        "Go! S㎀stic (HUcast), Kohaku (HUnewearl), 蛍光の　 (HUcast), Stargazer (HUcaseal)",
+                        "Chutney (HUcaseal), Bo✗ Energy (HUcast), Stargazer (HUcaseal), Alisaryn (FOmarl)",
+                        "Chutney (HUcaseal), Bo✗ Energy (HUcast), Stargazer (HUcaseal), Alisaryn (FOmarl)",
+                    ],
+                    [
+                        "暗黑弗洛文 (HUcaseal), Alisaryn (FOmarl), AV[[[[ (HUcast)",
+                        "Lameron (FOnewm), 249 ATA (RAmar), SistaSouja (RAmarl)",
+                        "Dinner (HUcast), 500ryu. (RAcast), Sukotto (HUnewearl)",
+                        "Étoile (FOnewearl), rust (HUcast), Bo✗ Energy (HUcast)",
+                        "Étoile (FOnewearl), Bo✗ Energy (HUcast), rust (HUcast)",
+                        "Étoile (FOnewearl), rust (HUcast), Bo✗ Energy (HUcast)",
+                        "Étoile (FOnewearl), rust (HUcast), Bo✗ Energy (HUcast)",
+                    ],
+                    [
+                        "Bo✗ Energy (HUcast), rust (HUcast)",
+                        "Bo✗ Energy (HUcast), rust (HUcast)",
+                        "Kohaku (HUnewearl), Bo✗ Energy (HUcast)",
+                        "Kohaku (HUnewearl), Bo✗ Energy (HUcast)",
+                        "Melt㏗ace (HUcast), Hwaryun (HUnewearl)",
+                        "Melt㏗ace (HUcast), Hwaryun (HUnewearl)",
+                        "Melt㏗ace (HUcast), Hwaryun (HUnewearl)",
+                        "Melt㏗ace (HUcast), Hwaryun (HUnewearl)",
+                        "Melt㏗ace (HUcast), Hwaryun (HUnewearl)",
+                    ],
+                    [
+                        "Bo✗ Energy (HUcast)",
+                        "Bo✗ Energy (HUcast)",
+                        "Bo✗ Energy (HUcast)",
+                        "Bo✗ Energy (HUcast)",
+                        "Bo✗ Energy (HUcast)",
+                    ]
+                ]
+            },
+            {
+                locationName: "temple",
+                tickAmount: 3,
+                min: 210000000000,
+                max: 390000000000,
+                twentyFifthPercentile: 371836000000,
+                median: 335571000000,
+                seventyFifthPercentile: 306071000000,
+                classUsage: [53, 122, 411, 305, 227, 272, 634, 193, 163, 152, 147, 149,],
+                shiftaUsage: [6, 58, 93, 565],
+                playerCounts: [11, 0, 31, 681],
+                recordTimes: [
+                    [
+                        [1628353740000, 325586605300],
+                        [1628356414000, 320365617200],
+                        [1628358236000, 305662611300],
+                        [1628358654000, 293368323300],
+                        [1628363477000, 276863356300],
+                        [1628470927000, 269940158300],
+                        [1628555319000, 267482816700],
+                        [1628585823000, 263931837900],
+                        [1628636385000, 246896061100],
+                        [1629942071000, 245458639700],
+                        [1629943253000, 244234338600],
+                        [new Date("09/04/2021").getTime(), 244234338600],
+                    ], [
+                        [1628355014000, 371547540500],
+                        [1628549102000, 298426703800],
+                        [1629574788000, 287539958400],
+                        [1629691283000, 282752833900],
+                        [1629691801000, 266187228600],
+                        [1629692329000, 263406411200],
+                        [1629694010000, 253892327700],
+                        [1629698597000, 244796772700],
+                        [1629701113000, 234957562200],
+                        [new Date("09/04/2021").getTime(), 234957562200],
+                    ], [
+
+                    ], [
+                        [1628628375000, 374614856700],
+                        [1628629482000, 350855809800],
+                        [1628630836000, 327139884000],
+                        [new Date("09/04/2021").getTime(), 327139884000],
+                    ]
+                ],
+                recordNames: [
+                    [
+                        "Lameron (FOnewm), Firkraag (HUcaseal), tantalos (RAcast), Zen (RAcast)",
+                        "Mike (RAcast), Tungsten   (FOmar), Ajax (RAcast), BOOM (RAcast)",
+                        "Arsuru (RAcast), SS-Hobo (RAcaseal), Oblivion (RAmar), Ukyo (RAmarl)",
+                        "Arsuru (RAcast), SS-Hobo (RAcaseal), Ukyo (RAmarl), Oblivion (RAmar)",
+                        "Flim (RAmar), rust (HUcast), La Fleur (HUcast), Stargazer (HUcaseal)",
+                        "Lameron (FOnewm), 249 ATA (RAmar), 蛍光の　 (HUcast), Light (RAcast)",
+                        "Cosmos (FOmarl), Shadegreen (RAcast), Mike (RAcast), Centurion (HUcast)",
+                        "Tom (FOnewm), Sakura (HUcast), Ajax (RAcast), CHERVIL (RAcaseal)",
+                        "Mike (RAcast), Eisbecher (FOmar), Ajax (RAcast), BOOM (RAcast)",
+                        "\"tonight\" (RAcaseal), Cortado (RAcast), divinity (RAmarl), Ciel (HUcaseal)",
+                        "divinity (RAmarl), Cortado (RAcast), Hisui (FOmarl), \"tonight\" (RAcaseal)",
+                        "divinity (RAmarl), Cortado (RAcast), Hisui (FOmarl), \"tonight\" (RAcaseal)",
+                    ],
+                    [
+                        "Millenia (RAmarl), Revenata (HUcaseal), Brasshat (HUcaseal)",
+                        "Lameron (FOnewm), Centurion (HUcast), Ajax (RAcast)",
+                        "Arsuru (RAcast), 99 Ranged (RAcast), Split (FOmar)",
+                        "Flim (RAmar), bvelix (HUcast), God (HUcast)",
+                        "Flim (RAmar), bvelix (HUcast), God (HUcast)",
+                        "Flim (RAmar), bvelix (HUcast), God (HUcast)",
+                        "Flim (RAmar), God (HUcast), bvelix (HUcast)",
+                        "Flim (RAmar), bvelix (HUcast), God (HUcast)",
+                        "Flim (RAmar), God (HUcast), bvelix (HUcast)",
+                        "Flim (RAmar), God (HUcast), bvelix (HUcast)",
+                    ],
+                    [
+
+                    ],
+                    [
+                        "Flim (RAmar)",
+                        "Flim (RAmar)",
+                        "Flim (RAmar)",
+                        "Flim (RAmar)",
+                    ]
+                ]
+            },
+            {
+                locationName: "space",
+                tickAmount: 4,
+                min: 210000000000,
+                max: 450000000000,
+                twentyFifthPercentile: 377282000000,
+                median: 344441000000,
+                seventyFifthPercentile: 312877000000,
+                classUsage: [69, 149, 550, 338, 226, 258, 702, 373, 170, 113, 222, 106,],
+                shiftaUsage: [ 10, 85, 146, 580],
+                playerCounts: [105, 15, 71, 732],
+                recordTimes: [
+                    [
+                        [1628351650000, 606769168700],
+                        [1628355878000, 348117057600],
+                        [1628357581000, 320579925300],
+                        [1628359072000, 313694258800],
+                        [1628365610000, 288618592400],
+                        [1628451900000, 282331407900],
+                        [1628454182000, 271144621000],
+                        [1628456743000, 258261653300],
+                        [1629413517000, 257712548400],
+                        [1630537161000, 245639809700],
+                        [new Date("09/04/2021").getTime(), 245639809700],
+                    ], [
+                        [1628456340000, 418837515900],
+                        [1628457725000, 302677759100],
+                        [1629317596000, 298446080000],
+                        [1630439544000, 295340515000],
+                        [1630440516000, 279488606000],
+                        [1630636985000, 251676864300],
+                        [1630637369000, 243138104900],
+                        [1630639593000, 242312665700],
+                        [1630641118000, 239198864100],
+                        [1630643351000, 238306391200],
+                        [1630646419000, 232074908500],
+                        [1630646798000, 231811612800],
+                        [1630648883000, 230104621800],
+                        [1630649885000, 228885566600],
+                        [1630650529000, 219571089600],
+                        [1630737898000, 219294098200],
+                        [1630740152000, 216270138900],
+                        [new Date("09/04/2021").getTime(), 216270138900],
+                    ], [
+                        [1629066832000, 325566920100],
+                        [1629067252000, 311008972800],
+                        [1629069438000, 287687397100],
+                        [1629084499000, 276680755600],
+                        [new Date("09/04/2021").getTime(), 276680755600],
+                    ], [
+                        [1628627575000, 419329683900],
+                        [1628716092000, 407457902900],
+                        [1628757430000, 335360875300],
+                        [1628758838000, 321285484300],
+                        [1628842065000, 304763007000],
+                        [1628852963000, 294874380500],
+                        [1629171305000, 294668487000],
+                        [1629171720000, 282232117100],
+                        [1629539744000, 278697134200],
+                        [1629771229000, 276740219700],
+                        [new Date("09/04/2021").getTime(), 276740219700],
+                    ]
+                ],
+                recordNames: [
+                    [
+                        "Neimi (HUcaseal), Artorias (HUmar), (RED) (RAcaseal), Girhar (HUmar)",
+                        "Brassman (FOmar), Revenata (HUcaseal), Jenova (HUcast), Light (RAcast)",
+                        "Mike (RAcast), Ajax (RAcast), Tungsten   (FOmar), BOOM (RAcast)",
+                        "Ukyo (RAmarl), Arsuru (RAcast), SS-Hobo (RAcaseal), Oblivion (RAmar)",
+                        "Stargazer (HUcaseal), rust (HUcast), Go! S㎀stic (HUcast), Au pair (RAmarl)",
+                        "Pub Queen (RAcaseal), Violet (FOnewearl), JC (RAcaseal), Oswin (HUcast)",
+                        "Go! S㎀stic (HUcast), 蛍光の　 (HUcast), Sachi (RAmarl), -10.0 (HUcast)",
+                        "Go! S㎀stic (HUcast), 蛍光の　 (HUcast), Sachi (RAmarl), -10.0 (HUcast)",
+                        "Bo✗ Energy (HUcast), Chutney (HUcaseal), divinity (RAmarl), Scotty (FOmar)",
+                        "iPhone (RAcast), mod (RAmarl), Sarvanga (FOnewearl), 99 Ranged (RAcast)",
+                        "iPhone (RAcast), mod (RAmarl), Sarvanga (FOnewearl), 99 Ranged (RAcast)",
+                    ],
+                    [
+                        "Lameron (FOnewm), 249 ATA (RAmar), Anieru (HUcaseal)",
+                        "Go! S㎀stic (HUcast), Sachi (RAmarl), 蛍光の　 (HUcast)",
+                        "Bo✗ Energy (HUcast), Arsuru (RAcast), Split (FOmar)",
+                        "iPhone (RAcast), mod (RAmarl), 3Jane (RAmarl)",
+                        "iPhone (RAcast), mod (RAmarl), 3Jane (RAmarl)",
+                        "Melt㏗ace (HUcast), Ethereal (HUcast), cornered (RAmar)",
+                        "Melt㏗ace (HUcast), Ethereal (HUcast), cornered (RAmar)",
+                        "Melt㏗ace (HUcast), Ethereal (HUcast), cornered (RAmar)",
+                        "Melt㏗ace (HUcast), Ethereal (HUcast), cornered (RAmar)",
+                        "Melt㏗ace (HUcast), Ethereal (HUcast), phelix (RAmar)",
+                        "Melt㏗ace (HUcast), Ethereal (HUcast), phelix (RAmar)",
+                        "Melt㏗ace (HUcast), Ethereal (HUcast), phelix (RAmar)",
+                        "Melt㏗ace (HUcast), Ethereal (HUcast), phelix (RAmar)",
+                        "Melt㏗ace (HUcast), Ethereal (HUcast), phelix (RAmar)",
+                        "Melt㏗ace (HUcast), Ethereal (HUcast), phelix (RAmar)",
+                        "Melt㏗ace (HUcast), Ethereal (HUcast), phelix (RAmar)",
+                        "Melt㏗ace (HUcast), Ethereal (HUcast), phelix (RAmar)",
+                        "Melt㏗ace (HUcast), Ethereal (HUcast), phelix (RAmar)",
+                    ],
+                    [
+                        "Bo✗ Energy (HUcast), cornered (RAmar)",
+                        "Bo✗ Energy (HUcast), cornered (RAmar)",
+                        "Bo✗ Energy (HUcast), cornered (RAmar)",
+                        "Bo✗ Energy (HUcast), cornered (RAmar)",
+                        "Bo✗ Energy (HUcast), cornered (RAmar)",
+                    ],
+                    [
+                        "Bo✗ Energy (HUcast)",
+                        "SS-Hobo (RAcaseal)",
+                        "Alspacka (RAcast)",
+                        "Alspacka (RAcast)",
+                        "Alisaryn (RAcaseal)",
+                        "Alisaryn (RAcaseal)",
+                        "Pub Queen (RAcaseal)",
+                        "Pub Queen (RAcaseal)",
+                        "JC (RAcaseal)",
+                        "Alisaryn (RAcaseal)",
+                        "Alisaryn (RAcaseal)",
+                    ]
+                ]
+            },
+            {
+                locationName: "cca",
+                tickAmount: 6,
+                min: 180000000000,
+                max: 540000000000,
+                twentyFifthPercentile: 391877000000,
+                median: 350459000000,
+                seventyFifthPercentile: 317855000000,
+                classUsage: [ 105, 141, 699, 287, 220, 262, 684, 360, 193, 117, 212, 205,],
+                shiftaUsage: [4, 26, 145, 702],
+                playerCounts: [2, 3, 19, 855],
+                recordTimes: [
+                    [
+                        [1628354682000, 402117144900],
+                        [1628355961000, 342852563600],
+                        [1628360041000, 338841300100],
+                        [1628360162000, 306399549300],
+                        [1628368642000, 297738243800],
+                        [1628369178000, 284277818000],
+                        [1628370077000, 275186325000],
+                        [1628487915000, 262484054900],
+                        [1628932781000, 252430474600],
+                        [1629242640000, 250268739300],
+                        [1629243184000, 237348205800],
+                        [1629243978000, 232647301500],
+                        [1629244318000, 231701555500],
+                        [1629244708000, 230345088700],
+                        [1629532261000, 224261637600],
+                        [1629533635000, 212246045400],
+                        [new Date("09/04/2021").getTime(), 212246045400],
+                    ], [
+                        [1628460787000, 453851130600],
+                        [1628550113000, 334279067500],
+                        [1629616485000, 313098921200],
+                        [1629617025000, 280286013600],
+                        [1629617454000, 268473725700],
+                        [new Date("09/04/2021").getTime(), 268473725700],
+                    ], [
+                        [1629159674000, 393230424000],
+                        [1629160979000, 332534754700],
+                        [new Date("09/04/2021").getTime(), 332534754700],
+                    ], [
+                        [1629764615000, 514094878000],
+                        [new Date("09/04/2021").getTime(), 514094878000],
+                    ]
+                ],
+                recordNames: [
+                    [
+                        "Firkraag (HUcaseal), Lameron (FOnewm), tantalos (RAcast), Zen (RAcast)",
+                        "faie (RAmarl), Annie (RAmarl), JC (RAcaseal), Pub Queen (RAcaseal)",
+                        "Firkraag (HUcaseal), Lameron (FOnewm), tantalos (RAcast), Zen (RAcast)",
+                        "BigBoyo (RAcast), Arsuru (RAcast), Ukyo (RAmarl), Oblivion (RAmar)",
+                        "rust (HUcast), Stargazer (HUcaseal), Go! S㎀stic (HUcast), Au pair (RAmarl)",
+                        "rust (HUcast), Go! S㎀stic (HUcast), Stargazer (HUcaseal), Au pair (RAmarl)",
+                        "rust (HUcast), Go! S㎀stic (HUcast), Stargazer (HUcaseal), Au pair (RAmarl)",
+                        "Thundah? (FOnewearl), Dinner (HUcast), Beginner (RAmar), Tij (HUcast)",
+                        "Y.T. (RAmarl), Bo✗ Energy (HUcast), ✂ (RAcast), BesideMe (FOmarl)",
+                        "Alspacka (RAcast), ✇ (FOnewm), Scotty (RAmar), rust (HUcast)",
+                        "rust (HUcast), ✇ (FOnewm), Scotty (RAmar), Bo✗ Energy (HUcast)",
+                        "rust (HUcast), ✇ (FOnewm), Scotty (RAmar), Bo✗ Energy (HUcast)",
+                        "rust (HUcast), Scotty (RAmar), ✇ (FOnewm), Bo✗ Energy (HUcast)",
+                        "rust (HUcast), Scotty (RAmar), Bo✗ Energy (HUcast), ✇ (FOnewm)",
+                        "rust (HUcast), Bo✗ Energy (HUcast), Alisaryn (RAcaseal), ez 'rec' (RAmarl)",
+                        "rust (HUcast), Merry (RAmarl), Bo✗ Energy (HUcast), Alisaryn (RAcaseal)",
+                        "rust (HUcast), Merry (RAmarl), Bo✗ Energy (HUcast), Alisaryn (RAcaseal)",
+                    ],
+                    [
+                        "Arsuru (RAcast), Ajax (RAcast), Magic Mike (FOmar)",
+                        "Lameron (FOnewm), Centurion (HUcast), Ajax (RAcast)",
+                        "rust (HUcast), ⚡ (HUcast), Flim (RAmar)",
+                        "rust (HUcast), ⚡ (HUcast), Baby: ✓ (RAmar)",
+                        "rust (HUcast), Flim (RAmar), ⚡ (HUcast)",
+                        "rust (HUcast), Flim (RAmar), ⚡ (HUcast)",
+                    ],
+                    [
+                        "Flim (RAmar), Thunder (HUcaseal)",
+                        "Flim (RAmar), ⚡ (HUcast)",
+                        "Flim (RAmar), ⚡ (HUcast)",
+                    ],
+                    [
+                        "Alspacka (RAcast)",
+                        "Alspacka (RAcast)",
+                    ]
+                ]
+            },
+            {
+                locationName: "seabed",
+                tickAmount: 4,
+                min: 270000000000,
+                max: 510000000000,
+                twentyFifthPercentile: 486459000000,
+                median: 427943000000,
+                seventyFifthPercentile: 379820000000,
+                classUsage: [39, 121, 450, 312, 154, 224, 664, 250, 111, 108, 215, 158,],
+                shiftaUsage: [2, 7, 121, 573],
+                playerCounts: [3, 0, 5, 697],
+                recordTimes: [
+                    [
+                        [1628356537000, 594642461900],
+                        [1628356740000, 449989965500],
+                        [1628360511000, 412197572900],
+                        [1628361359000, 386807529600],
+                        [1628361900000, 367120263900],
+                        [1628370639000, 341134087700],
+                        [1628371678000, 322404979200],
+                        [1628372277000, 304736814100],
+                        [1629514972000, 303093669400],
+                        [1629515444000, 299169509700],
+                        [1629515895000, 285649506000],
+                        [1629517995000, 281167348100],
+                        [new Date("09/04/2021").getTime(), 281167348100],
+                    ], [
+                        [1628700457000, 503885318900],
+                        [1628799213000, 500219387400],
+                        [1628934390000, 303817448500],
+                        [new Date("09/04/2021").getTime(), 303817448500],
+                    ], [
+
+                    ], [
+                        [1628799710000, 765912844900],
+                        [1629761900000, 414764568000],
+                        [new Date("09/04/2021").getTime(), 414764568000],
+                    ]
+                ],
+                recordNames: [
+                    [
+                        "Fran (HUcast), JC (RAcaseal), faie (RAmarl), Pub Queen (RAcaseal)",
+                        "Jenova (HUcast), Brassman (FOmar), Revenata (HUcaseal), Light (RAcast)",
+                        "Zen (RAcast), tantalos (RAcast), Firkraag (HUcaseal), Lameron (FOnewm)",
+                        "Arsuru (RAcast), Oblivion (RAmar), Razakel  (HUcaseal), Ukyo (RAmarl)",
+                        "Arsuru (RAcast), Oblivion (RAmar), Razakel  (HUcaseal), Ukyo (RAmarl)",
+                        "_ (RAcast), Stargazer (HUcaseal), Go! S㎀stic (HUcast), Au pair (RAmarl)",
+                        "_ (RAcast), Au pair (RAmarl), Go! S㎀stic (HUcast), Stargazer (HUcaseal)",
+                        "_ (RAcast), Stargazer (HUcaseal), Go! S㎀stic (HUcast), Au pair (RAmarl)",
+                        "Go Plastic (HUcaseal), Crepuscule (FOmarl), Chutney (HUcaseal), C.C. Lemon (RAcaseal)",
+                        "Go Plastic (HUcaseal), Chutney (HUcaseal), Crepuscule (FOmarl), C.C. Lemon (RAcaseal)",
+                        "Go Plastic (HUcaseal), C.C. Lemon (RAcaseal), Chutney (HUcaseal), Crepuscule (FOmarl)",
+                        "Go Plastic (HUcaseal), Chutney (HUcaseal), C.C. Lemon (RAcaseal), Crepuscule (FOmarl)",
+                        "Go Plastic (HUcaseal), Chutney (HUcaseal), C.C. Lemon (RAcaseal), Crepuscule (FOmarl)",
+                    ],
+                    [
+                        "Seira (HUcaseal), Lameron (FOnewm), tantalos (RAcast)",
+                        "readth (RAcaseal), Lameron (FOnewm), Firkraag (HUcaseal)",
+                        "Brenten (RAmar), Bo✗ Energy (HUcast), ✂ (RAcast)",
+                        "Brenten (RAmar), Bo✗ Energy (HUcast), ✂ (RAcast)",
+                    ],
+                    [
+
+                    ],
+                    [
+                        "BrassBot (RAcast)",
+                        "Alspacka (RAcast)",
+                        "Alspacka (RAcast)",
+                    ]
+                ]
+            },
+            {
+                locationName: "tower",
+                tickAmount: 6,
+                min: 300000000000,
+                max: 660000000000,
+                twentyFifthPercentile: 519513000000,
+                median: 476309000000,
+                seventyFifthPercentile: 440038000000,
+                classUsage: [59, 138, 671, 311, 161, 188, 505, 177, 156, 117, 203, 160,],
+                shiftaUsage: [2, 7, 94, 611],
+                playerCounts: [1, 1, 5, 707],
+                recordTimes: [
+                    [
+                        [1628354154000, 682444860900],
+                        [1628357341000, 531342530500],
+                        [1628357494000, 491617906700],
+                        [1628363385000, 478899561000],
+                        [1628363664000, 455337710100],
+                        [1628372336000, 453169094900],
+                        [1628373426000, 388376725500],
+                        [1628376053000, 378634217800],
+                        [1628399862000, 373796545900],
+                        [1629175151000, 361204309900],
+                        [1629661948000, 360930552700],
+                        [1629663100000, 346824085100],
+                        [new Date("09/04/2021").getTime(), 346824085100],
+                    ], [
+                        [1628669356000, 501775382400],
+                        [1628670176000, 467615571600],
+                        [1629104104000, 454498847300],
+                        [1629389816000, 448180635600],
+                        [new Date("09/04/2021").getTime(), 448180635600],
+                    ], [
+                        [1629845613000, 634034866100],
+                        [new Date("09/04/2021").getTime(), 634034866100],
+                    ], [
+                        [1629874711000, 622347426500],
+                        [new Date("09/04/2021").getTime(), 622347426500],
+                    ]
+                ],
+                recordNames: [
+                    [
+                        "Infy? (RAmar), Khangp (FOmarl), SistaSouja (RAmarl), Light (RAcast)",
+                        "Pub Queen (RAcaseal), faie (RAmarl), Annie (RAmarl), JC (RAcaseal)",
+                        "Brassman (FOmar), Revenata (HUcaseal), Light (RAcast), Jenova (HUcast)",
+                        "Thund'r (HUnewearl), Razakel  (HUcaseal), Kathryn (FOmarl), Arsuru (RAcast)",
+                        "Ni pa (HUcast), Spleen (FOnewm), § (RAcast), readth (RAcaseal)",
+                        "Eisbecher (FOmar), Brasshat (HUcaseal), Arcturus (RAcast), Light (RAcast)",
+                        "Go! S㎀stic (HUcast), bvelix (HUcast), Stargazer (HUcaseal), Étoile (FOnewearl)",
+                        "Go! S㎀stic (HUcast), bvelix (HUcast), Stargazer (HUcaseal), Étoile (FOnewearl)",
+                        "Go! S㎀stic (HUcast), Kohaku (HUnewearl), 蛍光の　 (HUcast), Painkiller (HUcaseal)",
+                        "Bo✗ Energy (HUcast), Chutney (HUcaseal), Alisaryn (FOmarl), Stargazer (HUcaseal)",
+                        "Bo✗ Energy (HUcast), Ghostcat (HUcast), ?XD (HUcast), Ender (RAmar)",
+                        "Bo✗ Energy (HUcast), Ender (RAmar), ?XD (HUcast), Ghostcat (HUcast)",
+                        "Bo✗ Energy (HUcast), Ender (RAmar), ?XD (HUcast), Ghostcat (HUcast)",
+                    ],
+                    [
+                        "Bo✗ Energy (HUcast), Camouflage (HUcaseal), Alisaryn (FOmarl)",
+                        "Bo✗ Energy (HUcast), Camouflage (HUcaseal), Alisaryn (FOmarl)",
+                        "Bo✗ Energy (HUcast), Étoile (FOnewearl), Painkiller (HUcaseal)",
+                        "Klekt (HUcast), Tola (FOnewm), 500ryu. (RAcast)",
+                        "Klekt (HUcast), Tola (FOnewm), 500ryu. (RAcast)",
+                    ],
+                    [
+                        "JC (RAcaseal), Violet (FOnewearl)",
+                        "JC (RAcaseal), Violet (FOnewearl)",
+                    ],
+                    [
+                        "Bo✗ Energy (HUcast)",
+                        "Bo✗ Energy (HUcast)",
+                    ]
+                ]
+            },
+            {
+                locationName: "crater",
+                tickAmount: 4,
+                min: 240000000000,
+                max: 480000000000,
+                twentyFifthPercentile: 436411000000,
+                median: 390927000000,
+                seventyFifthPercentile: 355823000000,
+                classUsage: [ 84, 140, 837, 441, 192, 264, 922, 317, 187, 159, 652, 212,],
+                shiftaUsage: [  1, 3, 32, 1084],
+                playerCounts: [21, 0, 10, 1089],
+                recordTimes: [
+                    [
+                        [1628358625000, 405895794100],
+                        [1628361185000, 405699241200],
+                        [1628361251000, 401891259100],
+                        [1628361680000, 362918601100],
+                        [1628367126000, 347982270000],
+                        [1628377495000, 342114271200],
+                        [1628378837000, 332467849100],
+                        [1628379322000, 331081656700],
+                        [1628452563000, 323299816800],
+                        [1628468307000, 311483337200],
+                        [1628566069000, 311396383900],
+                        [1628632086000, 297695779700],
+                        [1628728191000, 292034039600],
+                        [1628729541000, 256625258300],
+                        [new Date("09/04/2021").getTime(), 256625258300],
+                    ], [
+                        [1628819898000, 362587163800],
+                        [new Date("09/04/2021").getTime(), 362587163800],
+                    ], [
+
+                    ], [
+                        [1628554983000, 568080924300],
+                        [1628555629000, 522061091700],
+                        [1629080066000, 392043288300],
+                        [1629081120000, 380503077300],
+                        [1629081597000, 379589058900],
+                        [1629082551000, 374626909800],
+                        [1629083046000, 369820009800],
+                        [1629083568000, 368427163000],
+                        [1629084982000, 365933529400],
+                        [1629686351000, 364922760900],
+                        [1629689317000, 349536147500],
+                        [1629689764000, 344354009300],
+                        [new Date("09/04/2021").getTime(), 344354009300],
+                    ]
+                ],
+                recordNames: [
+                    [
+                        "JC (RAcaseal), Pub Queen (RAcaseal), Fran (FOmar), faie (RAmarl)",
+                        "Brassman (FOmar), Revenata (HUcaseal), Light (RAcast), Jenova (HUcast)",
+                        "Mike (RAcast), Tungsten   (FOmar), BOOM (RAcast), Ajax (RAcast)",
+                        "Firkraag (HUcaseal), tantalos (RAcast), Lameron (FOnewm), Zen (RAcast)",
+                        "Firkraag (HUcaseal), Lameron (FOnewm), Zen (RAcast), tantalos (RAcast)",
+                        "bgmctrl (FOnewm), Go! S㎀stic (HUcast), Stargazer (HUcaseal), Ghostcat (HUcast)",
+                        "bgmctrl (FOnewm), Go! S㎀stic (HUcast), Stargazer (HUcaseal), Ghostcat (HUcast)",
+                        "bgmctrl (FOnewm), Go! S㎀stic (HUcast), Stargazer (HUcaseal), Ghostcat (HUcast)",
+                        "Firkraag (HUcaseal), 249 ATA (RAmar), tantalos (RAcast), Lameron (FOnewm)",
+                        "Light (RAcast), Lameron (FOnewm), 249 ATA (RAmar), 蛍光の　 (HUcast)",
+                        "Light (RAcast), Lameron (FOnewm), UltraBoost (RAcast), BOLO (RAcast)",
+                        "Mike (RAcast), Eisbecher (FOmar), James (HUcast), Ajax (RAcast)",
+                        "bgmctrl (FOnewm), 蛍光の　 (HUcast), Bo✗ Energy (HUcast), Scotty (HUcast)",
+                        "bgmctrl (FOnewm), Bo✗ Energy (HUcast), 蛍光の　 (HUcast), Scotty (HUcast)",
+                        "bgmctrl (FOnewm), Bo✗ Energy (HUcast), 蛍光の　 (HUcast), Scotty (HUcast)",
+                    ],
+                    [
+                        "readth (RAcaseal), Yeezus (HUcast), Lameron (FOnewm)",
+                        "readth (RAcaseal), Yeezus (HUcast), Lameron (FOnewm)",
+                    ],
+                    [
+
+                    ],
+                    [
+                        "Thundah? (FOnewearl)",
+                        "Thundah? (FOnewearl)",
+                        "Hexacast (FOnewearl)",
+                        "Hexacast (FOnewearl)",
+                        "Hexacast (FOnewearl)",
+                        "Hexacast (FOnewearl)",
+                        "Hexacast (FOnewearl)",
+                        "Hexacast (FOnewearl)",
+                        "Hexacast (FOnewearl)",
+                        "Weyoun (FOnewm)",
+                        "Weyoun (FOnewm)",
+                        "Weyoun (FOnewm)",
+                        "Weyoun (FOnewm)",
+                    ]
+                ]
+            },
+            {
+                locationName: "desert",
+                tickAmount: 5,
+                min: 240000000000,
+                max: 540000000000,
+                twentyFifthPercentile: 438678000000,
+                median: 387017000000,
+                seventyFifthPercentile: 349151000000,
+                classUsage: [97, 148, 1031, 433, 192, 317, 991, 369, 151, 91, 792, 302,],
+                shiftaUsage: [1, 1, 14, 1238],
+                playerCounts: [18, 9, 30, 1197],
+                recordTimes: [
+                    [
+                        [1628359761000, 471650553900],
+                        [1628361810000, 435177693200],
+                        [1628361881000, 373970838200],
+                        [1628373619000, 368798426200],
+                        [1628379899000, 345315360800],
+                        [1628381449000, 342755000400],
+                        [1628381934000, 328784434500],
+                        [1628473774000, 313471190800],
+                        [1628562926000, 301692229100],
+                        [1628730540000, 295773218400],
+                        [1628730944000, 295694619200],
+                        [1628731378000, 289878891700],
+                        [1628810673000, 287103825500],
+                        [1628811679000, 278366278300],
+                        [1629143282000, 274280391100],
+                        [1629143708000, 266569305700],
+                        [1629144082000, 265463081400],
+                        [new Date("09/04/2021").getTime(), 265463081400],
+                    ], [
+                        [1628820482000, 370786469300],
+                        [1629307483000, 370394948300],
+                        [1629864680000, 358568200700],
+                        [1630014897000, 330696094000],
+                        [1630121871000, 317806530700],
+                        [1630122371000, 306347138700],
+                        [1630124456000, 301218856000],
+                        [1630124857000, 294622250800],
+                        [1630125680000, 292948604800],
+                        [1630126112000, 278432408200],
+                        [1630129492000, 268347629200],
+                        [1630133816000, 255135433500],
+                        [new Date("09/04/2021").getTime(), 255135433500],
+                    ], [
+                        [1628977470000, 499648446200],
+                        [1628978223000, 474140181100],
+                        [1628979626000, 420479435600],
+                        [1628981053000, 415029271200],
+                        [new Date("09/04/2021").getTime(), 415029271200],
+                    ], [
+                        [1628556255000, 755180811800],
+                        [1629029119000, 620830530800],
+                        [1629240156000, 508471625200],
+                        [1629596287000, 432664701700],
+                        [1629597468000, 431447635000],
+                        [1629598857000, 399300676600],
+                        [new Date("09/04/2021").getTime(), 399300676600],
+                    ]
+                ],
+                recordNames: [
+                    [
+                        "Don Groove (FOnewm), Pub Queen (RAcaseal), Zance (HUmar), Sairenji (RAcaseal)",
+                        "Tungsten   (FOmar), Ajax (RAcast), Mike (RAcast), BOOM (RAcast)",
+                        "Revenata (HUcaseal), Brassman (FOmar), Jenova (HUcast), Light (RAcast)",
+                        "Arcturus (RAcast), Eisbecher (FOmar), Light (RAcast), Brasshat (HUcaseal)",
+                        "bgmctrl (FOnewm), Ghostcat (HUcast), Go! S㎀stic (HUcast), Stargazer (HUcaseal)",
+                        "bgmctrl (FOnewm), Stargazer (HUcaseal), Go! S㎀stic (HUcast), Ghostcat (HUcast)",
+                        "bgmctrl (FOnewm), Stargazer (HUcaseal), Go! S㎀stic (HUcast), Ghostcat (HUcast)",
+                        "蛍光の　 (HUcast), Lameron (FOnewm), 249 ATA (RAmar), Light (RAcast)",
+                        "bgmctrl (FOnewm), 蛍光の　 (HUcast), Tij (HUcast), Ethereal (HUcast)",
+                        "bgmctrl (FOnewm), Scotty (HUcast), 蛍光の　 (HUcast), Bo✗ Energy (HUcast)",
+                        "bgmctrl (FOnewm), Scotty (HUcast), Bo✗ Energy (HUcast), 蛍光の　 (HUcast)",
+                        "bgmctrl (FOnewm), Bo✗ Energy (HUcast), Scotty (HUcast), 蛍光の　 (HUcast)",
+                        "Mike (RAcast), Tom (FOnewm), Kratos (HUcast), Kurotsuchi (HUcast)",
+                        "Mike (RAcast), Kurotsuchi (HUcast), Tom (FOnewm), Kratos (HUcast)",
+                        "500ryu. (RAcast), ✇ (FOnewm), -10.0 (HUcast), Bo✗ Energy (HUcast)",
+                        "500ryu. (RAcast), ✇ (FOnewm), Bo✗ Energy (HUcast), -10.0 (HUcast)",
+                        "500ryu. (RAcast), ✇ (FOnewm), Bo✗ Energy (HUcast), -10.0 (HUcast)",
+                        "500ryu. (RAcast), ✇ (FOnewm), Bo✗ Energy (HUcast), -10.0 (HUcast)",
+                    ],
+                    [
+                        "Lameron (FOnewm), Yeezus (HUcast), readth (RAcaseal)",
+                        "家系 (FOnewm), ☡ (RAcast), UFOmafia (RAcast)",
+                        "bgmctrl (FOnewm), C.C. Lemon (RAcaseal), Bo✗ Energy (HUcast)",
+                        "Backgammon (FOnewm), ☡ (RAcast), CHERVIL (RAcaseal)",
+                        "bgmctrl (FOnewm), Ethereal (HUcast), Melt㏗ace (HUcast)",
+                        "bgmctrl (FOnewm), Melt㏗ace (HUcast), Ethereal (HUcast)",
+                        "bgmctrl (FOnewm), Melt㏗ace (HUcast), Ethereal (HUcast)",
+                        "bgmctrl (FOnewm), Melt㏗ace (HUcast), Ethereal (HUcast)",
+                        "phelix (FOnewm), Melt㏗ace (HUcast), Ethereal (HUcast)",
+                        "phelix (FOnewm), Ethereal (HUcast), Melt㏗ace (HUcast)",
+                        "phelix (FOnewm), Ethereal (HUcast), Melt㏗ace (HUcast)",
+                        "phelix (FOnewm), Ethereal (HUcast), Melt㏗ace (HUcast)",
+                        "phelix (FOnewm), Ethereal (HUcast), Melt㏗ace (HUcast)",
+                    ],
+                    [
+                        "Lameron (FOnewm), _ (RAcast)",
+                        "Lameron (FOnewm), _ (RAcast)",
+                        "Lameron (FOnewm), _ (RAcast)",
+                        "Lameron (FOnewm), _ (RAcast)",
+                        "Lameron (FOnewm), _ (RAcast)",
+                    ],
+                    [
+                        "Thundah? (FOnewearl)",
+                        "Bij-Bi-Gon (FOnewm)",
+                        "Mike (FOnewm)",
+                        "Hexacast (FOnewearl)",
+                        "Hexacast (FOnewearl)",
+                        "Hexacast (FOnewearl)",
+                        "Hexacast (FOnewearl)",
+                    ]
+                ]
+            },
+        ]
+
+        for (let i = 0; i < 11; i++) {
+            const questData = questDataArray[i]
+            const options = {
+                chart: {
+                    id: questData.locationName,
+                    type: 'line',
+                },
+                stroke: {
+                    width: 4
+                },
+                series: [
+                    {name: '4P', data: questData.recordTimes[0], color: '#198754'},
+                    {name: '3P', data: questData.recordTimes[1], color: '#ffc107'},
+                    {name: '2P', data: questData.recordTimes[2], color: '#0d6efd'},
+                    {name: '1P', data: questData.recordTimes[3], color: '#dc3545'}
+                ],
+                xaxis: {type: 'datetime', min: new Date("08/07/2021").getTime(), max: new Date("09/04/2021").getTime()},
+                yaxis: {
+                    type: 'time',
+                    min: questData.min,
+                    max: questData.max,
+                    tickAmount: questData.tickAmount,
+                    labels: {
+                        minWidth: 40,
+                        formatter: function (value) {
+                            const minutes = Math.floor(value / 60000000000)
+                            const seconds = Math.floor(value / 1000000000) % 60
+                            return "" + minutes + ":" + ("00" + seconds).slice(-2)
+                        }
+                    }
+                },
+                tooltip: {
+                    y: {
+                        formatter: function (value, opt) {
+                            const minutes = Math.floor(value / 60000000000)
+                            const seconds = Math.floor(value / 1000000000) % 60
+                            return "" + minutes + ":" + ("00" + seconds).slice(-2) + " - " + questData.recordNames[opt.seriesIndex][opt.dataPointIndex]
+                        },
+                    }
+                },
+                annotations: {
+                    yaxis: [{
+                        y: questData.twentyFifthPercentile,
+                        y2: questData.seventyFifthPercentile,
+                        fillColor: "#777",
+                        label: {
+                            style: {
+                                color: "#111"
+                            },
+                        }
+                    },{
+                        y: questData.median,
+                        strokeDashArray: 3,
+                        borderColor: "#d0c15d",
+                        label: {
+                            style: {
+                                color: "#333"
+                            },
+                            text: "Median"
+                        }
+                    }]
+                }
+            };
+            const forestChart = new ApexCharts(document.querySelector("#" + questData.locationName + "-chart"), options);
+            forestChart.render();
+
+            const forestClassDonut = {
+                title: {
+                    text: "Class Usage"
+                },
+                series: questData.classUsage,
+                labels: [ "HUmar", "HUnewearl", "HUcast", "HUcaseal", "RAmar", "RAmarl", "RAcast", "RAcaseal", "FOmar", "FOmarl", "FOnewm", "FOnewearl"], chart: {type: 'pie',},
+                theme: {palette: 'palette3'},
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (val, opt) {
+                        return [ "HUmr", "HUnl", "HUct", "HUcl", "RAmr", "RAml", "RAct", "RAcl", "FOmr", "FOml", "FOnm", "FOnl"][opt.seriesIndex]
+                    },
+                },
+                colors: ["#ff0028", "#ff7e8a", "#6b1e31", "#803442", "#48ff00", "#7eff80", "#346b1e", "#3e8034", "#0059ff", "#7eb2ff", "#1e4b6b", "#345a80",],
+                legend: {show: false,}
+            };
+
+            const forestDonutChart = new ApexCharts(document.querySelector("#" + questData.locationName + "-donut"), forestClassDonut);
+            forestDonutChart.render();
+            const shiftaChartOptions = {
+                title: {
+                    text: "Shifta"
+                },
+                series: questData.shiftaUsage,
+                labels: [ "3", "15", "20", "30" ],
+                chart: {
+                    type: 'pie',
+                },
+                theme: {
+                    palette: 'palette3'
+                },
+
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (val, opt) {
+                        return [ "3", "15", "20", "30"][opt.seriesIndex] + ": " + val.toFixed(1) + "%"
+                    },
+                },
+                legend: {
+                    show: false,
+                }
+            };
+            const shiftaChart = new ApexCharts(document.querySelector("#" + questData.locationName + "-shifta"), shiftaChartOptions);
+            shiftaChart.render();
+
+            const playerCountOptions = {
+                title: {
+                    text: "Players"
+                },
+                series: questData.playerCounts,
+                labels: [ "1P", "2P", "3P", "4P" ],
+                chart: {
+                    type: 'pie',
+                },
+                theme: {
+                    palette: 'palette3'
+                },
+                colors: [
+                    '#dc3545',
+                    '#0d6efd',
+                    '#ffc107',
+                    '#198754'
+                ],
+
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (val, opt) {
+                        return [ "1P", "2P", "3P", "4P" ][opt.seriesIndex] + ": " + val.toFixed(1) + "%"
+                    },
+                },
+                legend: {
+                    show: false,
+                }
+            };
+
+            const playerCountChart = new ApexCharts(document.querySelector("#" + questData.locationName + "-players"), playerCountOptions);
+            playerCountChart.render();
+        }
+
+
+        const questsPlayedOptions = {
+            chart: {
+                id: 'quests-played',
+                type: 'bar',
+                stacked: true,
+            },
+            colors: [
+                "#e9f5db",
+                "#b5c99a",
+                "#97a97c",
+                "#718355",
+                "#a9d6e5",
+                "#61a5c2",
+                "#2c7da0",
+                "#01497c",
+                "#012a4a",
+                "#f8961e",
+                "#f94144",
+            ],
+
+            series: [{
+                name: 'Forest',
+                data: [33, 47, 44, 44, 38, 25, 36, 42, 46, 21, 34, 24, 33, 55, 48, 32, 39, 53, 18, 33, 61, 4, 37, 44, 32, 84, 108, 49, 38, ]
+            },{
+                name: 'Cave',
+                data: [37, 34, 34, 36, 26, 28, 51, 25, 40, 46, 35, 15, 20, 11, 10, 24, 13, 13, 17, 29, 21, 6, 3, 15, 8, 11, 13, 6, 17, ]
+            },{
+                name: 'Mine',
+                data: [33, 40, 27, 25, 28, 18, 30, 50, 39, 28, 43, 66, 34, 28, 56, 61, 37, 46, 41, 30, 11, 24, 9, 26, 31, 12, 42, 29, 10, ]
+            },{
+                name: 'Ruins',
+                data: [29, 49, 31, 30, 33, 35, 38, 24, 35, 25, 41, 23, 23, 33, 23, 49, 22, 20, 2, 10, 16, 9, 3, 12, 25, 15, 9, 11, 5, ]
+            },{
+                name: 'Temple',
+                data: [29, 50, 32, 58, 32, 30, 31, 55, 46, 35, 31, 31, 26, 31, 27, 9, 32, 27, 3, 35, 38, 13, 3, 3, 2, 3, 1, 4, 6, ]
+            },{
+                name: 'Spaceship',
+                data: [26, 62, 42, 21, 26, 27, 45, 58, 44, 23, 51, 41, 36, 61, 19, 32, 15, 22, 50, 12, 24, 7, 23, 21, 21, 22, 14, 61, 17, ]
+            },{
+                name: 'CCA',
+                data: [25, 50, 46, 37, 42, 18, 29, 49, 51, 15, 68, 30, 31, 25, 17, 34, 12, 24, 32, 14, 33, 19, 14, 18, 20, 34, 20, 69, 3, ]
+            },{
+                name: 'Seabed',
+                data: [18, 41, 39, 45, 31, 16, 22, 39, 42, 28, 18, 12, 24, 36, 28, 33, 14, 21, 19, 25, 22, 34, 26, 17, 0, 21, 1, 33, 0, ]
+            },{
+                name: 'Tower',
+                data: [23, 42, 42, 49, 27, 19, 32, 26, 59, 23, 19, 23, 33, 31, 8, 41, 35, 35, 6, 20, 13, 22, 28, 12, 13, 10, 12, 11, 0, ]
+            },{
+                name: 'Crater',
+                data: [21, 43, 37, 45, 28, 48, 34, 42, 42, 44, 28, 26, 44, 44, 26, 21, 24, 47, 47, 127, 63, 38, 77, 37, 30, 25, 9, 12, 11, ]
+            },{
+                name: 'Desert',
+                data: [17, 42, 50, 44, 31, 34, 50, 28, 44, 32, 64, 24, 51, 57, 110, 64, 31, 31, 42, 39, 21, 75, 76, 78, 25, 8, 20, 40, 26, ]
+            }],
+            xaxis: {
+                type: 'datetime',
+                categories: [
+                    new Date("08/07/2021").getTime(),
+                    new Date("08/08/2021").getTime(),
+                    new Date("08/09/2021").getTime(),
+                    new Date("08/10/2021").getTime(),
+                    new Date("08/11/2021").getTime(),
+                    new Date("08/12/2021").getTime(),
+                    new Date("08/13/2021").getTime(),
+                    new Date("08/14/2021").getTime(),
+                    new Date("08/15/2021").getTime(),
+                    new Date("08/16/2021").getTime(),
+                    new Date("08/17/2021").getTime(),
+                    new Date("08/18/2021").getTime(),
+                    new Date("08/19/2021").getTime(),
+                    new Date("08/20/2021").getTime(),
+                    new Date("08/21/2021").getTime(),
+                    new Date("08/22/2021").getTime(),
+                    new Date("08/23/2021").getTime(),
+                    new Date("08/24/2021").getTime(),
+                    new Date("08/25/2021").getTime(),
+                    new Date("08/26/2021").getTime(),
+                    new Date("08/27/2021").getTime(),
+                    new Date("08/28/2021").getTime(),
+                    new Date("08/29/2021").getTime(),
+                    new Date("08/30/2021").getTime(),
+                    new Date("08/31/2021").getTime(),
+                    new Date("09/01/2021").getTime(),
+                    new Date("09/02/2021").getTime(),
+                    new Date("09/03/2021").getTime(),
+                    new Date("09/04/2021").getTime(),
+                ]
+            },
+        };
+        const questsPlayedChart = new ApexCharts(document.querySelector("#quests-played-chart"), questsPlayedOptions);
+        questsPlayedChart.render();
+        const classesPlayedOptions = {
+            title: {
+                text: "Class Usage"
+            },
+            series: [1021, 2628, 6854, 3718, 2259, 2996, 7932, 2967, 1809, 1259, 3596, 1900],
+            labels: [ "HUmar", "HUnewearl", "HUcast", "HUcaseal", "RAmar", "RAmarl", "RAcast", "RAcaseal", "FOmar", "FOmarl", "FOnewm", "FOnewearl"], chart: {type: 'pie',},
+            theme: {palette: 'palette3'},
+            dataLabels: {
+                enabled: true,
+                formatter: function (val, opt) {
+                    return [ "HUmr", "HUnl", "HUct", "HUcl", "RAmr", "RAml", "RAct", "RAcl", "FOmr", "FOml", "FOnm", "FOnl"][opt.seriesIndex]
+                },
+            },
+            colors: ["#ff0028", "#ff7e8a", "#6b1e31", "#803442", "#48ff00", "#7eff80", "#346b1e", "#3e8034", "#0059ff", "#7eb2ff", "#1e4b6b", "#345a80",],
+            legend: {show: false,}
+        };
+
+        const classesPlayedChart = new ApexCharts(document.querySelector("#allclasses-donut"), classesPlayedOptions);
+        classesPlayedChart.render();
+        const shiftaChartOptions = {
+            title: {
+                text: "Shifta"
+            },
+            series: [74,322,1273,7998],
+            labels: [ "3", "15", "20", "30" ],
+            chart: {
+                type: 'pie',
+            },
+            theme: {
+                palette: 'palette3'
+            },
+
+            dataLabels: {
+                enabled: true,
+                formatter: function (val, opt) {
+                    return [ "3", "15", "20", "30"][opt.seriesIndex] + ": " + val.toFixed(1) + "%"
+                },
+            },
+            legend: {
+                show: false,
+            }
+        };
+        const shiftaChart = new ApexCharts(document.querySelector("#allshifta-donut"), shiftaChartOptions);
+        shiftaChart.render();
+
+        const playerCountOptions = {
+            title: {
+                text: "Players"
+            },
+            series: [289,54,288,9167],
+            labels: [ "1P", "2P", "3P", "4P" ],
+            chart: {
+                type: 'pie',
+            },
+            theme: {
+                palette: 'palette3'
+            },
+            colors: [
+                '#dc3545',
+                '#0d6efd',
+                '#ffc107',
+                '#198754'
+            ],
+
+            dataLabels: {
+                enabled: true,
+                formatter: function (val, opt) {
+                    return [ "1P", "2P", "3P", "4P" ][opt.seriesIndex] + ": " + val.toFixed(1) + "%"
+                },
+            },
+            legend: {
+                show: false,
+            }
+        };
+
+        const playerCountChart = new ApexCharts(document.querySelector("#allplayers-donut"), playerCountOptions);
+        playerCountChart.render();
+
+        const classDeathsOptions = {
+            title: {
+                text: "Average Deaths"
+            },
+            series: [{
+                name: "Average Deaths",
+                data: [1.576555, 1.2608696, 1.3568233, 1.2302483, 0.7008, 0.5528899, 0.70250064, 0.5449219, 0.48490945, 0.32119206, 0.33497053, 0.3479021]
+            }],
+            chart: {
+                type: 'bar',
+                height: 350
+            },
+            plotOptions: {
+                bar: {
+                    borderRadius: 4,
+                    horizontal: true,
+                }
+            },
+            dataLabels: {
+                enabled: false
+            },
+            xaxis: {
+                categories: [ "HUmar", "HUnewearl", "HUcast", "HUcaseal", "RAmar", "RAmarl", "RAcast", "RAcaseal", "FOmar", "FOmarl", "FOnewm", "FOnewearl"],
+            },
+        };
+
+        const classDeathChart = new ApexCharts(document.querySelector("#class-death-chart"), classDeathsOptions);
+        classDeathChart.render();
+
+        const questDeathsOptions = {
+            title: {
+                text: "Average Deaths"
+            },
+            series: [{
+                name: "Average Deaths",
+                data: [0.3602941, 0.82822084, 0.44421628, 0.9009901, 0.8641479, 0.41812298, 1.0999383, 1.1135671, 1.4660271, 0.99139786, 0.83667755]
+            }],
+            chart: {
+                type: 'bar',
+                height: 350
+            },
+            plotOptions: {
+                bar: {
+                    borderRadius: 4,
+                    horizontal: true,
+                }
+            },
+            dataLabels: {
+                enabled: false
+            },
+            xaxis: {
+                categories: [ "Forest", "Cave", "Mine", "Ruins", "Temple", "Spaceship", "CCA", "Seabed", "Tower", "Crater", "Desert"],
+            },
+        };
+
+        const questDeathChart = new ApexCharts(document.querySelector("#quest-death-chart"), questDeathsOptions);
+        questDeathChart.render();
+
+        const classMesetaOptions = {
+            title: {
+                text: "Average Meseta Charged"
+            },
+            series: [{
+                name: "Average Meseta Charged",
+                data: [23018, 19700, 54863, 31039, 13282, 20624, 18135, 21352, 705, 1656, 1186, 1352]
+            }],
+            chart: {
+                type: 'bar',
+                height: 350
+            },
+            plotOptions: {
+                bar: {
+                    borderRadius: 4,
+                    horizontal: true,
+                }
+            },
+            dataLabels: {
+                enabled: false
+            },
+            xaxis: {
+                categories: [ "HUmar", "HUnewearl", "HUcast", "HUcaseal", "RAmar", "RAmarl", "RAcast", "RAcaseal", "FOmar", "FOmarl", "FOnewm", "FOnewearl"],
+            },
+        };
+
+        const mesetaChargedChart = new ApexCharts(document.querySelector("#meseta-charged-chart"), classMesetaOptions);
+        mesetaChargedChart.render();
+
+    </script>
     </html>
 {{end}}

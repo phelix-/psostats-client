@@ -584,13 +584,9 @@ func (s *Server) RecordsV2Page(c *fiber.Ctx) error {
 }
 
 func (s *Server) Anniv2021RecordsPage(c *fiber.Ctx) error {
-	games, err := db.GetQuestRecords(db.Anniv2021RecordsTable, s.dynamoClient)
-	if err != nil {
-		return err
-	}
-	recordModel := sortGames(games)
+	recordModel := struct{}{}
 
-	err = s.anniversaryTemplate.ExecuteTemplate(c.Response().BodyWriter(), "index", recordModel)
+	err := s.anniversaryTemplate.ExecuteTemplate(c.Response().BodyWriter(), "index", recordModel)
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
 }
