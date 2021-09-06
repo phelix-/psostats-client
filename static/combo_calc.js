@@ -1176,7 +1176,6 @@ function updateDamageTable() {
 
     var tbody = $('#combo-calc-table tbody');
     tbody.empty();
-    const selectedEnemies = $('#enemy-select').val();
     let rows = [];
     for (let index in selectedEnemies) {
         var enemy = enemies[selectedEnemies[index]];
@@ -1271,8 +1270,7 @@ function getSetEffectAta(weapon, frameName, barrierName, unitName) {
 }
 
 function updateTotalFrames() {
-    const selectedWeapon = $('#weapon-select').val();
-    const animation = weapons[selectedWeapon].animation;
+    const animation = selectedWeapon.animation;
     const attack1 = $('#attack1').val();
     const attack2 = $('#attack2').val();
     const attack3 = $('#attack3').val();

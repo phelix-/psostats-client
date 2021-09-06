@@ -195,9 +195,7 @@ func (s *Server) comboCalcPage(opm bool, c *fiber.Ctx) error {
 		Enemies: sortedEnemies,
 		Weapons: weapons.GetWeapons(),
 	}
-	t := ensureParsed("./server/internal/templates/comboCalc.gohtml")
-	//err := s.comboCalcTemplate.ExecuteTemplate(c.Response().BodyWriter(), "combo-calc", infoModel)
-	err := t.ExecuteTemplate(c.Response().BodyWriter(), "combo-calc", infoModel)
+	err := s.comboCalcTemplate.ExecuteTemplate(c.Response().BodyWriter(), "combo-calc", infoModel)
 
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
