@@ -40,7 +40,7 @@ func (s *Server) verifyAuth(header *fasthttp.RequestHeader) (bool, string) {
 		return false, ""
 	}
 	userObject, err := s.userDb.GetUser(user)
-	if err != nil {
+	if err != nil || userObject == nil {
 		return false, ""
 	}
 	passwordsMatch := DoPasswordsMatch(userObject.Password, pass)
