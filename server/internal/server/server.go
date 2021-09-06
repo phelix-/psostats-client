@@ -94,7 +94,7 @@ func (s *Server) Run() {
 	s.app.Get("/players/:player", s.PlayerV2Page)
 	// API
 	s.app.Post("/api/game", s.PostGame)
-	s.app.Get("/api/game/:gameId", s.GetGame)
+	s.app.Get("/api/game/:gameId/:gem?", s.GetGame)
 	s.app.Post("/api/motd", s.PostMotd)
 	s.indexTemplate = ensureParsed("./server/internal/templates/index.gohtml")
 	s.infoTemplate = ensureParsed("./server/internal/templates/info.gohtml")
@@ -332,6 +332,35 @@ func (s *Server) DownloadPage(c *fiber.Ctx) error {
 	return err
 }
 
+func getGameGzip(game *model.Game, gem string) ([]byte, string) {
+	var gameGzip []byte
+	var videoUrl string
+	if game != nil {
+		if len(gem) > 0 {
+			if gemNum, err := strconv.Atoi(gem); err == nil {
+				switch gemNum + 1 {
+				case 1:
+					gameGzip = game.P1Gzip
+					videoUrl = game.P1Video
+				case 2:
+					gameGzip = game.P2Gzip
+					videoUrl = game.P2Video
+				case 3:
+					gameGzip = game.P3Gzip
+					videoUrl = game.P3Video
+				case 4:
+					gameGzip = game.P4Gzip
+					videoUrl = game.P4Video
+				}
+			}
+		}
+		if gameGzip == nil {
+			gameGzip = game.GameGzip
+		}
+	}
+	return gameGzip, videoUrl
+}
+
 func (s *Server) GamePage(c *fiber.Ctx) error {
 	gameId := c.Params("gameId")
 	gem := c.Params("gem")
@@ -339,32 +368,7 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	var gameGzip []byte
-	var videoUrl string
-	if fullGame != nil {
-		if len(gem) > 0 {
-			gemNum, err := strconv.Atoi(gem)
-			if err == nil {
-				switch gemNum + 1 {
-				case 1:
-					gameGzip = fullGame.P1Gzip
-					videoUrl = fullGame.P1Video
-				case 2:
-					gameGzip = fullGame.P2Gzip
-					videoUrl = fullGame.P2Video
-				case 3:
-					gameGzip = fullGame.P3Gzip
-					videoUrl = fullGame.P3Video
-				case 4:
-					gameGzip = fullGame.P4Gzip
-					videoUrl = fullGame.P4Video
-				}
-			}
-		}
-		if gameGzip == nil {
-			gameGzip = fullGame.GameGzip
-		}
-	}
+	gameGzip, videoUrl := getGameGzip(fullGame, gem)
 
 	if gameGzip == nil {
 		err = s.gameNotFoundTemplate.ExecuteTemplate(c.Response().BodyWriter(), "gameNotFound", nil)
@@ -659,21 +663,20 @@ func getFormattedGame(game model.Game) model.FormattedGame {
 
 func (s *Server) GetGame(c *fiber.Ctx) error {
 	gameId := c.Params("gameId")
-	game, err := db.GetGame(gameId, s.dynamoClient)
+	gem := c.Params("gem")
+	fullGame, err := db.GetFullGame(gameId, s.dynamoClient)
 	if err != nil {
 		return err
 	}
+	gameGzip, _ := getGameGzip(fullGame, gem)
 
-	if game == nil {
+	if gameGzip == nil {
 		c.Status(404)
 		return nil
 	} else {
-		jsonBytes, err := json.Marshal(game)
-		if err != nil {
-			return err
-		}
-		c.Response().AppendBody(jsonBytes)
+		c.Response().AppendBody(gameGzip)
 		c.Response().Header.Set("Content-Type", "application/json")
+		c.Response().Header.Set("Content-Encoding", "gzip")
 		return nil
 	}
 }
