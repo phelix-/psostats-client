@@ -95,6 +95,8 @@ func (s *Server) Run() {
 	// API
 	s.app.Post("/api/game", s.PostGame)
 	s.app.Get("/api/game/:gameId/:gem?", s.GetGame)
+	s.app.Get("/api/record-splits/:quest", s.GetRecordSplits)
+	s.app.Get("/api/pb-splits/:quest", s.GetPbSplits)
 	s.app.Post("/api/motd", s.PostMotd)
 	s.indexTemplate = ensureParsed("./server/internal/templates/index.gohtml")
 	s.infoTemplate = ensureParsed("./server/internal/templates/info.gohtml")
@@ -678,6 +680,89 @@ func (s *Server) GetGame(c *fiber.Ctx) error {
 		c.Response().Header.Set("Content-Type", "application/json")
 		c.Response().Header.Set("Content-Encoding", "gzip")
 		return nil
+	}
+}
+
+func (s *Server) GetRecordSplits(c *fiber.Ctx) error {
+	questName := c.Params("quest")
+	questName, err := url.PathUnescape(questName)
+	if err != nil {
+		return err
+	}
+	playersString := c.Query("players", "4")
+	pbString := c.Query("pb", "false")
+	pbCategory := strings.ToLower(pbString) == "true"
+	numPlayers, err := strconv.Atoi(playersString)
+	if err != nil {
+		return err
+	}
+	questRecord, err := db.GetQuestRecord(questName, numPlayers, pbCategory, s.dynamoClient)
+	if err != nil {
+		return err
+	}
+
+	if questRecord == nil {
+		c.Status(404)
+		return nil
+	} else {
+		game, err := db.GetGame(questRecord.Id, s.dynamoClient)
+		if err != nil {
+			return err
+		}
+		if game == nil || game.Splits == nil || len(game.Splits) == 0 {
+			c.Status(404)
+			return nil
+		} else {
+			game.Splits[len(game.Splits) - 1].End = game.QuestEndTime
+			splitBytes, _ := json.Marshal(game.Splits)
+			c.Response().AppendBody(splitBytes)
+			c.Response().Header.Set("Content-Type", "application/json")
+			return nil
+		}
+	}
+}
+
+func (s *Server) GetPbSplits(c *fiber.Ctx) error {
+	authorized, user := s.verifyAuth(&c.Request().Header)
+	if !authorized {
+		c.Status(401)
+		return nil
+	}
+	questName := c.Params("quest")
+	questName, err := url.PathUnescape(questName)
+	if err != nil {
+		return err
+	}
+	playersString := c.Query("players", "4")
+	pbString := c.Query("pb", "false")
+	pbCategory := strings.ToLower(pbString) == "true"
+	numPlayers, err := strconv.Atoi(playersString)
+	if err != nil {
+		return err
+	}
+	questRecord, err := db.GetPlayerPB(questName, user, numPlayers, pbCategory, s.dynamoClient)
+	if err != nil {
+		return err
+	}
+
+	if questRecord == nil {
+		c.Status(404)
+		return nil
+	} else {
+		game, err := db.GetGame(questRecord.Id, s.dynamoClient)
+		if err != nil {
+			return err
+		}
+		if game == nil || game.Splits == nil || len(game.Splits) == 0 {
+			c.Status(404)
+			return nil
+		} else {
+			game.Splits[len(game.Splits) - 1].End = game.QuestEndTime
+			splitBytes, _ := json.Marshal(game.Splits)
+			c.Response().AppendBody(splitBytes)
+			c.Response().Header.Set("Content-Type", "application/json")
+			return nil
+		}
 	}
 }
 
