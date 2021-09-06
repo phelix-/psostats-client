@@ -733,7 +733,13 @@ func GamesMatch(a, b model.QuestRun) bool {
 		return false
 	}
 	for i := range a.AllPlayers {
-		if a.AllPlayers[i] != b.AllPlayers[i] {
+		if a.AllPlayers[i].Name != b.AllPlayers[i].Name {
+			return false
+		}
+		if a.AllPlayers[i].GuildCard != b.AllPlayers[i].GuildCard {
+			return false
+		}
+		if a.AllPlayers[i].Class != b.AllPlayers[i].Class {
 			return false
 		}
 	}
