@@ -11,9 +11,10 @@
 #questSplitsEnabled: true
 
 # Enables comparing your current run to saved quest splits. Possible options are
-# Local - compare current split time to the times in a splits.json file
-# None - show the current split time but no comparison
-#questSplitsCompareTo: Local
+# pb - compare current split time to your personal best splits
+# record - compare current split time to the quest record splits
+# none - show the current split time but no comparison
+#questSplitsCompareTo: pb
 
 # Add your credentials here
 user: ''
