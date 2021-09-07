@@ -118,20 +118,20 @@ type QuestRun struct {
 	MonstersDead             int
 	Weapons                  map[string]model.Equipment
 	FreezeTraps              []uint16
-	previousFt    uint16
-	previousDt    uint16
-	previousCt    uint16
-	FTUsed        uint16
-	DTUsed        uint16
-	CTUsed        uint16
-	previousTp    uint16
-	TPUsed        uint16
-	TimeByState   map[uint16]uint64
-	TimeStanding  uint64
-	TimeMoving    uint64
-	TimeAttacking uint64
-	TimeCasting   uint64
-	Points        uint16
+	previousFt               uint16
+	previousDt               uint16
+	previousCt               uint16
+	FTUsed                   uint16
+	DTUsed                   uint16
+	CTUsed                   uint16
+	previousTp               uint16
+	TPUsed                   uint16
+	TimeByState              map[uint16]uint64
+	TimeStanding             uint64
+	TimeMoving               uint64
+	TimeAttacking            uint64
+	TimeCasting              uint64
+	Points                   uint16
 }
 
 func (pso *PSO) StartNewQuest(questConfig quest.Quest) {
@@ -212,6 +212,7 @@ func (pso *PSO) StartNewQuest(questConfig quest.Quest) {
 		TPUsed:                   0,
 		TimeByState:              make(map[uint16]uint64),
 	}
+	pso.startedGame <- pso.CurrentQuest
 	pso.GameState.QuestStarted = true
 }
 
@@ -305,7 +306,7 @@ func (pso *PSO) consolidateFrame() {
 
 	currentState := pso.CurrentPlayerData.ActionState
 	currentQuestRun.TimeByState[pso.CurrentPlayerData.ActionState] = currentQuestRun.TimeByState[pso.CurrentPlayerData.ActionState] + 1
-	if 	currentState == 5 || currentState == 6 || currentState == 7 {
+	if currentState == 5 || currentState == 6 || currentState == 7 {
 		currentQuestRun.TimeAttacking++
 	} else if currentState == 2 || currentState == 4 {
 		currentQuestRun.TimeMoving++

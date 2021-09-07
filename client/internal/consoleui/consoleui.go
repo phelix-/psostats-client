@@ -24,9 +24,10 @@ type Data struct {
 }
 
 type ConsoleUI struct {
-	data Data
-	Motd string
-	termWidth int
+	data        Data
+	Motd        string
+	QuestSplits []model.QuestRunSplit
+	termWidth   int
 }
 
 func New(clientInfo model.ClientInfo) (*ConsoleUI, error) {
@@ -44,6 +45,7 @@ func New(clientInfo model.ClientInfo) (*ConsoleUI, error) {
 	return &ConsoleUI{
 		data,
 		"",
+		nil,
 		0,
 	}, nil
 }
@@ -257,7 +259,6 @@ func (cui *ConsoleUI) drawQuestInfo(
 	ui.Render(list)
 }
 
-
 func (cui *ConsoleUI) drawQuestInfo2(
 	gameState *pso.GameState,
 	quest *pso.QuestRun,
@@ -288,9 +289,13 @@ func (cui *ConsoleUI) drawQuestSplits(
 	list := widgets.NewList()
 	if gameState.QuestStarted {
 		list.Rows = make([]string, 0)
-		for _, split := range quest.Splits {
+		for i, split := range quest.Splits {
 			if !split.Start.IsZero() {
-				list.Rows = append(list.Rows, formatSplitTime(split, quest))
+				var compareTo *model.QuestRunSplit
+				if cui.QuestSplits != nil && len(cui.QuestSplits) > i {
+					compareTo = &cui.QuestSplits[i]
+				}
+				list.Rows = append(list.Rows, formatSplitTime(split, quest, compareTo))
 			}
 		}
 	}
@@ -356,7 +361,7 @@ func formatQuestTime(quest *pso.QuestRun) string {
 	return fmt.Sprintf("Quest Duration:%11v", questDuration.Truncate(time.Millisecond*100))
 }
 
-func formatSplitTime(split model.QuestRunSplit, quest *pso.QuestRun) string {
+func formatSplitTime(split model.QuestRunSplit, quest *pso.QuestRun, compareTo *model.QuestRunSplit) string {
 	questDuration := time.Duration(0)
 	if !split.Start.IsZero() {
 		if !split.End.IsZero() {
@@ -367,7 +372,12 @@ func formatSplitTime(split model.QuestRunSplit, quest *pso.QuestRun) string {
 			questDuration = time.Now().Sub(split.Start)
 		}
 	}
-	return fmt.Sprintf("%12v: %v", split.Name, questDuration.Truncate(time.Millisecond*100))
+	if compareTo != nil {
+		compareToDuration := compareTo.End.Sub(compareTo.Start)
+		return fmt.Sprintf("%12v: %v (%v)", split.Name, questDuration.Truncate(time.Millisecond*100), (questDuration - compareToDuration).Truncate(time.Millisecond*100))
+	} else {
+		return fmt.Sprintf("%12v: %v", split.Name, questDuration.Truncate(time.Millisecond*100))
+	}
 }
 
 func formatQuestComplete(quest *pso.QuestRun) string {

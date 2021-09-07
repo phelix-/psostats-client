@@ -24,6 +24,7 @@ const (
 )
 
 type PSO struct {
+	startedGame       chan QuestRun
 	completeGame      chan QuestRun
 	questTypes        quest.Quests
 	connected         bool
@@ -98,8 +99,9 @@ type PlayerData struct {
 	Time                time.Time
 }
 
-func New(completeGameChannel chan QuestRun) *PSO {
+func New(startedGameChannel chan QuestRun, completeGameChannel chan QuestRun) *PSO {
 	return &PSO{
+		startedGame:  startedGameChannel,
 		completeGame: completeGameChannel,
 		questTypes:   quest.NewQuests(),
 		MonsterNames: make(map[uint32]string),

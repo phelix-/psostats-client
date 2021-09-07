@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"syscall"
 	"time"
@@ -34,6 +35,7 @@ type Client struct {
 	currentGameId int
 	errChan       chan error
 	done          chan struct{}
+	startedGame   chan pso.QuestRun
 	completeGame  chan pso.QuestRun
 	gameQueue     *lang.Queue
 }
@@ -43,8 +45,9 @@ func New(clientInfo model.ClientInfo) (*Client, error) {
 	if err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
+	startedGameChannel := make(chan pso.QuestRun)
 	completeGameChannel := make(chan pso.QuestRun)
-	pso := pso.New(completeGameChannel)
+	pso := pso.New(startedGameChannel, completeGameChannel)
 	clientConfig, err := config.ReadFromFile("./config.yaml")
 	if err != nil {
 		if pathErr, ok := err.(*fs.PathError); ok && pathErr.Err == syscall.ERROR_FILE_NOT_FOUND {
@@ -64,6 +67,7 @@ func New(clientInfo model.ClientInfo) (*Client, error) {
 		ui:            ui,
 		errChan:       make(chan error),
 		done:          make(chan struct{}),
+		startedGame:   startedGameChannel,
 		completeGame:  completeGameChannel,
 		gameQueue:     lang.NewQueue(),
 	}, nil
@@ -104,6 +108,13 @@ func (c *Client) Run() error {
 			case "<Resize>":
 				c.ui.ClearScreen()
 			}
+		case game := <-c.startedGame:
+			if c.config.GetQuestSplitsEnabled() && c.config.GetQuestSplitsCompareTo() != "none" {
+				err := c.getQuestSplits(game.QuestName, len(game.AllPlayers), game.PbCategory)
+				if err != nil {
+					log.Printf("Error getting quest splits %v", err)
+				}
+			}
 		case game := <-c.completeGame:
 			if c.config.AutoUploadEnabled() {
 				c.uploadGame(game)
@@ -124,13 +135,13 @@ func showMissingConfigUi(cui *consoleui.ConsoleUI) {
 	paragraph := widgets.NewParagraph()
 	paragraph.Text = "Config file missing. Press any key to quit"
 	offset := (width - 44) / 2
-	paragraph.SetRect(offset, 10, offset + 48, 13)
+	paragraph.SetRect(offset, 10, offset+48, 13)
 	paragraph.Border = false
 	termui.Render(paragraph)
 	uiEvents := termui.PollEvents()
 	for {
 		select {
-		case e := <- uiEvents:
+		case e := <-uiEvents:
 			if e.Type == termui.KeyboardEvent {
 				return
 			}
@@ -253,6 +264,40 @@ func (c *Client) getMotd() error {
 		c.ui.Motd = "Invalid credentials"
 	} else {
 		c.ui.Motd = motd.Message
+	}
+	return nil
+}
+
+func (c *Client) getQuestSplits(questName string, players int, pbCategory bool) error {
+	c.ui.QuestSplits = nil
+	compareTo := c.config.GetQuestSplitsCompareTo()
+	urlEncodedQuestName := url.PathEscape(questName)
+	var path string
+	if compareTo == "pb" {
+		path = fmt.Sprintf("%v/api/pb-splits/%v?players=%d&pb=%v", c.config.GetServerBaseUrl(), urlEncodedQuestName, players, pbCategory)
+	} else {
+		path = fmt.Sprintf("%v/api/record-splits/%v?players=%d&pb=%v", c.config.GetServerBaseUrl(), urlEncodedQuestName, players, pbCategory)
+	}
+	request, err := http.NewRequest("GET", path, nil)
+	if err != nil {
+		return err
+	}
+	request.SetBasicAuth(*c.config.User, *c.config.Password)
+	response, err := c.httpClient.Do(request)
+	if err != nil {
+		return err
+	}
+	if response.StatusCode == 200 {
+		responseBytes, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			return err
+		}
+		splits := make([]model.QuestRunSplit, 0)
+		if err := json.Unmarshal(responseBytes, &splits); err != nil {
+			return err
+		}
+
+		c.ui.QuestSplits = splits
 	}
 	return nil
 }
