@@ -539,7 +539,16 @@
                 defaultEnemies: [],
                 enemiesByLocation: [
                     { name: "Forest", enemies: [{{ range (index .Enemies "Forest") }}{ name:"{{ .Name }}"},{{ end }}]},
-                    { name: "Cave", enemies: [{{ range (index .Enemies "Caves") }}{ name:"{{ .Name }}"},{{ end }}]}
+                    { name: "Cave", enemies: [{{ range (index .Enemies "Caves") }}{ name:"{{ .Name }}"},{{ end }}]},
+                    { name: "Mine", enemies: [{{ range (index .Enemies "Mines") }}{ name:"{{ .Name }}"},{{ end }}]},
+                    { name: "Ruins", enemies: [{{ range (index .Enemies "Ruins") }}{ name:"{{ .Name }}"},{{ end }}]},
+                    { name: "Temple", enemies: [{{ range (index .Enemies "Temple") }}{ name:"{{ .Name }}"},{{ end }}]},
+                    { name: "Spaceship", enemies: [{{ range (index .Enemies "Spaceship") }}{ name:"{{ .Name }}"},{{ end }}]},
+                    { name: "CCA", enemies: [{{ range (index .Enemies "CCA") }}{ name:"{{ .Name }}"},{{ end }}]},
+                    { name: "Seabed", enemies: [{{ range (index .Enemies "Seabed") }}{ name:"{{ .Name }}"},{{ end }}]},
+                    { name: "Tower", enemies: [{{ range (index .Enemies "Tower") }}{ name:"{{ .Name }}"},{{ end }}]},
+                    { name: "Crater", enemies: [{{ range (index .Enemies "Crater") }}{ name:"{{ .Name }}"},{{ end }}]},
+                    { name: "Desert", enemies: [{{ range (index .Enemies "Desert") }}{ name:"{{ .Name }}"},{{ end }}]},
                 ]
             },
             methods: {
