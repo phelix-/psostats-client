@@ -93,7 +93,6 @@
                 {{ if .Opm }}<a href="/combo-calculator">Switch to Multiplayer</a>{{ else }}<a href="/combo-calculator/opm">Switch to OPM</a>{{ end }}
             </div>
         </div>
-        <div id="app">
         <div class="row psostats-content">
             <div class="col-12 col-sm-6 col-lg-3 mb-1">
                 <select class="form-control" id="class-select" aria-label="Class Select">
@@ -208,6 +207,7 @@
             </div>
 
             <div class="col-8 col-lg-4 col-xl-3 mb-1">
+                <div id="app">
                 <multiselect
                         v-model="value"
                         :options="weapons"
@@ -220,6 +220,7 @@
                         deselect-label=""
                         show-label="false"
                 ></multiselect>
+                </div>
             </div>
             <div class="col-4 col-lg-3 col-xl-2 mb-1">
                 <select id="special-select" class="form-control special-select">
@@ -348,23 +349,25 @@
 
             </div>
             <div class="col-12 mb-3">
-                <multiselect
-                        v-model="defaultEnemies"
-                        :options="enemiesByLocation"
-                        :multiple="true"
-                        group-values="enemies"
-                        group-label="name"
-                        :group-select="true"
-                        track-by="name"
-                        label="name"
-                        @input="enemiesSelected"
-                        selected-label=""
-                        select-label=""
-                        deselect-label=""
-                        :close-on-select="false"
-                        :clear-on-select="false"
-                        placeholder="Select Enemies"
-                ></multiselect>
+                <div id="enemy-select-vue">
+                    <multiselect
+                            v-model="defaultEnemies"
+                            :options="enemiesByLocation"
+                            :multiple="true"
+                            group-values="enemies"
+                            group-label="name"
+                            :group-select="true"
+                            track-by="name"
+                            label="name"
+                            @input="enemiesSelected"
+                            selected-label=""
+                            select-label=""
+                            deselect-label=""
+                            :close-on-select="false"
+                            :clear-on-select="false"
+                            placeholder="Select Enemies"
+                    ></multiselect>
+                </div>
             </div>
         </div>
         <div class="row" style="overflow-x: auto;">
@@ -381,7 +384,6 @@
                 </thead>
                 <tbody></tbody>
             </table>
-        </div>
         </div>
     </div>
     <script>
@@ -536,25 +538,8 @@
                 weapons: [
                     {{ range .Weapons }}{ name: "{{.Name}}", display: "{{.Name}}{{if (gt .Grind 0)}} +{{ .Grind }}{{end}}" },{{ end }}
                 ],
-                defaultEnemies: [],
-                enemiesByLocation: [
-                    { name: "Forest", enemies: [{{ range (index .Enemies "Forest") }}{ name:"{{ .Name }}"},{{ end }}]},
-                    { name: "Cave", enemies: [{{ range (index .Enemies "Caves") }}{ name:"{{ .Name }}"},{{ end }}]},
-                    { name: "Mine", enemies: [{{ range (index .Enemies "Mines") }}{ name:"{{ .Name }}"},{{ end }}]},
-                    { name: "Ruins", enemies: [{{ range (index .Enemies "Ruins") }}{ name:"{{ .Name }}"},{{ end }}]},
-                    { name: "Temple", enemies: [{{ range (index .Enemies "Temple") }}{ name:"{{ .Name }}"},{{ end }}]},
-                    { name: "Spaceship", enemies: [{{ range (index .Enemies "Spaceship") }}{ name:"{{ .Name }}"},{{ end }}]},
-                    { name: "CCA", enemies: [{{ range (index .Enemies "CCA") }}{ name:"{{ .Name }}"},{{ end }}]},
-                    { name: "Seabed", enemies: [{{ range (index .Enemies "Seabed") }}{ name:"{{ .Name }}"},{{ end }}]},
-                    { name: "Tower", enemies: [{{ range (index .Enemies "Tower") }}{ name:"{{ .Name }}"},{{ end }}]},
-                    { name: "Crater", enemies: [{{ range (index .Enemies "Crater") }}{ name:"{{ .Name }}"},{{ end }}]},
-                    { name: "Desert", enemies: [{{ range (index .Enemies "Desert") }}{ name:"{{ .Name }}"},{{ end }}]},
-                ]
             },
             methods: {
-                formatWeapon (option) {
-                    return option.display
-                },
                 weaponSelected (newSelection) {
                     selectedWeapon = weapons[newSelection.name]
                     updateMinAtpInput();
@@ -604,6 +589,30 @@
                     updateAtaInput();
                     updateDamageTable();
                 },
+            }
+        }).$mount('#app')
+
+        new Vue({
+            components: {
+                Multiselect: window.VueMultiselect.default
+            },
+            data: {
+                defaultEnemies: [],
+                enemiesByLocation: [
+                    { name: "Forest", enemies: [{{ range (index .Enemies "Forest") }}{ name:"{{ .Name }}"},{{ end }}]},
+                    { name: "Cave", enemies: [{{ range (index .Enemies "Caves") }}{ name:"{{ .Name }}"},{{ end }}]},
+                    { name: "Mine", enemies: [{{ range (index .Enemies "Mines") }}{ name:"{{ .Name }}"},{{ end }}]},
+                    { name: "Ruins", enemies: [{{ range (index .Enemies "Ruins") }}{ name:"{{ .Name }}"},{{ end }}]},
+                    { name: "Temple", enemies: [{{ range (index .Enemies "Temple") }}{ name:"{{ .Name }}"},{{ end }}]},
+                    { name: "Spaceship", enemies: [{{ range (index .Enemies "Spaceship") }}{ name:"{{ .Name }}"},{{ end }}]},
+                    { name: "CCA", enemies: [{{ range (index .Enemies "CCA") }}{ name:"{{ .Name }}"},{{ end }}]},
+                    { name: "Seabed", enemies: [{{ range (index .Enemies "Seabed") }}{ name:"{{ .Name }}"},{{ end }}]},
+                    { name: "Tower", enemies: [{{ range (index .Enemies "Tower") }}{ name:"{{ .Name }}"},{{ end }}]},
+                    { name: "Crater", enemies: [{{ range (index .Enemies "Crater") }}{ name:"{{ .Name }}"},{{ end }}]},
+                    { name: "Desert", enemies: [{{ range (index .Enemies "Desert") }}{ name:"{{ .Name }}"},{{ end }}]},
+                ]
+            },
+            methods: {
                 enemiesSelected (selection) {
                     selectedEnemies = [];
                     for (let i in selection) {
@@ -612,7 +621,7 @@
                     updateDamageTable();
                 }
             }
-        }).$mount('#app')
+        }).$mount('#enemy-select-vue')
     </script>
     </body>
 
