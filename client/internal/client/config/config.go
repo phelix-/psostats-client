@@ -4,6 +4,7 @@ package config
 import (
 	"io/ioutil"
 	"log"
+	"strings"
 	"time"
 
 	"gopkg.in/yaml.v2"
@@ -66,9 +67,9 @@ func (config *Config) GetQuestSplitsEnabled() bool {
 }
 
 func (config *Config) GetQuestSplitsCompareTo() string {
-	compareTo := "Local"
+	compareTo := "pb"
 	if config.QuestSplitsCompareTo != nil {
 		compareTo = *config.QuestSplitsCompareTo
 	}
-	return compareTo
+	return strings.ToLower(compareTo)
 }

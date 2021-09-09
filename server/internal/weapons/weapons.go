@@ -164,7 +164,7 @@ func GetWeapons() []Weapon {
 		{Name: "Guld Milla", MinAtp: 180, MaxAtp: 200, Ata: 30, Grind: 9, ComboPreset: Combo{Attack1Hits: 3, Attack2Hits: 3, Attack3Hits: 3}, MaxHit: 100, MaxAttr: 100, Animation: "Mechgun"},
 		{Name: "Mille Marteaux", MinAtp: 200, MaxAtp: 220, Ata: 45, Grind: 12, ComboPreset: Combo{Attack1Hits: 3, Attack2Hits: 3, Attack3Hits: 3}, MaxHit: 100, MaxAttr: 100, Animation: "Mechgun"},
 		{Name: "Dual Bird", MinAtp: 200, MaxAtp: 210, Ata: 22, Grind: 21, ComboPreset: Combo{Attack1Hits: 3, Attack2Hits: 3, Attack3Hits: 3}, MaxHit: 0, MaxAttr: 100, Animation: "Mechgun"},
-		{Name: "TypeME/Mechgun", MinAtp: 10, MaxAtp: 10, Ata: 20, Grind: 30, ComboPreset: Combo{Attack1Hits: 3, Attack2Hits: 3, Attack3Hits: 3}, MaxHit: 100, MaxAttr: 100, Animation: "Mechgun"},
+		{Name: "TypeME/Mechgun", MinAtp: 10, MaxAtp: 10, Ata: 20, Grind: 30, ComboPreset: Combo{Attack1Hits: 3, Attack2Hits: 3, Attack3Hits: 3}, MaxHit: 40, MaxAttr: 100, Animation: "Mechgun"},
 		{Name: "ES Mechgun", MinAtp: 10, MaxAtp: 10, Ata: 20, Grind: 50, MaxHit: 0, MaxAttr: 0, ComboPreset: Combo{Attack1Hits: 3, Attack2Hits: 3, Attack3Hits: 3}, Animation: "Mechgun"},
 		{Name: "ES Psychogun", MinAtp: 10, MaxAtp: 10, Ata: 20, Grind: 50, MaxHit: 0, MaxAttr: 0, Animation: "Mechgun"},
 		{Name: "ES Punch", MinAtp: 10, MaxAtp: 10, Ata: 40, Grind: 250, MaxHit: 0, MaxAttr: 0, ComboPreset: Combo{Attack1Hits: 3, Attack2: "NONE", Attack3: "NONE"}, Animation: "Mechgun"},

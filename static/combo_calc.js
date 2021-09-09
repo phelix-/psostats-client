@@ -983,42 +983,21 @@ function getEvpModifier(frozen, paralyzed) {
     return modifier;
 }
 
-function createMonsterRow(enemy, evpModifier, base_ata, snGlitch, atpInput, comboInput) {
+function createMonsterRow(
+    special, autoCombo, weapon, enemy,
+    evpModifier, base_ata, snGlitch, atpInput, comboInput
+) {
     let modified_evp = enemy.evp * evpModifier;
-    const a1Type = $('#attack1').val();
-    const a2Type = $('#attack2').val();
-    const a3Type = $('#attack3').val();
-    const special = $('#special-select').val();
-
-    let a1Accuracy = calculateAccuracy(base_ata, a1Type, special, 1.0, modified_evp);
-    let a2Accuracy = calculateAccuracy(base_ata, a2Type, special, 1.3, modified_evp);
-    let a3Accuracy = calculateAccuracy(base_ata, a3Type, special, 1.69, modified_evp);
 
     let baseDamage = calculateBaseDamage(atpInput, enemy);
     let damageToUse = atpInput.useMaxDamageRoll ? baseDamage.nMax : baseDamage.nMin;
-
-    // Account for SN glitch - I'm assuming optimistic case where they're able to glitch
-    // if the accuracy is better but not if it's worse
-    let glitchedA1Accuracy = a1Accuracy;
-    if (snGlitch && a2Accuracy > a1Accuracy && a2Type !== 'NONE') {
-        glitchedA1Accuracy = a2Accuracy;
+    if (autoCombo) {
+        return generateAutoCombo(special, weapon, enemy, modified_evp, base_ata, snGlitch, damageToUse, comboInput)
     }
 
-    let glitchedA2Accuracy = a2Accuracy;
-    if (snGlitch && a3Accuracy > a2Accuracy && a3Type !== 'NONE') {
-        glitchedA2Accuracy = a3Accuracy;
-    }
-    let overallAccuracy = Math.pow((glitchedA1Accuracy * 0.01), comboInput.a1Hits)
-        * Math.pow((glitchedA2Accuracy * 0.01), comboInput.a2Hits)
-        * Math.pow((a3Accuracy * 0.01), comboInput.a3Hits);
-    overallAccuracy *= 100;
-
-    let a1Damage = getDamageModifierForAttackType(a1Type, special) * damageToUse;
-    let a2Damage = getDamageModifierForAttackType(a2Type, special) * damageToUse;
-    let a3Damage = getDamageModifierForAttackType(a3Type, special) * damageToUse;
-
-    let comboDamage = (a1Damage * comboInput.a1Hits) + (a2Damage * comboInput.a2Hits) + (a3Damage * comboInput.a3Hits);
-    let percentDamage = 100 * (comboDamage / enemy.hp);
+    let accuracyResult = getAccuracyForCombo(base_ata, comboInput, special, modified_evp, snGlitch);
+    let comboDamage = getDamageForCombo(comboInput, special, damageToUse);
+    let percentDamage = 100 * (comboDamage.total / enemy.hp);
     if (percentDamage > 100) {
         percentDamage = 100;
     }
@@ -1027,17 +1006,122 @@ function createMonsterRow(enemy, evpModifier, base_ata, snGlitch, atpInput, comb
         name: enemy.name,
         hp: enemy.hp,
         percentDamage: percentDamage,
-        comboDamage: comboDamage,
-        overallAccuracy: overallAccuracy,
-        a1Damage: a1Damage,
-        a1Type: a1Type,
-        a1Accuracy: a1Accuracy,
-        a2Type: a2Type,
-        a2Damage: a2Damage,
-        a2Accuracy: a2Accuracy,
-        a3Type: a3Type,
-        a3Damage: a3Damage,
-        a3Accuracy: a3Accuracy,
+        comboDamage: comboDamage.total,
+        overallAccuracy: accuracyResult.overallAccuracy,
+        a1Damage: comboDamage.a1Damage,
+        a1Type: comboInput.a1Type,
+        a1Accuracy: accuracyResult.a1Accuracy,
+        a2Type: comboInput.a2Type,
+        a2Damage: comboDamage.a2Damage,
+        a2Accuracy: accuracyResult.a2Accuracy,
+        a3Type: comboInput.a3Type,
+        a3Damage: comboDamage.a3Damage,
+        a3Accuracy: accuracyResult.a3Accuracy,
+    }
+}
+
+function getAccuracyForCombo(base_ata, comboInput, special, modified_evp, snGlitch) {
+    let a1Accuracy = calculateAccuracy(base_ata, comboInput.a1Type, special, 1.0, modified_evp);
+    let a2Accuracy = calculateAccuracy(base_ata, comboInput.a2Type, special, 1.3, modified_evp);
+    let a3Accuracy = calculateAccuracy(base_ata, comboInput.a3Type, special, 1.69, modified_evp);
+
+    // Account for SN glitch - I'm assuming optimistic case where they're able to glitch
+    // if the accuracy is better but not if it's worse
+    let glitchedA1Accuracy = a1Accuracy;
+    if (snGlitch && a2Accuracy > a1Accuracy && comboInput.a2Type !== 'NONE') {
+        glitchedA1Accuracy = a2Accuracy;
+    }
+
+    let glitchedA2Accuracy = a2Accuracy;
+    if (snGlitch && a3Accuracy > a2Accuracy && comboInput.a3Type !== 'NONE') {
+        glitchedA2Accuracy = a3Accuracy;
+    }
+    let overallAccuracy = Math.pow((glitchedA1Accuracy * 0.01), comboInput.a1Hits)
+        * Math.pow((glitchedA2Accuracy * 0.01), comboInput.a2Hits)
+        * Math.pow((a3Accuracy * 0.01), comboInput.a3Hits);
+    overallAccuracy *= 100;
+    return {overallAccuracy, a1Accuracy, a2Accuracy, a3Accuracy};
+}
+
+function getDamageForCombo(comboInput, special, baseDamage) {
+    let a1Damage = getDamageModifierForAttackType(comboInput.a1Type, special) * baseDamage;
+    let a2Damage = getDamageModifierForAttackType(comboInput.a2Type, special) * baseDamage;
+    let a3Damage = getDamageModifierForAttackType(comboInput.a3Type, special) * baseDamage;
+
+    let total = (a1Damage * comboInput.a1Hits) + (a2Damage * comboInput.a2Hits) + (a3Damage * comboInput.a3Hits);
+    return {total, a1Damage, a2Damage, a3Damage};
+}
+
+function generateAutoCombo(
+    special, weapon, enemy, modified_evp, base_ata, snGlitch, baseDamage, comboInput
+) {
+    let className = $('#class-select').val();
+    let frameData = getFrameDataForWeapon(weapon, className);
+
+    let bestCombo = null;
+    let bestComboFrames = null;
+    let bestComboDamage = null;
+    let bestComboAccuracy = null;
+    const attacks = ["NONE", "NORMAL", "HEAVY", "SPECIAL"]
+    for (let a1 in attacks) {
+        for (let a2 in attacks) {
+            if (attacks[a2] !== "NONE" && !!weapon.combo && weapon.combo.attack2 === "NONE") {
+                continue;
+            }
+            for (let a3 in attacks) {
+                if (attacks[a3] !== "NONE" && !!weapon.combo && weapon.combo.attack3 === "NONE") {
+                    continue;
+                }
+                comboInput.a1Type = attacks[a1];
+                comboInput.a2Type = attacks[a2];
+                comboInput.a3Type = attacks[a3];
+                let frames = getFramesForCombo(attacks[a1], attacks[a2], attacks[a3], frameData.animationFrameData)
+                let accuracyResult = getAccuracyForCombo(base_ata, comboInput, special, modified_evp, snGlitch);
+                let comboDamage = getDamageForCombo(comboInput, special, baseDamage);
+                if (accuracyResult.overallAccuracy < 100 && bestCombo != null) {
+                    continue;
+                }
+                if (comboInput.a1Type === "NONE" ||
+                    comboInput.a2Type === "NONE" && comboInput.a3Type !== "NONE") {
+                    continue;
+                }
+                if (bestCombo == null ||
+                    (bestComboDamage.total < enemy.hp && comboDamage.total > bestComboDamage.total) ||
+                    (bestComboDamage.total >= enemy.hp && comboDamage.total >= enemy.hp && frames < bestComboFrames)
+                ) {
+                    bestCombo = [attacks[a1], attacks[a2], attacks[a3]];
+                    bestComboDamage = comboDamage;
+                    bestComboFrames = frames;
+                    bestComboAccuracy = accuracyResult;
+                }
+            }
+        }
+    }
+
+    let percentDamage = 100 * (bestComboDamage.total / enemy.hp);
+    if (percentDamage > 100) {
+        percentDamage = 100;
+    }
+
+    let comboName = "";
+    for (let i = 0; i < 3; i++) {
+        comboName += bestCombo[i] === "NONE" ? "." : bestCombo[i][0]
+    }
+    return {
+        name: enemy.name + " (" + comboName + " " + bestComboFrames + "f)",
+        hp: enemy.hp,
+        percentDamage: percentDamage,
+        comboDamage: bestComboDamage.total,
+        overallAccuracy: bestComboAccuracy.overallAccuracy,
+        a1Damage: bestComboDamage.a1Damage,
+        a1Type: bestCombo[0],
+        a1Accuracy: bestComboAccuracy.a1Accuracy,
+        a2Type: bestCombo[1],
+        a2Damage: bestComboDamage.a2Damage,
+        a2Accuracy: bestComboAccuracy.a2Accuracy,
+        a3Type: bestCombo[2],
+        a3Damage: bestComboDamage.a3Damage,
+        a3Accuracy: bestComboAccuracy.a3Accuracy,
     }
 }
 
@@ -1156,6 +1240,7 @@ function updateDamageTable() {
     let snGlitch = $('#ataGlitch').is(":checked");
     let base_ata = Number($('#ataInput').val());
     let evpModifier = getEvpModifier(frozen, paralyzed);
+    let autoCombo = $('#autoCombo').is(":checked")
     // let opm = $('#opm_checkbox').is(":checked");
 
     let atpInput = {
@@ -1169,17 +1254,24 @@ function updateDamageTable() {
     };
 
     let comboInput = {
+        a1Type: $('#attack1').val(),
         a1Hits: Number($('#hits1').val()),
+        a2Type: $('#attack2').val(),
         a2Hits: Number($('#hits2').val()),
+        a3Type: $('#attack3').val(),
         a3Hits: Number($('#hits3').val()),
     }
+    const special = $('#special-select').val();
 
-    var tbody = $('#combo-calc-table tbody');
+    let tbody = $('#combo-calc-table tbody');
     tbody.empty();
     let rows = [];
     for (let index in selectedEnemies) {
-        var enemy = enemies[selectedEnemies[index]];
-        var row = createMonsterRow(enemy, evpModifier, base_ata, snGlitch, atpInput, comboInput)
+        let enemy = enemies[selectedEnemies[index]];
+        let row = createMonsterRow(
+            special, autoCombo, selectedWeapon, enemy,
+            evpModifier, base_ata, snGlitch, atpInput, comboInput
+        );
         rows.push(row);
     }
 
@@ -1269,12 +1361,8 @@ function getSetEffectAta(weapon, frameName, barrierName, unitName) {
     return ataBonus;
 }
 
-function updateTotalFrames() {
-    const animation = selectedWeapon.animation;
-    const attack1 = $('#attack1').val();
-    const attack2 = $('#attack2').val();
-    const attack3 = $('#attack3').val();
-    let className = $('#class-select').val();
+function getFrameDataForWeapon(weapon, className) {
+    const animation = weapon.animation;
     const classAnimation = classStats[className].animation;
     let animationFrameData = null;
     let animationSource = ""
@@ -1282,7 +1370,6 @@ function updateTotalFrames() {
         animationFrameData = classSpecificFrameData[className][animation];
         animationSource = " (class specific animation)";
     }
-
     if (!animationFrameData && classAnimation === "female") {
         animationFrameData = femaleFrameData[animation];
         animationSource = " (female animation)";
@@ -1291,6 +1378,21 @@ function updateTotalFrames() {
         animationFrameData = frameData[animation];
         animationSource = " (base animation)";
     }
+    return {animationFrameData, animationSource}
+}
+
+function updateTotalFrames() {
+    const attack1 = $('#attack1').val();
+    const attack2 = $('#attack2').val();
+    const attack3 = $('#attack3').val();
+    let className = $('#class-select').val();
+    let frameDataForWeapon = getFrameDataForWeapon(selectedWeapon, className)
+    let totalFrames = getFramesForCombo(attack1, attack2, attack3, frameDataForWeapon.animationFrameData)
+
+    $('#total-frames').text("Total Frames: " + totalFrames + frameDataForWeapon.animationSource)
+}
+
+function getFramesForCombo(attack1, attack2, attack3, animationFrameData) {
     let totalFrames = 0
     if (attack1 === "NORMAL") {
         if (attack2 === "NONE" && attack3 === "NONE") {
@@ -1324,6 +1426,5 @@ function updateTotalFrames() {
     } else if ((attack3 === "HEAVY" || attack3 === "SPECIAL")) {
         totalFrames += animationFrameData.h3;
     }
-
-    $('#total-frames').text("Total Frames: " + totalFrames + animationSource)
+    return totalFrames;
 }

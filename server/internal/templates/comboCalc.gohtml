@@ -82,6 +82,9 @@
         .multiselect__tag-icon:focus, .multiselect__tag-icon:hover {
             background-color: #666;
         }
+        .form-control:disabled {
+            background-color: #666666;
+        }
     </style>
     <body>
 
@@ -273,6 +276,10 @@
                     <input class="form-check-input" type="checkbox" id="ataGlitch">
                     <label class="form-check-label" for="ataGlitch">Accuracy (SN) Glitch</label>
                 </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="autoCombo">
+                    <label class="form-check-label" for="autoCombo">Auto Combo</label>
+                </div>
             </div>
 
             <div class="col-12 col-md-4 mb-1">
@@ -442,12 +449,21 @@
         $('#sphereInput').change(updateDamageTable);
         $('#minAtpInput').change(updateDamageTable);
         $('#maxAtpInput').change(updateDamageTable);
+        $('#atpInput').change(updateDamageTable)
+        $('#ataInput').change(updateDamageTable)
         $('#hits1').change(updateDamageTable)
         $('#hits2').change(updateDamageTable)
         $('#hits3').change(updateDamageTable)
         $('#shiftaInput').change(updateDamageTable);
         $('#zalureInput').change(updateDamageTable);
         $('#ataGlitch').change(updateDamageTable);
+        $('#autoCombo').change(() => {
+            let autoCombo = $('#autoCombo').is(":checked")
+            $('#attack1').prop("disabled", autoCombo);
+            $('#attack2').prop("disabled", autoCombo);
+            $('#attack3').prop("disabled", autoCombo);
+            updateDamageTable();
+        });
         $('#frozenCheckbox').change(updateDamageTable);
         $('#paralyzedCheckbox').change(updateDamageTable);
         $('#maxDamageCheckbox').change(updateDamageTable);

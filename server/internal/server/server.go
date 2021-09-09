@@ -44,7 +44,7 @@ type Server struct {
 	playerTemplate       *template.Template
 	gameNotFoundTemplate *template.Template
 	recordsTemplate      *template.Template
-	anniversaryTemplate *template.Template
+	anniversaryTemplate  *template.Template
 	comboCalcTemplate    *template.Template
 	anniversaryQuests    map[string]struct{}
 }
@@ -63,19 +63,6 @@ func New(dynamo *dynamodb.DynamoDB) *Server {
 		recentGamesCount: 0,
 		recentGamesSize:  cacheSize,
 		webhookUrl:       webhookUrl,
-		anniversaryQuests: map[string]struct{}{
-			"Maximum Attack E: Forest": {},
-			"Maximum Attack E: Caves":  {},
-			"Maximum Attack E: Mines":  {},
-			"Maximum Attack E: Ruins":  {},
-			"Maximum Attack E: Temple": {},
-			"Maximum Attack E: Space":  {},
-			"Maximum Attack E: CCA":    {},
-			"Maximum Attack E: Seabed": {},
-			"Maximum Attack E: Tower":  {},
-			"Maximum Attack E: Crater": {},
-			"Maximum Attack E: Desert": {},
-		},
 	}
 }
 
@@ -713,7 +700,7 @@ func (s *Server) GetRecordSplits(c *fiber.Ctx) error {
 			c.Status(404)
 			return nil
 		} else {
-			game.Splits[len(game.Splits) - 1].End = game.QuestEndTime
+			game.Splits[len(game.Splits)-1].End = game.QuestEndTime
 			splitBytes, _ := json.Marshal(game.Splits)
 			c.Response().AppendBody(splitBytes)
 			c.Response().Header.Set("Content-Type", "application/json")
@@ -757,7 +744,7 @@ func (s *Server) GetPbSplits(c *fiber.Ctx) error {
 			c.Status(404)
 			return nil
 		} else {
-			game.Splits[len(game.Splits) - 1].End = game.QuestEndTime
+			game.Splits[len(game.Splits)-1].End = game.QuestEndTime
 			splitBytes, _ := json.Marshal(game.Splits)
 			c.Response().AppendBody(splitBytes)
 			c.Response().Header.Set("Content-Type", "application/json")
