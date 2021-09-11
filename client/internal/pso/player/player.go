@@ -40,6 +40,52 @@ type BasePlayerInfo struct {
 	Warping             bool
 	AccountMode         constants.EphineaAccountMode
 	ActionState         uint16
+	currentTech         uint16
+}
+
+func (p BasePlayerInfo) GetCurrentTech() string {
+	switch p.currentTech {
+	case 0x0000:
+		return "Foie"
+	case 0x0006:
+		return "Zonde"
+	case 0x0003:
+		return "Barta"
+	case 0x0001:
+		return "Gifoie"
+	case 0x0007:
+		return "Gizonde"
+	case 0x0004:
+		return "Gibarta"
+	case 0x0002:
+		return "Rafoie"
+	case 0x0008:
+		return "Razonde"
+	case 0x0005:
+		return "Rabarta"
+	case 0x0009:
+		return "Grants"
+	case 0x0012:
+		return "Megid"
+	case 0x000F:
+		return "Resta"
+	case 0x0010:
+		return "Anti"
+	case 0x0011:
+		return "Reverser"
+	case 0x000D:
+		return "Shifta"
+	case 0x000A:
+		return "Deband"
+	case 0x000B:
+		return "Jellen"
+	case 0x000C:
+		return "Zalure"
+	case 0x000E:
+		return "Ryuker"
+	default:
+		return "Unknown"
+	}
 }
 
 func ParsePlayerMemory(buf []uint16, base uintptr) BasePlayerInfo {
@@ -69,6 +115,7 @@ func ParsePlayerMemory(buf []uint16, base uintptr) BasePlayerInfo {
 		Class:               getClass(class),
 		Meseta:              numbers.Uint32FromU16(buf[(0xE4C-base)/2], buf[(0xE4E-base)/2]),
 		ActionState:         buf[(0x348-base)/2],
+		currentTech:         buf[(0x464-base)/2],
 	}
 }
 

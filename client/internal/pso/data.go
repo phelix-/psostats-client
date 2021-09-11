@@ -126,7 +126,9 @@ type QuestRun struct {
 	CTUsed                   uint16
 	previousTp               uint16
 	TPUsed                   uint16
+	previousState            uint16
 	TimeByState              map[uint16]uint64
+	TechsCast                map[string]int
 	TimeStanding             uint64
 	TimeMoving               uint64
 	TimeAttacking            uint64
@@ -211,6 +213,7 @@ func (pso *PSO) StartNewQuest(questConfig quest.Quest) {
 		previousTp:               0,
 		TPUsed:                   0,
 		TimeByState:              make(map[uint16]uint64),
+		TechsCast:                make(map[string]int),
 	}
 	pso.startedGame <- pso.CurrentQuest
 	pso.GameState.QuestStarted = true
@@ -312,9 +315,14 @@ func (pso *PSO) consolidateFrame() {
 		currentQuestRun.TimeMoving++
 	} else if currentState == 8 {
 		currentQuestRun.TimeCasting++
+		if currentQuestRun.previousState != 8 {
+			tech := pso.CurrentPlayerData.GetCurrentTech()
+			currentQuestRun.TechsCast[tech] = currentQuestRun.TechsCast[tech] + 1
+		}
 	} else if currentState == 1 {
 		currentQuestRun.TimeStanding++
 	}
+	currentQuestRun.previousState = currentState
 
 	if currentQuestRun.lastFloor != pso.GameState.Floor {
 		currentQuestRun.Events = append(currentQuestRun.Events, Event{
