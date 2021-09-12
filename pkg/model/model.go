@@ -41,7 +41,6 @@ type QuestRun struct {
 	HP                  []uint16
 	TP                  []uint16
 	PB                  []float32
-	Meseta              []uint32
 	MesetaCharged       []int
 	Room                []uint16
 	IllegalShifta       bool
@@ -52,10 +51,13 @@ type QuestRun struct {
 	Events              []Event
 	Splits              []QuestRunSplit
 	Monsters            map[int]Monster
+	PlayerDamage        map[int]int
+	LastHits            map[int]int
 	Bosses              map[string]BossData
 	MonsterCount        []int
 	MonstersKilledCount []int
 	MonsterHpPool       []int
+	DamageDealt         []int
 	MonstersDead        int
 	Weapons             map[string]Equipment
 	WeaponsUsed         map[string]string
@@ -66,6 +68,7 @@ type QuestRun struct {
 	CTUsed              uint16
 	TPUsed              uint16
 	TimeByState         map[int]uint64
+	TechsCast           map[string]int
 	Points              uint16
 }
 

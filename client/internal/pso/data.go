@@ -59,15 +59,16 @@ func (game *BaseGameInfo) DifficultyString() string {
 }
 
 type Monster struct {
-	Name       string
-	hp         uint16
-	Id         uint16
-	UnitxtId   uint32
-	SpawnTime  time.Time
-	KilledTime time.Time
-	Alive      bool
-	Frame1     bool
-	Index      int
+	Name            string
+	hp              uint16
+	Id              uint16
+	UnitxtId        uint32
+	SpawnTime       time.Time
+	KilledTime      time.Time
+	Alive           bool
+	Frame1          bool
+	Index           int
+	LastAttackerIdx uint16
 }
 
 type Event struct {
@@ -98,7 +99,6 @@ type QuestRun struct {
 	HP                       []uint16
 	TP                       []uint16
 	PB                       []float32
-	Meseta                   []uint32
 	MesetaCharged            []int
 	Room                     []uint16
 	maxPartySupplyableShifta int16
@@ -111,10 +111,14 @@ type QuestRun struct {
 	Events                   []Event
 	Splits                   []model.QuestRunSplit
 	Monsters                 map[int]Monster
+	PlayerDamage             map[uint16]uint16
+	LastHits                 map[uint16]int
 	Bosses                   map[string]model.BossData
 	MonsterCount             []int
 	MonstersKilledCount      []int
 	MonsterHpPool            []int
+	previousDamageDealt      int
+	DamageDealt              []int
 	MonstersDead             int
 	Weapons                  map[string]model.Equipment
 	FreezeTraps              []uint16
@@ -185,7 +189,6 @@ func (pso *PSO) StartNewQuest(questConfig quest.Quest) {
 		HP:                       make([]uint16, 0),
 		TP:                       make([]uint16, 0),
 		PB:                       make([]float32, 0),
-		Meseta:                   make([]uint32, 0),
 		MesetaCharged:            make([]int, 0),
 		Room:                     make([]uint16, 0),
 		maxPartySupplyableShifta: maxPartySupplyableShifta,
@@ -199,9 +202,12 @@ func (pso *PSO) StartNewQuest(questConfig quest.Quest) {
 		Splits:                   make([]model.QuestRunSplit, len(questConfig.Splits)),
 		Monsters:                 make(map[int]Monster),
 		Bosses:                   make(map[string]model.BossData),
+		LastHits:                 make(map[uint16]int),
+		PlayerDamage:             make(map[uint16]uint16),
 		MonsterCount:             make([]int, 0),
 		MonstersKilledCount:      make([]int, 0),
 		MonsterHpPool:            make([]int, 0),
+		DamageDealt:              make([]int, 0),
 		Weapons:                  make(map[string]model.Equipment),
 		FreezeTraps:              make([]uint16, 0),
 		previousDt:               0,
@@ -267,11 +273,13 @@ func (pso *PSO) consolidateFrame() {
 		currentQuestRun.ShiftaLvl = append(currentQuestRun.ShiftaLvl, pso.CurrentPlayerData.ShiftaLvl)
 		currentQuestRun.DebandLvl = append(currentQuestRun.DebandLvl, pso.CurrentPlayerData.DebandLvl)
 		currentQuestRun.MonsterCount = append(currentQuestRun.MonsterCount, pso.GameState.MonsterCount)
-		currentQuestRun.Meseta = append(currentQuestRun.Meseta, pso.CurrentPlayerData.Meseta)
 		currentQuestRun.MesetaCharged = append(currentQuestRun.MesetaCharged, mesetaCharged)
 		currentQuestRun.MonstersKilledCount = append(currentQuestRun.MonstersKilledCount, currentQuestRun.MonstersDead)
 		currentQuestRun.FreezeTraps = append(currentQuestRun.FreezeTraps, pso.CurrentPlayerData.FreezeTraps)
 		currentQuestRun.Invincible = append(currentQuestRun.Invincible, pso.CurrentPlayerData.InvincibilityFrames > 0)
+		damageDealt := int(currentQuestRun.PlayerDamage[uint16(pso.CurrentPlayerIndex)])
+		currentQuestRun.DamageDealt = append(currentQuestRun.DamageDealt, damageDealt - currentQuestRun.previousDamageDealt)
+		currentQuestRun.previousDamageDealt = damageDealt
 		weaponFound := false
 		for _, equipment := range pso.Equipment {
 			if equipment.Type == model.EquipmentTypeWeapon {
@@ -410,6 +418,15 @@ func (pso *PSO) consolidateMonsterState(monsters []Monster) {
 					log.Printf("frame1? %v(%v) %v", existingMonster.Name, existingMonster.UnitxtId, existingMonster.Id)
 				}
 			}
+			currentQuestRun.LastHits[monster.LastAttackerIdx] = currentQuestRun.LastHits[monster.LastAttackerIdx] + 1
+			currentQuestRun.PlayerDamage[monster.LastAttackerIdx] = currentQuestRun.PlayerDamage[monster.LastAttackerIdx] + existingMonster.hp
+			currentQuestRun.Monsters[monsterId] = existingMonster
+		} else if existingMonster.Alive {
+			if monster.hp < existingMonster.hp {
+				hpLost := existingMonster.hp - monster.hp
+				currentQuestRun.PlayerDamage[monster.LastAttackerIdx] = currentQuestRun.PlayerDamage[monster.LastAttackerIdx] + hpLost
+			}
+			existingMonster.hp = monster.hp
 			currentQuestRun.Monsters[monsterId] = existingMonster
 		}
 		if isBoss, bossName := isBoss(existingMonster); isBoss {
@@ -510,6 +527,7 @@ func (pso *PSO) RefreshData() error {
 		log.Fatal("Unable to find player index")
 		return err
 	}
+	pso.CurrentPlayerIndex = index
 
 	address := pso.getBaseCharacterAddress(index)
 	game, err := pso.getBaseGameInfo()
@@ -812,6 +830,7 @@ func (pso *PSO) GetMonsterList() ([]Monster, error) {
 				return nil, err
 			}
 			var hp uint16
+			lastAttackerIndex := numbers.ReadU16(pso.handle, monsterAddr+0x2D8)
 			if ephineaMonsters != 0 {
 				hp = numbers.ReadU16(pso.handle, ephineaMonsters+0x04+(uintptr(monsterId)*32))
 			} else {
@@ -844,11 +863,12 @@ func (pso *PSO) GetMonsterList() ([]Monster, error) {
 					log.Printf("cannot read monster name for id %v %v", monsterType, err)
 				} else {
 					monsters = append(monsters, Monster{
-						Name:     monsterName,
-						hp:       hp,
-						Id:       monsterId,
-						Index:    i,
-						UnitxtId: monsterType,
+						Name:            monsterName,
+						hp:              hp,
+						Id:              monsterId,
+						Index:           i,
+						UnitxtId:        monsterType,
+						LastAttackerIdx: lastAttackerIndex,
 					})
 					if hp > 0 {
 						monsterCount++

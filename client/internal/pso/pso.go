@@ -24,20 +24,21 @@ const (
 )
 
 type PSO struct {
-	startedGame       chan QuestRun
-	completeGame      chan QuestRun
-	questTypes        quest.Quests
-	connected         bool
-	connectedStatus   string
-	server            string
-	handle            w32.HANDLE
-	CurrentPlayerData player.BasePlayerInfo
-	Equipment         []inventory.Equipment
-	GameState         GameState
-	CurrentQuest      QuestRun
-	errors            chan error
-	done              chan struct{}
-	MonsterNames      map[uint32]string
+	startedGame        chan QuestRun
+	completeGame       chan QuestRun
+	questTypes         quest.Quests
+	connected          bool
+	connectedStatus    string
+	server             string
+	handle             w32.HANDLE
+	CurrentPlayerData  player.BasePlayerInfo
+	CurrentPlayerIndex uint8
+	Equipment          []inventory.Equipment
+	GameState          GameState
+	CurrentQuest       QuestRun
+	errors             chan error
+	done               chan struct{}
+	MonsterNames       map[uint32]string
 }
 
 type GameState struct {
