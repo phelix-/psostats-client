@@ -51,13 +51,13 @@ type QuestRun struct {
 	Events              []Event
 	Splits              []QuestRunSplit
 	Monsters            map[int]Monster
-	PlayerDamage        map[int]uint64
+	PlayerDamage        map[int]int64
 	LastHits            map[int]int
 	Bosses              map[string]BossData
 	MonsterCount        []int
 	MonstersKilledCount []int
 	MonsterHpPool       []int
-	DamageDealt         []uint64
+	DamageDealt         []int64
 	MonstersDead        int
 	Weapons             map[string]Equipment
 	WeaponsUsed         map[string]string
