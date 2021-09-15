@@ -111,14 +111,14 @@ type QuestRun struct {
 	Events                   []Event
 	Splits                   []model.QuestRunSplit
 	Monsters                 map[int]Monster
-	PlayerDamage             map[uint16]uint64
+	PlayerDamage             map[uint16]int64
 	LastHits                 map[uint16]int
 	Bosses                   map[string]model.BossData
 	MonsterCount             []int
 	MonstersKilledCount      []int
 	MonsterHpPool            []int
-	previousDamageDealt      uint64
-	DamageDealt              []uint64
+	previousDamageDealt      int64
+	DamageDealt              []int64
 	MonstersDead             int
 	Weapons                  map[string]model.Equipment
 	FreezeTraps              []uint16
@@ -203,11 +203,11 @@ func (pso *PSO) StartNewQuest(questConfig quest.Quest) {
 		Monsters:                 make(map[int]Monster),
 		Bosses:                   make(map[string]model.BossData),
 		LastHits:                 make(map[uint16]int),
-		PlayerDamage:             make(map[uint16]uint64),
+		PlayerDamage:             make(map[uint16]int64),
 		MonsterCount:             make([]int, 0),
 		MonstersKilledCount:      make([]int, 0),
 		MonsterHpPool:            make([]int, 0),
-		DamageDealt:              make([]uint64, 0),
+		DamageDealt:              make([]int64, 0),
 		Weapons:                  make(map[string]model.Equipment),
 		FreezeTraps:              make([]uint16, 0),
 		previousDt:               0,
@@ -277,7 +277,7 @@ func (pso *PSO) consolidateFrame() {
 		currentQuestRun.MonstersKilledCount = append(currentQuestRun.MonstersKilledCount, currentQuestRun.MonstersDead)
 		currentQuestRun.FreezeTraps = append(currentQuestRun.FreezeTraps, pso.CurrentPlayerData.FreezeTraps)
 		currentQuestRun.Invincible = append(currentQuestRun.Invincible, pso.CurrentPlayerData.InvincibilityFrames > 0)
-		damageDealt := uint64(currentQuestRun.PlayerDamage[uint16(pso.CurrentPlayerIndex)])
+		damageDealt := currentQuestRun.PlayerDamage[uint16(pso.CurrentPlayerIndex)]
 		currentQuestRun.DamageDealt = append(currentQuestRun.DamageDealt, damageDealt - currentQuestRun.previousDamageDealt)
 		currentQuestRun.previousDamageDealt = damageDealt
 		weaponFound := false
@@ -419,11 +419,11 @@ func (pso *PSO) consolidateMonsterState(monsters []Monster) {
 				}
 			}
 			currentQuestRun.LastHits[monster.LastAttackerIdx] = currentQuestRun.LastHits[monster.LastAttackerIdx] + 1
-			currentQuestRun.PlayerDamage[monster.LastAttackerIdx] = currentQuestRun.PlayerDamage[monster.LastAttackerIdx] + uint64(existingMonster.hp)
+			currentQuestRun.PlayerDamage[monster.LastAttackerIdx] = currentQuestRun.PlayerDamage[monster.LastAttackerIdx] + int64(existingMonster.hp)
 			currentQuestRun.Monsters[monsterId] = existingMonster
 		} else if existingMonster.Alive {
 			if monster.hp < existingMonster.hp {
-				hpLost := uint64(existingMonster.hp - monster.hp)
+				hpLost := int64(existingMonster.hp - monster.hp)
 				currentQuestRun.PlayerDamage[monster.LastAttackerIdx] = currentQuestRun.PlayerDamage[monster.LastAttackerIdx] + hpLost
 			}
 			existingMonster.hp = monster.hp

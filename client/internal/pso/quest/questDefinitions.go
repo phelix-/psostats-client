@@ -155,6 +155,7 @@ func getAllQuests() []Quest {
 		{Episode: 1, Name: "Stage4", Remap: remap("1c4")},
 		{Episode: 1, Name: "1c4", Start: register(111), End: register(240), CmodeStage: 4},
 		{Episode: 1, Name: "Stage5", Remap: remap("1c5")},
+		{Episode: 1, Name: "Stage5 ", Remap: remap("1c5")},
 		{Episode: 1, Name: "1c5", Start: register(111), End: register(240), CmodeStage: 5},
 		{Episode: 1, Name: "Stage6", Remap: remap("1c6")},
 		{Episode: 1, Name: "1c6", Start: register(111), End: register(240), CmodeStage: 6},
