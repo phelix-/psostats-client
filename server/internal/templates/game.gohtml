@@ -480,6 +480,80 @@
         // var bounds = [[-330,-40], [250,1100]];
         const bounds = [[-520, -25], [125, 1100]]
         const image = L.imageOverlay('/static/ruins2_2.jpg', bounds).addTo(map);
+        var hucastIcon = L.icon({
+            iconUrl: '/static/hucast.jpg',
+            iconSize: [40, 40], // size of the icon
+            shadowSize: [0, 0], // size of the shadow
+            iconAnchor: [3.5, 10], // point of the icon which will correspond to marker's location
+            shadowAnchor: [0, 0], // the same for the shadow
+            popupAnchor: [0, -10] // point from which the popup should open relative to the iconAnchor
+        });
+        var arlanIcon = L.icon({
+            iconUrl: '/static/arlan.png',
+            iconSize: [40, 40], // size of the icon
+            shadowSize: [0, 0], // size of the shadow
+            iconAnchor: [3.5, 10], // point of the icon which will correspond to marker's location
+            shadowAnchor: [0, 0], // the same for the shadow
+            popupAnchor: [0, -10] // point from which the popup should open relative to the iconAnchor
+        });
+        const merlanIcon = L.icon({
+            iconUrl: '/static/merlan.png',
+            iconSize: [40, 40], // size of the icon
+            shadowSize: [0, 0], // size of the shadow
+            iconAnchor: [3.5, 10], // point of the icon which will correspond to marker's location
+            shadowAnchor: [0, 0], // the same for the shadow
+            popupAnchor: [0, -10] // point from which the popup should open relative to the iconAnchor
+        });
+        const deldIcon = L.icon({
+            iconUrl: '/static/deld.png',
+            iconSize: [40, 40], // size of the icon
+            shadowSize: [0, 0], // size of the shadow
+            iconAnchor: [3.5, 10], // point of the icon which will correspond to marker's location
+            shadowAnchor: [0, 0], // the same for the shadow
+            popupAnchor: [0, -10] // point from which the popup should open relative to the iconAnchor
+        });
+        const clawIcon = L.icon({
+            iconUrl: '/static/claw.png',
+            iconSize: [40, 40], // size of the icon
+            shadowSize: [0, 0], // size of the shadow
+            iconAnchor: [3.5, 10], // point of the icon which will correspond to marker's location
+            shadowAnchor: [0, 0], // the same for the shadow
+            popupAnchor: [0, -10] // point from which the popup should open relative to the iconAnchor
+        });
+        const bulclawIcon = L.icon({
+            iconUrl: '/static/bulclaw.png',
+            iconSize: [40, 40], // size of the icon
+            shadowSize: [0, 0], // size of the shadow
+            iconAnchor: [3.5, 10], // point of the icon which will correspond to marker's location
+            shadowAnchor: [0, 0], // the same for the shadow
+            popupAnchor: [0, -10] // point from which the popup should open relative to the iconAnchor
+        });
+        const delsaberIcon = L.icon({
+            iconUrl: '/static/delsaber.png',
+            iconSize: [40, 40], // size of the icon
+            shadowSize: [0, 0], // size of the shadow
+            iconAnchor: [3.5, 10], // point of the icon which will correspond to marker's location
+            shadowAnchor: [0, 0], // the same for the shadow
+            popupAnchor: [0, -10] // point from which the popup should open relative to the iconAnchor
+        });
+
+        const bringerIcon = L.icon({
+            iconUrl: '/static/bringer.png',
+            iconSize: [40, 40], // size of the icon
+            shadowSize: [0, 0], // size of the shadow
+            iconAnchor: [3.5, 10], // point of the icon which will correspond to marker's location
+            shadowAnchor: [0, 0], // the same for the shadow
+            popupAnchor: [0, -10] // point from which the popup should open relative to the iconAnchor
+        });
+        const gunnerIcon = L.icon({
+            iconUrl: '/static/gunner.png',
+            iconSize: [40, 40], // size of the icon
+            shadowSize: [0, 0], // size of the shadow
+            iconAnchor: [3.5, 10], // point of the icon which will correspond to marker's location
+            shadowAnchor: [0, 0], // the same for the shadow
+            popupAnchor: [0, -10] // point from which the popup should open relative to the iconAnchor
+        });
+
         const playbackOptions = {
             tickLen: 60,
             speed: 0.5,
@@ -491,10 +565,47 @@
             popups: true,
             fadeMarkersWhenStale: true,
             staleTime: 1,
+            marker: function(featureData) {
+                var icon;
+                switch (featureData.properties.title) {
+                    case "Arlan":
+                        icon = arlanIcon;
+                        break;
+                    case "Merlan":
+                        icon = merlanIcon;
+                        break;
+                    case "Del-D":
+                        icon = deldIcon;
+                        break;
+                    case "Claw":
+                        icon = clawIcon;
+                        break;
+                    case "Bulclaw":
+                        icon = bulclawIcon;
+                        break;
+                    case "Delsaber":
+                        icon = delsaberIcon;
+                        break;
+                    case "Dark Bringer":
+                        icon = bringerIcon;
+                        break;
+                    case "Dark Gunner":
+                        icon = gunnerIcon;
+                        break;
+                    default:
+                        icon = hucastIcon
+                }
+                return {
+                    icon: icon,
+                    getPopup: function (feature) {
+                        return feature.properties.title;
+                    }
+                }
+            }
         };
 
         {{ range $key,$value := .MapData }}
-        const e{{$key}} ={"type":"Feature", "geometry":{"type":"MultiPoint","coordinates":[{{ range .Coordinates }}[{{ range . }}{{.}},{{ end }}],{{ end }}]},"properties":{"title":"Bartle", "time":[{{ range .Time }}{{.}},{{end}}]}}
+        const e{{$key}} ={"type":"Feature", "geometry":{"type":"MultiPoint","coordinates":[{{ range .Coordinates }}[{{ range . }}{{.}},{{ end }}],{{ end }}]},"properties":{"title":"{{$value.Title}}", "time":[{{ range .Time }}{{.}},{{end}}]}}
         {{ end }}
         map.setView([e0.geometry.coordinates[0][1], e0.geometry.coordinates[0][0]], 1);
         const demoTracks = [{{ range $key,$value := .MapData }}e{{$key}},{{ end }}];

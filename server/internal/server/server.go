@@ -457,7 +457,7 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 			TimeAttacking:        formatDuration(time.Duration(timeAttacking) * (time.Second / 30)),
 			TimeCasting:          timeCasting,
 			FormattedTimeCasting: formatDuration(time.Duration(timeCasting) * (time.Second / 30)),
-			MapData:              formatMap(game.DataFrames),
+			MapData:              formatMap(game.Monsters, game.DataFrames),
 		}
 		s.gameTemplate = ensureParsed("./server/internal/templates/game.gohtml")
 		err = s.gameTemplate.ExecuteTemplate(c.Response().BodyWriter(), "game", model)
@@ -472,7 +472,7 @@ type MapData struct {
 	Time        []int64
 }
 
-func formatMap(data []model.DataFrame) map[string]MapData {
+func formatMap(monsters map[int]model.Monster, data []model.DataFrame) map[string]MapData {
 	mapData := make(map[string]MapData)
 	if data == nil {
 		return mapData
@@ -484,6 +484,7 @@ func formatMap(data []model.DataFrame) map[string]MapData {
 			if playerData.Coordinates == nil {
 				playerData.Coordinates = make([][]float32, 0)
 				playerData.Time = make([]int64, 0)
+				playerData.Title = "hucast"
 			}
 			playerData.Coordinates = append(playerData.Coordinates, []float32{location.X/4, -location.Z/4})
 			playerData.Time = append(playerData.Time, frame.Time*1000)
@@ -495,6 +496,7 @@ func formatMap(data []model.DataFrame) map[string]MapData {
 			if monsterData.Coordinates == nil {
 				monsterData.Coordinates = make([][]float32, 0)
 				monsterData.Time = make([]int64, 0)
+				monsterData.Title = monsters[monster].Name
 			}
 			monsterData.Coordinates = append(monsterData.Coordinates, []float32{location.X/4, -location.Z/4})
 			monsterData.Time = append(monsterData.Time, frame.Time*1000)
