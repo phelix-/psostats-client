@@ -10,6 +10,13 @@
         <link href="/static/main2.css" rel="stylesheet" type="text/css">
         <script src='https://code.jquery.com/jquery-1.11.3.min.js'></script>
         <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+              integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+              crossorigin=""/>
+        <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+                integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+                crossorigin=""></script>
+        <script src="/static/LeafletPlayback.min.js"></script>
     </head>
     <style>
         .psostats-chart {
@@ -28,6 +35,7 @@
         a.list-group-item {
             color: #abcdff;
         }
+        #mapid { height: 500px; }
     </style>
     <body>
     <div class="container">
@@ -69,7 +77,6 @@
                         {{ end }}
 
                     {{ end }}
-
                 </ul>
             </div>
             <div class="col-12 col-lg-6">
@@ -87,6 +94,13 @@
                 </div>
             </div>
         </div>
+        {{ if gt (len .MapData) 0}}
+            <div class="row">
+                <div class="col">
+                    <div id="mapid"></div>
+                </div>
+            </div>
+        {{ end }}
         <div class="row">
             <div class="col-12">
                 <div class="psostats-chart">
@@ -456,5 +470,35 @@
         const weaponDonutChart = new ApexCharts(document.querySelector("#weapon-donut"), weaponDonutOptions);
         weaponDonutChart.render();
 
+        {{ if gt (len .MapData) 0}}
+        const map = L.map('mapid', {
+            crs: L.CRS.Simple
+        });
+        // map.setView([101.238205, 361.75732], 9);
+        // map.setView([44.61131534, -123.4726739], 9);
+        // var forest2Bounds = [[-635,-720], [665,660]];
+        // var bounds = [[-330,-40], [250,1100]];
+        const bounds = [[-520, -25], [125, 1100]]
+        const image = L.imageOverlay('/static/ruins2_2.jpg', bounds).addTo(map);
+        const playbackOptions = {
+            tickLen: 60,
+            speed: 0.5,
+            maxInterpolationTime: 2,
+            playControl: true,
+            dateControl: true,
+            sliderControl: true,
+            labels: true,
+            popups: true,
+            fadeMarkersWhenStale: true,
+            staleTime: 1,
+        };
+
+        {{ range $key,$value := .MapData }}
+        const e{{$key}} ={"type":"Feature", "geometry":{"type":"MultiPoint","coordinates":[{{ range .Coordinates }}[{{ range . }}{{.}},{{ end }}],{{ end }}]},"properties":{"title":"Bartle", "time":[{{ range .Time }}{{.}},{{end}}]}}
+        {{ end }}
+        map.setView([e0.geometry.coordinates[0][1], e0.geometry.coordinates[0][0]], 1);
+        const demoTracks = [{{ range $key,$value := .MapData }}e{{$key}},{{ end }}];
+        playback = new L.Playback(map,  demoTracks, null, playbackOptions)
+        {{ end }}
     </script>
 {{end}}

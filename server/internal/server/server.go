@@ -425,6 +425,7 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 			TimeAttacking        string
 			TimeCasting          uint64
 			FormattedTimeCasting string
+			MapData              map[string]MapData
 		}{
 			Game: *game,
 			HasPov: map[int]bool{
@@ -456,11 +457,51 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 			TimeAttacking:        formatDuration(time.Duration(timeAttacking) * (time.Second / 30)),
 			TimeCasting:          timeCasting,
 			FormattedTimeCasting: formatDuration(time.Duration(timeCasting) * (time.Second / 30)),
+			MapData:              formatMap(game.DataFrames),
 		}
+		s.gameTemplate = ensureParsed("./server/internal/templates/game.gohtml")
 		err = s.gameTemplate.ExecuteTemplate(c.Response().BodyWriter(), "game", model)
 	}
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
+}
+
+type MapData struct {
+	Title       string
+	Coordinates [][]float32
+	Time        []int64
+}
+
+func formatMap(data []model.DataFrame) map[string]MapData {
+	mapData := make(map[string]MapData)
+	if data == nil {
+		return mapData
+	}
+	for _, frame := range data {
+		for player, location := range frame.PlayerLocation {
+			playerId := fmt.Sprintf("%d", player)
+			playerData := mapData[playerId]
+			if playerData.Coordinates == nil {
+				playerData.Coordinates = make([][]float32, 0)
+				playerData.Time = make([]int64, 0)
+			}
+			playerData.Coordinates = append(playerData.Coordinates, []float32{location.X/4, -location.Z/4})
+			playerData.Time = append(playerData.Time, frame.Time*1000)
+			mapData[playerId] = playerData
+		}
+		for monster, location := range frame.MonsterLocation {
+			monsterId := fmt.Sprintf("%d", monster)
+			monsterData := mapData[monsterId]
+			if monsterData.Coordinates == nil {
+				monsterData.Coordinates = make([][]float32, 0)
+				monsterData.Time = make([]int64, 0)
+			}
+			monsterData.Coordinates = append(monsterData.Coordinates, []float32{location.X/4, -location.Z/4})
+			monsterData.Time = append(monsterData.Time, frame.Time*1000)
+			mapData[monsterId] = monsterData
+		}
+	}
+	return mapData
 }
 
 func getEquipment(game *model.QuestRun, equipmentType string) []model.Equipment {

@@ -70,6 +70,7 @@ type QuestRun struct {
 	TimeByState         map[int]uint64
 	TechsCast           map[string]int
 	Points              uint16
+	DataFrames          []DataFrame
 }
 
 type QuestRunSplit struct {
@@ -88,6 +89,19 @@ type Monster struct {
 	KilledTime time.Time
 	Alive      bool
 	Frame1     bool
+	Location   Location
+}
+
+type Location struct {
+	X float32
+	Y float32
+	Z float32
+}
+
+type DataFrame struct {
+	Time            int64
+	PlayerLocation  map[int]Location
+	MonsterLocation map[int]Location
 }
 
 type BossData struct {
