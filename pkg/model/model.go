@@ -100,6 +100,8 @@ type Location struct {
 
 type DataFrame struct {
 	Time            int64
+	Map             uint16
+	MapVariation    uint16
 	PlayerLocation  map[int]Location
 	MonsterLocation map[int]Location
 }

@@ -425,7 +425,7 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 			TimeAttacking        string
 			TimeCasting          uint64
 			FormattedTimeCasting string
-			MapData              map[string]MapData
+			MapData              []MapData
 		}{
 			Game: *game,
 			HasPov: map[int]bool{
@@ -457,7 +457,7 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 			TimeAttacking:        formatDuration(time.Duration(timeAttacking) * (time.Second / 30)),
 			TimeCasting:          timeCasting,
 			FormattedTimeCasting: formatDuration(time.Duration(timeCasting) * (time.Second / 30)),
-			MapData:              formatMap(game.Monsters, game.DataFrames),
+			MapData:              formatMap(game, game.DataFrames),
 		}
 		s.gameTemplate = ensureParsed("./server/internal/templates/game.gohtml")
 		err = s.gameTemplate.ExecuteTemplate(c.Response().BodyWriter(), "game", model)
@@ -467,43 +467,77 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 }
 
 type MapData struct {
+	MapName      string
+	MapNum       uint16
+	MapVariation uint16
+	Movement     map[string]Movement
+}
+type Movement struct {
 	Title       string
 	Coordinates [][]float32
 	Time        []int64
+	Color       string
 }
 
-func formatMap(monsters map[int]model.Monster, data []model.DataFrame) map[string]MapData {
-	mapData := make(map[string]MapData)
-	if data == nil {
-		return mapData
+func getMapName(mapNum uint16) string {
+	mapName := ""
+	switch mapNum {
+	case 0:
 	}
+	return mapName
+}
+
+func formatMap(game *model.QuestRun, data []model.DataFrame) []MapData {
+	allMapData := make([]MapData, 0)
+	if data == nil || len(data) == 0 {
+		return allMapData
+	}
+	mapNum := uint16(255)
+	mapData := MapData{}
 	for _, frame := range data {
+		if frame.Map != mapNum {
+			if len(mapData.Movement) > 0 {
+				allMapData = append(allMapData, mapData)
+			}
+			mapNum = frame.Map
+			mapData = MapData{
+				MapNum:       frame.Map,
+				MapVariation: frame.MapVariation,
+				Movement:     make(map[string]Movement),
+				MapName:      common.GetFloorName(mapNum),
+			}
+		}
 		for player, location := range frame.PlayerLocation {
 			playerId := fmt.Sprintf("%d", player)
-			playerData := mapData[playerId]
+			playerData := mapData.Movement[playerId]
 			if playerData.Coordinates == nil {
 				playerData.Coordinates = make([][]float32, 0)
 				playerData.Time = make([]int64, 0)
-				playerData.Title = "hucast"
+				playerData.Title = game.AllPlayers[player].Class
+				playerData.Color = "red"
 			}
-			playerData.Coordinates = append(playerData.Coordinates, []float32{location.X/4, -location.Z/4})
+			playerData.Coordinates = append(playerData.Coordinates, []float32{location.X / 4, -location.Z / 4})
 			playerData.Time = append(playerData.Time, frame.Time*1000)
-			mapData[playerId] = playerData
+			mapData.Movement[playerId] = playerData
 		}
 		for monster, location := range frame.MonsterLocation {
 			monsterId := fmt.Sprintf("%d", monster)
-			monsterData := mapData[monsterId]
+			monsterData := mapData.Movement[monsterId]
 			if monsterData.Coordinates == nil {
 				monsterData.Coordinates = make([][]float32, 0)
 				monsterData.Time = make([]int64, 0)
-				monsterData.Title = monsters[monster].Name
+				monsterData.Title = game.Monsters[monster].Name
+				monsterData.Color = "orange"
 			}
-			monsterData.Coordinates = append(monsterData.Coordinates, []float32{location.X/4, -location.Z/4})
+			monsterData.Coordinates = append(monsterData.Coordinates, []float32{location.X / 4, -location.Z / 4})
 			monsterData.Time = append(monsterData.Time, frame.Time*1000)
-			mapData[monsterId] = monsterData
+			mapData.Movement[monsterId] = monsterData
 		}
 	}
-	return mapData
+	if len(mapData.Movement) > 0 {
+		allMapData = append(allMapData, mapData)
+	}
+	return allMapData
 }
 
 func getEquipment(game *model.QuestRun, equipmentType string) []model.Equipment {

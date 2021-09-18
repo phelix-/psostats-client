@@ -35,7 +35,14 @@
         a.list-group-item {
             color: #abcdff;
         }
-        #mapid { height: 500px; }
+        .map { height: 500px; }
+        .leaflet-container {
+            background: #181818;
+        }
+        .undefined-icon {
+            border-radius: 8px;
+            background-color: rgba(255, 162, 79, 0.8)
+        }
     </style>
     <body>
     <div class="container">
@@ -94,12 +101,13 @@
                 </div>
             </div>
         </div>
-        {{ if gt (len .MapData) 0}}
-            <div class="row">
-                <div class="col">
-                    <div id="mapid"></div>
-                </div>
+        {{ range .MapData }}
+        <div class="row">
+            <div class="col">
+                <h4 class="psostats-equipment">{{ .MapName }}</h4>
+                <div id="map{{.MapNum}}_{{.MapVariation}}" class="map"></div>
             </div>
+        </div>
         {{ end }}
         <div class="row">
             <div class="col-12">
@@ -470,89 +478,47 @@
         const weaponDonutChart = new ApexCharts(document.querySelector("#weapon-donut"), weaponDonutOptions);
         weaponDonutChart.render();
 
-        {{ if gt (len .MapData) 0}}
-        const map = L.map('mapid', {
-            crs: L.CRS.Simple
-        });
-        // map.setView([101.238205, 361.75732], 9);
-        // map.setView([44.61131534, -123.4726739], 9);
-        // var forest2Bounds = [[-635,-720], [665,660]];
-        // var bounds = [[-330,-40], [250,1100]];
-        const bounds = [[-520, -25], [125, 1100]]
-        const image = L.imageOverlay('/static/ruins2_2.jpg', bounds).addTo(map);
-        var hucastIcon = L.icon({
-            iconUrl: '/static/hucast.jpg',
-            iconSize: [40, 40], // size of the icon
-            shadowSize: [0, 0], // size of the shadow
-            iconAnchor: [3.5, 10], // point of the icon which will correspond to marker's location
-            shadowAnchor: [0, 0], // the same for the shadow
-            popupAnchor: [0, -10] // point from which the popup should open relative to the iconAnchor
-        });
-        var arlanIcon = L.icon({
-            iconUrl: '/static/arlan.png',
-            iconSize: [40, 40], // size of the icon
-            shadowSize: [0, 0], // size of the shadow
-            iconAnchor: [3.5, 10], // point of the icon which will correspond to marker's location
-            shadowAnchor: [0, 0], // the same for the shadow
-            popupAnchor: [0, -10] // point from which the popup should open relative to the iconAnchor
-        });
-        const merlanIcon = L.icon({
-            iconUrl: '/static/merlan.png',
-            iconSize: [40, 40], // size of the icon
-            shadowSize: [0, 0], // size of the shadow
-            iconAnchor: [3.5, 10], // point of the icon which will correspond to marker's location
-            shadowAnchor: [0, 0], // the same for the shadow
-            popupAnchor: [0, -10] // point from which the popup should open relative to the iconAnchor
-        });
-        const deldIcon = L.icon({
-            iconUrl: '/static/deld.png',
-            iconSize: [40, 40], // size of the icon
-            shadowSize: [0, 0], // size of the shadow
-            iconAnchor: [3.5, 10], // point of the icon which will correspond to marker's location
-            shadowAnchor: [0, 0], // the same for the shadow
-            popupAnchor: [0, -10] // point from which the popup should open relative to the iconAnchor
-        });
-        const clawIcon = L.icon({
-            iconUrl: '/static/claw.png',
-            iconSize: [40, 40], // size of the icon
-            shadowSize: [0, 0], // size of the shadow
-            iconAnchor: [3.5, 10], // point of the icon which will correspond to marker's location
-            shadowAnchor: [0, 0], // the same for the shadow
-            popupAnchor: [0, -10] // point from which the popup should open relative to the iconAnchor
-        });
-        const bulclawIcon = L.icon({
-            iconUrl: '/static/bulclaw.png',
-            iconSize: [40, 40], // size of the icon
-            shadowSize: [0, 0], // size of the shadow
-            iconAnchor: [3.5, 10], // point of the icon which will correspond to marker's location
-            shadowAnchor: [0, 0], // the same for the shadow
-            popupAnchor: [0, -10] // point from which the popup should open relative to the iconAnchor
-        });
-        const delsaberIcon = L.icon({
-            iconUrl: '/static/delsaber.png',
-            iconSize: [40, 40], // size of the icon
-            shadowSize: [0, 0], // size of the shadow
-            iconAnchor: [3.5, 10], // point of the icon which will correspond to marker's location
-            shadowAnchor: [0, 0], // the same for the shadow
-            popupAnchor: [0, -10] // point from which the popup should open relative to the iconAnchor
-        });
-
-        const bringerIcon = L.icon({
-            iconUrl: '/static/bringer.png',
-            iconSize: [40, 40], // size of the icon
-            shadowSize: [0, 0], // size of the shadow
-            iconAnchor: [3.5, 10], // point of the icon which will correspond to marker's location
-            shadowAnchor: [0, 0], // the same for the shadow
-            popupAnchor: [0, -10] // point from which the popup should open relative to the iconAnchor
-        });
-        const gunnerIcon = L.icon({
-            iconUrl: '/static/gunner.png',
-            iconSize: [40, 40], // size of the icon
-            shadowSize: [0, 0], // size of the shadow
-            iconAnchor: [3.5, 10], // point of the icon which will correspond to marker's location
-            shadowAnchor: [0, 0], // the same for the shadow
-            popupAnchor: [0, -10] // point from which the popup should open relative to the iconAnchor
-        });
+        {{ if gt (len .MapData) 0 }}
+        const mapImages = {
+            map0_0: L.imageOverlay('/static/ruins2_1.jpg', [[-512, -20], [122, 1090]]),
+            map1_0: L.imageOverlay('/static/forest1_0.jpg', [[-512, -20], [122, 1090]]),
+            map2_0: L.imageOverlay('/static/forest2.jpg', [[-158,-180], [166,165]]),
+            map3_0: L.imageOverlay('/static/ruins2_1.jpg', [[-512, -20], [122, 1090]]),
+            map4_0: L.imageOverlay('/static/ruins2_1.jpg', [[-512, -20], [122, 1090]]),
+            map5_4: L.imageOverlay('/static/cave3_4.jpg', [[-200, -238], [100, 236]]),
+            map6_0: L.imageOverlay('/static/ruins2_1.jpg', [[-512, -20], [122, 1090]]),
+            map7_4: L.imageOverlay('/static/mine2_4.jpg', [[-250, -112.5], [150, 375]]),
+            map8_0: L.imageOverlay('/static/ruins2_1.jpg', [[-512, -20], [122, 1090]]),
+            map9_1: L.imageOverlay('/static/ruins2_1.jpg', [[-512, -20], [122, 1090]]),
+            map10_4: L.imageOverlay('/static/ruins3_4.jpg', [[-205, -237.5], [325, 425]]),
+            map11_0: L.imageOverlay('/static/dragon_0.jpg', [[-87, -102], [96, 94]]),
+            map12_0: L.imageOverlay('/static/drl_0.jpg', [[-24, -24], [25, 24]]),
+            map13_0: L.imageOverlay('/static/volopt.jpg', [[-32.5, -37.5], [32.5, 37.5]]),
+            map14_0: L.imageOverlay('/static/falz_0.jpg', [[-62.5, -62.5], [62.5, 62.5]]),
+        }
+        const icons = {
+            HUcast: L.icon({iconUrl: '/static/hucast.jpg', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
+            HUnewearl: L.icon({iconUrl: '/static/hunewearl.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
+            Bartle: L.icon({iconUrl: '/static/bartle.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
+            Barble: L.icon({iconUrl: '/static/barble.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
+            Tollaw: L.icon({iconUrl: '/static/tollaw.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
+            Gulgus: L.icon({iconUrl: '/static/savage_wolf.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
+            "Gulgus-gue": L.icon({iconUrl: '/static/gulgus_gue.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
+            "Hildelt": L.icon({iconUrl: '/static/hildelt.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
+            "El Rappy": L.icon({iconUrl: '/static/el_rappy.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
+            "Sil Dragon": L.icon({iconUrl: '/static/sil_dragon.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
+            "Ob Lily": L.icon({iconUrl: '/static/ob_lily.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
+            Arlan: L.icon({iconUrl: '/static/arlan.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
+            Merlan: L.icon({iconUrl: '/static/merlan.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
+            "Del-D": L.icon({iconUrl: '/static/deld.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
+            Claw: L.icon({iconUrl: '/static/claw.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
+            Bulclaw: L.icon({iconUrl: '/static/bulclaw.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
+            Delsaber: L.icon({iconUrl: '/static/delsaber.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
+            "Dark Bringer": L.icon({iconUrl: '/static/bringer.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
+            "Dark Gunner": L.icon({iconUrl: '/static/gunner.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
+            "Gran Sorcerer": L.icon({iconUrl: '/static/gran_sorcerer.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
+            "Indi Belra": L.icon({iconUrl: '/static/indi_belra.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
+        }
 
         const playbackOptions = {
             tickLen: 60,
@@ -566,34 +532,9 @@
             fadeMarkersWhenStale: true,
             staleTime: 1,
             marker: function(featureData) {
-                var icon;
-                switch (featureData.properties.title) {
-                    case "Arlan":
-                        icon = arlanIcon;
-                        break;
-                    case "Merlan":
-                        icon = merlanIcon;
-                        break;
-                    case "Del-D":
-                        icon = deldIcon;
-                        break;
-                    case "Claw":
-                        icon = clawIcon;
-                        break;
-                    case "Bulclaw":
-                        icon = bulclawIcon;
-                        break;
-                    case "Delsaber":
-                        icon = delsaberIcon;
-                        break;
-                    case "Dark Bringer":
-                        icon = bringerIcon;
-                        break;
-                    case "Dark Gunner":
-                        icon = gunnerIcon;
-                        break;
-                    default:
-                        icon = hucastIcon
+                let icon = icons[featureData.properties.title]
+                if (icon === undefined) {
+                    icon = L.divIcon({className: 'undefined-icon'})
                 }
                 return {
                     icon: icon,
@@ -603,13 +544,20 @@
                 }
             }
         };
-
-        {{ range $key,$value := .MapData }}
-        const e{{$key}} ={"type":"Feature", "geometry":{"type":"MultiPoint","coordinates":[{{ range .Coordinates }}[{{ range . }}{{.}},{{ end }}],{{ end }}]},"properties":{"title":"{{$value.Title}}", "time":[{{ range .Time }}{{.}},{{end}}]}}
         {{ end }}
-        map.setView([e0.geometry.coordinates[0][1], e0.geometry.coordinates[0][0]], 1);
-        const demoTracks = [{{ range $key,$value := .MapData }}e{{$key}},{{ end }}];
-        playback = new L.Playback(map,  demoTracks, null, playbackOptions)
+
+        {{ range .MapData }}
+        {{ $mapNum := .MapNum }}
+        {{ $mapVariation := .MapVariation }}
+        const map{{.MapNum}}_{{.MapVariation}} = L.map('map{{.MapNum}}_{{.MapVariation}}', {crs: L.CRS.Simple});
+        mapImages["map{{.MapNum}}_{{.MapVariation}}"].addTo(map{{.MapNum}}_{{.MapVariation}});
+
+        {{ range $key,$value := .Movement }}
+        const e{{$key}}_map{{$mapNum}}_{{$mapVariation}} ={"type":"Feature", "geometry":{"type":"MultiPoint","coordinates":[{{ range .Coordinates }}[{{ range . }}{{.}},{{ end }}],{{ end }}]},"properties":{"title":"{{$value.Title}}", "path_options" : { "color" : "{{$value.Color}}" }, "time":[{{ range .Time }}{{.}},{{end}}]}}
+        {{ end }}
+        map{{.MapNum}}_{{.MapVariation}}.setView([e0_map{{.MapNum}}_{{.MapVariation}}.geometry.coordinates[0][1], e0_map{{.MapNum}}_{{.MapVariation}}.geometry.coordinates[0][0]], 1);
+        const mapTracks_{{$mapNum}}_{{$mapVariation}} = [{{ range $key,$value := .Movement }}e{{$key}}_map{{$mapNum}}_{{$mapVariation}},{{ end }}];
+        playback = new L.Playback(map{{$mapNum}}_{{$mapVariation}},  mapTracks_{{$mapNum}}_{{$mapVariation}}, null, playbackOptions)
         {{ end }}
     </script>
 {{end}}
