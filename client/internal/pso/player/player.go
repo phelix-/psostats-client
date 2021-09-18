@@ -2,6 +2,7 @@ package player
 
 import (
 	"errors"
+	"github.com/phelix-/psostats/v2/pkg/model"
 	"log"
 	"math"
 	"strings"
@@ -41,6 +42,7 @@ type BasePlayerInfo struct {
 	AccountMode         constants.EphineaAccountMode
 	ActionState         uint16
 	currentTech         uint16
+	Location            model.Location
 }
 
 func (p BasePlayerInfo) GetCurrentTech() string {
@@ -116,6 +118,11 @@ func ParsePlayerMemory(buf []uint16, base uintptr) BasePlayerInfo {
 		Meseta:              numbers.Uint32FromU16(buf[(0xE4C-base)/2], buf[(0xE4E-base)/2]),
 		ActionState:         buf[(0x348-base)/2],
 		currentTech:         buf[(0x464-base)/2],
+		Location: model.Location{
+			X: numbers.Float32FromU16(buf[(0x38-base)/2], buf[(0x3A-base)/2]),
+			Y: numbers.Float32FromU16(buf[(0x3C-base)/2], buf[(0x3E-base)/2]),
+			Z: numbers.Float32FromU16(buf[(0x40-base)/2], buf[(0x42-base)/2]),
+		},
 	}
 }
 

@@ -57,6 +57,7 @@ type GameState struct {
 	Difficulty           string
 	Episode              uint16
 	Map                  uint16
+	MapVariation         uint16
 	Floor                uint16
 	questPointer         uintptr
 	questRegisterPointer uintptr

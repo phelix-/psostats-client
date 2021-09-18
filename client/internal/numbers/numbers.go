@@ -41,7 +41,7 @@ func ReadString(handle w32.HANDLE, address uintptr, length int) (string, error) 
 }
 
 func ReadNullTerminatedString(handle w32.HANDLE, address uintptr) (string, error) {
-	buf, _, ok := w32.ReadProcessMemory(handle, uintptr(address), 48)
+	buf, _, ok := w32.ReadProcessMemory(handle, address, 48)
 	if !ok {
 		return "", errors.New(fmt.Sprintf("Unable to read string at 0x%08x", address))
 	}
@@ -100,4 +100,12 @@ func ReadU32(handle w32.HANDLE, address uintptr) (uint32, error) {
 		return 0, errors.New(fmt.Sprintf("Unable to readU32 0x%08x", address))
 	}
 	return Uint32From16(buf[0:2]), nil
+}
+
+func ReadF32(handle w32.HANDLE, address uintptr) float32 {
+	buf, _, ok := w32.ReadProcessMemory(handle, address, 4)
+	if !ok {
+		log.Fatalf("Unable to read f32 @0x%08x", address)
+	}
+	return Float32FromU16(buf[0], buf[1])
 }

@@ -3,12 +3,12 @@ package common
 import "fmt"
 
 type PsoClass struct {
-	Name string
+	Name      string
 	MaxShifta int
 }
 
 func GetAllClasses() []PsoClass {
-	return []PsoClass {
+	return []PsoClass{
 		{Name: "HUmar", MaxShifta: 3},
 		{Name: "HUnewearl", MaxShifta: 20},
 		{Name: "HUcast", MaxShifta: 3},
@@ -50,13 +50,13 @@ func GetFloorName(mapNum uint16) string {
 	case 10:
 		floorName = "Ruins 3"
 	case 11:
-		floorName = "Dragon"
+		floorName = "Under the Dome"
 	case 12:
-		floorName = "De Rol Le"
+		floorName = "Underground Channel"
 	case 13:
-		floorName = "Vol Opt"
+		floorName = "Control Room"
 	case 14:
-		floorName = "Dark Falz"
+		floorName = "Nearest Place to Heaven"
 	case 15:
 		floorName = "Lobby"
 	case 16:
@@ -88,39 +88,38 @@ func GetFloorName(mapNum uint16) string {
 	case 29:
 		floorName = "Seabed Lower"
 	case 30:
-		floorName = "Gal Gryphon"
+		floorName = "Cliffs of Gal Da Val"
 	case 31:
-		floorName = "Olga Flow"
+		floorName = "Test Subject Disposal Area"
 	case 32:
-		floorName = "Barba Ray"
+		floorName = "Temple Final"
 	case 33:
-		floorName = "Gol Dragon"
+		floorName = "Spaceship Final"
 	case 34:
 		floorName = "Seaside at Night"
 	case 35:
 		floorName = "Control Tower"
 	case 36:
-		floorName = "Pioneer 2"
-	case 37:
 		floorName = "Crater East"
-	case 38:
+	case 37:
 		floorName = "Crater West"
-	case 39:
+	case 38:
 		floorName = "Crater South"
-	case 40:
+	case 39:
 		floorName = "Crater North"
-	case 41:
+	case 40:
 		floorName = "Crater Interior"
-	case 42:
+	case 41:
 		floorName = "Desert 1"
-	case 43:
+	case 42:
 		floorName = "Desert 2"
-	case 44:
+	case 43:
 		floorName = "Desert 3"
-	case 45:
+	case 44:
 		floorName = "Saint-Milion"
+	case 45:
+		floorName = "Pioneer II"
 	}
-
 
 	return floorName
 }

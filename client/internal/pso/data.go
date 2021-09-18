@@ -40,6 +40,7 @@ type BaseGameInfo struct {
 	episode      uint16
 	difficulty   uint16
 	currentMap   uint16
+	mapVariation uint16
 	currentFloor uint16
 }
 
@@ -69,6 +70,7 @@ type Monster struct {
 	Frame1          bool
 	Index           int
 	LastAttackerIdx uint16
+	Location        model.Location
 }
 
 type Event struct {
@@ -138,6 +140,7 @@ type QuestRun struct {
 	TimeAttacking            uint64
 	TimeCasting              uint64
 	Points                   uint16
+	DataFrames               []model.DataFrame
 }
 
 func (pso *PSO) StartNewQuest(questConfig quest.Quest) {
@@ -220,12 +223,13 @@ func (pso *PSO) StartNewQuest(questConfig quest.Quest) {
 		TPUsed:                   0,
 		TimeByState:              make(map[uint16]uint64),
 		TechsCast:                make(map[string]int),
+		DataFrames:               make([]model.DataFrame, 0),
 	}
 	pso.startedGame <- pso.CurrentQuest
 	pso.GameState.QuestStarted = true
 }
 
-func (pso *PSO) consolidateFrame() {
+func (pso *PSO) consolidateFrame(monsters []Monster) {
 
 	currentQuestRun := pso.CurrentQuest
 	currentSecond := int(time.Now().Sub(currentQuestRun.QuestStartTime).Seconds())
@@ -278,7 +282,7 @@ func (pso *PSO) consolidateFrame() {
 		currentQuestRun.FreezeTraps = append(currentQuestRun.FreezeTraps, pso.CurrentPlayerData.FreezeTraps)
 		currentQuestRun.Invincible = append(currentQuestRun.Invincible, pso.CurrentPlayerData.InvincibilityFrames > 0)
 		damageDealt := currentQuestRun.PlayerDamage[uint16(pso.CurrentPlayerIndex)]
-		currentQuestRun.DamageDealt = append(currentQuestRun.DamageDealt, damageDealt - currentQuestRun.previousDamageDealt)
+		currentQuestRun.DamageDealt = append(currentQuestRun.DamageDealt, damageDealt-currentQuestRun.previousDamageDealt)
 		currentQuestRun.previousDamageDealt = damageDealt
 		weaponFound := false
 		for _, equipment := range pso.Equipment {
@@ -313,6 +317,26 @@ func (pso *PSO) consolidateFrame() {
 		if pso.CurrentPlayerData.ShiftaLvl > currentQuestRun.maxPartyPbShifta {
 			currentQuestRun.IllegalShifta = true
 		}
+		dataFrame := model.DataFrame{
+			Time:            time.Now().Unix(),
+			Map:             pso.GameState.Map,
+			MapVariation:    pso.GameState.MapVariation,
+			PlayerLocation:  make(map[int]model.Location),
+			MonsterLocation: make(map[int]model.Location),
+		}
+		for _, monster := range monsters {
+			if monster.hp > 0 {
+				dataFrame.MonsterLocation[int(monster.Id)] = monster.Location
+			}
+		}
+		if players, err := pso.getOtherPlayers(); err == nil {
+			for i, player := range players {
+				if !player.Warping {
+					dataFrame.PlayerLocation[i] = player.Location
+				}
+			}
+		}
+		currentQuestRun.DataFrames = append(currentQuestRun.DataFrames, dataFrame)
 	}
 
 	currentState := pso.CurrentPlayerData.ActionState
@@ -536,6 +560,7 @@ func (pso *PSO) RefreshData() error {
 	}
 	pso.GameState.Episode = game.episode
 	pso.GameState.Map = game.currentMap
+	pso.GameState.MapVariation = game.mapVariation
 	pso.GameState.Floor = game.currentFloor
 	pso.GameState.Difficulty = game.DifficultyString()
 
@@ -615,7 +640,7 @@ func (pso *PSO) RefreshData() error {
 				}
 			}
 			if pso.GameState.QuestStarted {
-				pso.consolidateFrame()
+				pso.consolidateFrame(monsters)
 				pso.updateCurrentSplit(questConfig)
 				pso.addExtraQuestInfo(questConfig)
 				pso.consolidateMonsterState(monsters)
@@ -718,10 +743,12 @@ func (pso *PSO) getBaseGameInfo() (BaseGameInfo, error) {
 	}
 	currentMap := numbers.ReadU16(pso.handle, uintptr(0x00AAFC9C))
 	currentFloor := numbers.ReadU16(pso.handle, uintptr(0x00AAFCA0))
+	mapVariation := numbers.ReadU16(pso.handle, uintptr(0x00AAFC98))
 	game := BaseGameInfo{
 		episode:      episode,
 		difficulty:   difficulty,
 		currentMap:   currentMap,
+		mapVariation: mapVariation,
 		currentFloor: currentFloor,
 	}
 	return game, nil
@@ -869,6 +896,11 @@ func (pso *PSO) GetMonsterList() ([]Monster, error) {
 						Index:           i,
 						UnitxtId:        monsterType,
 						LastAttackerIdx: lastAttackerIndex,
+						Location: model.Location{
+							X: numbers.ReadF32(pso.handle, monsterAddr+0x38),
+							Y: numbers.ReadF32(pso.handle, monsterAddr+0x3C),
+							Z: numbers.ReadF32(pso.handle, monsterAddr+0x40),
+						},
 					})
 					if hp > 0 {
 						monsterCount++
