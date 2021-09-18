@@ -485,13 +485,15 @@ func formatMap(game *model.QuestRun, data []model.DataFrame) []MapData {
 		return allMapData
 	}
 	mapNum := uint16(255)
+	mapVariation := uint16(255)
 	mapData := MapData{}
 	for _, frame := range data {
-		if frame.Map != mapNum {
+		if frame.Map != mapNum || frame.MapVariation != mapVariation {
 			if len(mapData.Movement) > 0 {
 				allMapData = append(allMapData, mapData)
 			}
 			mapNum = frame.Map
+			mapVariation = frame.MapVariation
 			mapData = MapData{
 				MapNum:       frame.Map,
 				MapVariation: frame.MapVariation,
