@@ -39,6 +39,22 @@
         .leaflet-container {
             background: #181818;
         }
+        .player1-icon {
+            border-radius: 8px;
+            background-color: rgba(255, 79, 79, 0.8)
+        }
+        .player2-icon {
+            border-radius: 8px;
+            background-color: rgba(79, 255, 114, 0.8)
+        }
+        .player3-icon {
+            border-radius: 8px;
+            background-color: rgba(255, 252, 79, 0.86)
+        }
+        .player4-icon {
+            border-radius: 8px;
+            background-color: rgba(79, 108, 255, 0.8)
+        }
         .undefined-icon {
             border-radius: 8px;
             background-color: rgba(255, 162, 79, 0.8)
@@ -495,29 +511,7 @@
             map12_0: L.imageOverlay('/static/drl_0.jpg', [[-24, -24], [25, 24]]),
             map13_0: L.imageOverlay('/static/volopt.jpg', [[-32.5, -37.5], [32.5, 37.5]]),
             map14_0: L.imageOverlay('/static/falz_0.jpg', [[-62.5, -62.5], [62.5, 62.5]]),
-        }
-        const icons = {
-            HUcast: L.icon({iconUrl: '/static/hucast.jpg', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
-            HUnewearl: L.icon({iconUrl: '/static/hunewearl.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
-            Bartle: L.icon({iconUrl: '/static/bartle.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
-            Barble: L.icon({iconUrl: '/static/barble.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
-            Tollaw: L.icon({iconUrl: '/static/tollaw.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
-            Gulgus: L.icon({iconUrl: '/static/savage_wolf.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
-            "Gulgus-gue": L.icon({iconUrl: '/static/gulgus_gue.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
-            "Hildelt": L.icon({iconUrl: '/static/hildelt.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
-            "El Rappy": L.icon({iconUrl: '/static/el_rappy.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
-            "Sil Dragon": L.icon({iconUrl: '/static/sil_dragon.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
-            "Ob Lily": L.icon({iconUrl: '/static/ob_lily.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
-            Arlan: L.icon({iconUrl: '/static/arlan.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
-            Merlan: L.icon({iconUrl: '/static/merlan.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
-            "Del-D": L.icon({iconUrl: '/static/deld.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
-            Claw: L.icon({iconUrl: '/static/claw.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
-            Bulclaw: L.icon({iconUrl: '/static/bulclaw.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
-            Delsaber: L.icon({iconUrl: '/static/delsaber.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
-            "Dark Bringer": L.icon({iconUrl: '/static/bringer.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
-            "Dark Gunner": L.icon({iconUrl: '/static/gunner.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
-            "Gran Sorcerer": L.icon({iconUrl: '/static/gran_sorcerer.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
-            "Indi Belra": L.icon({iconUrl: '/static/indi_belra.png', iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -10]}),
+            map40_0: L.imageOverlay('/static/crater_int_0.jpg', [[-342.5, -342.5], [342.5, 342.5]])
         }
 
         const playbackOptions = {
@@ -532,13 +526,19 @@
             fadeMarkersWhenStale: true,
             staleTime: 1,
             marker: function(featureData) {
-                let icon = icons[featureData.properties.title]
-                if (icon === undefined) {
-                    icon = L.divIcon({className: 'undefined-icon'})
+                let icon = L.divIcon({className: 'undefined-icon'});
+                if (featureData.properties.title.startsWith("Player 1")) {
+                    icon = L.divIcon({className: 'player1-icon'});
+                } else if (featureData.properties.title.startsWith("Player 2")) {
+                    icon = L.divIcon({className: 'player2-icon'});
+                } else if (featureData.properties.title.startsWith("Player 3")) {
+                    icon = L.divIcon({className: 'player3-icon'});
+                } else if (featureData.properties.title.startsWith("Player 4")) {
+                    icon = L.divIcon({className: 'player4-icon'});
                 }
                 return {
                     icon: icon,
-                    getPopup: function (feature) {
+                        getPopup: function (feature) {
                         return feature.properties.title;
                     }
                 }

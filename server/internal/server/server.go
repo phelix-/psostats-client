@@ -479,14 +479,6 @@ type Movement struct {
 	Color       string
 }
 
-func getMapName(mapNum uint16) string {
-	mapName := ""
-	switch mapNum {
-	case 0:
-	}
-	return mapName
-}
-
 func formatMap(game *model.QuestRun, data []model.DataFrame) []MapData {
 	allMapData := make([]MapData, 0)
 	if data == nil || len(data) == 0 {
@@ -513,8 +505,7 @@ func formatMap(game *model.QuestRun, data []model.DataFrame) []MapData {
 			if playerData.Coordinates == nil {
 				playerData.Coordinates = make([][]float32, 0)
 				playerData.Time = make([]int64, 0)
-				playerData.Title = game.AllPlayers[player].Class
-				playerData.Color = "red"
+				playerData.Title = fmt.Sprintf("Player %d: %v", player+1, game.AllPlayers[player].Name)
 			}
 			playerData.Coordinates = append(playerData.Coordinates, []float32{location.X / 4, -location.Z / 4})
 			playerData.Time = append(playerData.Time, frame.Time*1000)
@@ -527,7 +518,6 @@ func formatMap(game *model.QuestRun, data []model.DataFrame) []MapData {
 				monsterData.Coordinates = make([][]float32, 0)
 				monsterData.Time = make([]int64, 0)
 				monsterData.Title = game.Monsters[monster].Name
-				monsterData.Color = "orange"
 			}
 			monsterData.Coordinates = append(monsterData.Coordinates, []float32{location.X / 4, -location.Z / 4})
 			monsterData.Time = append(monsterData.Time, frame.Time*1000)
