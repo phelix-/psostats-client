@@ -117,11 +117,11 @@
                 </div>
             </div>
         </div>
-        {{ range .MapData }}
+        {{ range $i, $mapData := .MapData }}
         <div class="row">
             <div class="col">
                 <h4 class="psostats-equipment">{{ .MapName }}</h4>
-                <div id="map{{.MapNum}}_{{.MapVariation}}" class="map"></div>
+                <div id="map{{$i}}{{.MapNum}}_{{.MapVariation}}" class="map"></div>
             </div>
         </div>
         {{ end }}
@@ -580,18 +580,18 @@
         };
         {{ end }}
 
-        {{ range .MapData }}
+        {{ range $i, $mapData := .MapData }}
         {{ $mapNum := .MapNum }}
         {{ $mapVariation := .MapVariation }}
-        const map{{.MapNum}}_{{.MapVariation}} = L.map('map{{.MapNum}}_{{.MapVariation}}', {crs: L.CRS.Simple});
-        mapImages["map{{.MapNum}}_{{.MapVariation}}"].addTo(map{{.MapNum}}_{{.MapVariation}});
+        const map{{$i}}{{.MapNum}}_{{.MapVariation}} = L.map('map{{$i}}{{.MapNum}}_{{.MapVariation}}', {crs: L.CRS.Simple});
+        mapImages["map{{.MapNum}}_{{.MapVariation}}"].addTo(map{{$i}}{{.MapNum}}_{{.MapVariation}});
 
         {{ range $key,$value := .Movement }}
-        const e{{$key}}_map{{$mapNum}}_{{$mapVariation}} ={"type":"Feature", "geometry":{"type":"MultiPoint","coordinates":[{{ range .Coordinates }}[{{ range . }}{{.}},{{ end }}],{{ end }}]},"properties":{"title":"{{$value.Title}}", "path_options" : { "color" : "{{$value.Color}}" }, "time":[{{ range .Time }}{{.}},{{end}}]}}
+        const e{{$i}}{{$key}}_map{{$mapNum}}_{{$mapVariation}} ={"type":"Feature", "geometry":{"type":"MultiPoint","coordinates":[{{ range .Coordinates }}[{{ range . }}{{.}},{{ end }}],{{ end }}]},"properties":{"title":"{{- js $value.Title}}", "path_options" : { "color" : "{{$value.Color}}" }, "time":[{{ range .Time }}{{.}},{{end}}]}}
         {{ end }}
-        map{{.MapNum}}_{{.MapVariation}}.setView([e0_map{{.MapNum}}_{{.MapVariation}}.geometry.coordinates[0][1], e0_map{{.MapNum}}_{{.MapVariation}}.geometry.coordinates[0][0]], 1);
-        const mapTracks_{{$mapNum}}_{{$mapVariation}} = [{{ range $key,$value := .Movement }}e{{$key}}_map{{$mapNum}}_{{$mapVariation}},{{ end }}];
-        playback = new L.Playback(map{{$mapNum}}_{{$mapVariation}},  mapTracks_{{$mapNum}}_{{$mapVariation}}, null, playbackOptions)
+        map{{$i}}{{.MapNum}}_{{.MapVariation}}.setView([e{{$i}}0_map{{.MapNum}}_{{.MapVariation}}.geometry.coordinates[0][1], e{{$i}}0_map{{.MapNum}}_{{.MapVariation}}.geometry.coordinates[0][0]], 1);
+        const mapTracks{{$i}}_{{$mapNum}}_{{$mapVariation}} = [{{ range $key,$value := .Movement }}e{{$i}}{{$key}}_map{{$mapNum}}_{{$mapVariation}},{{ end }}];
+        playback = new L.Playback(map{{$i}}{{$mapNum}}_{{$mapVariation}},  mapTracks{{$i}}_{{$mapNum}}_{{$mapVariation}}, null, playbackOptions)
         {{ end }}
     </script>
 {{end}}
