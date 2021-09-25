@@ -395,6 +395,12 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 				})
 			}
 		}
+		playerIndex := -1
+		for i, player := range game.AllPlayers {
+			if game.GuildCard == player.GuildCard {
+				playerIndex = i
+			}
+		}
 		timeMoving := game.TimeByState[2] + game.TimeByState[4]
 		timeStanding := game.TimeByState[1]
 		timeAttacking := game.TimeByState[5] + game.TimeByState[6] + game.TimeByState[7]
@@ -426,6 +432,7 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 			TimeCasting          uint64
 			FormattedTimeCasting string
 			MapData              []MapData
+			PlayerIndex          int
 		}{
 			Game: *game,
 			HasPov: map[int]bool{
@@ -458,6 +465,7 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 			TimeCasting:          timeCasting,
 			FormattedTimeCasting: formatDuration(time.Duration(timeCasting) * (time.Second / 30)),
 			MapData:              formatMap(game, game.DataFrames),
+			PlayerIndex:          playerIndex,
 		}
 		s.gameTemplate = ensureParsed("./server/internal/templates/game.gohtml")
 		err = s.gameTemplate.ExecuteTemplate(c.Response().BodyWriter(), "game", model)
@@ -490,7 +498,7 @@ func formatMap(game *model.QuestRun, data []model.DataFrame) []MapData {
 	playerIndexByGc := make(map[string]int)
 	playerByGc := make(map[string]model.BasePlayerInfo)
 	for index, player := range game.AllPlayers {
-		playerIndexByGc[player.GuildCard] = index + 1
+		playerIndexByGc[player.GuildCard] = index
 		playerByGc[player.GuildCard] = player
 	}
 	for _, frame := range data {
@@ -517,7 +525,7 @@ func formatMap(game *model.QuestRun, data []model.DataFrame) []MapData {
 			if playerData.Coordinates == nil {
 				playerData.Coordinates = make([][]float32, 0)
 				playerData.Time = make([]int64, 0)
-				playerData.Title = fmt.Sprintf("Player %d: %v", player + 1, game.AllPlayers[player].Name)
+				playerData.Title = fmt.Sprintf("Player %d: %v", player+1, game.AllPlayers[player].Name)
 			}
 			playerData.Coordinates = append(playerData.Coordinates, []float32{location.X / 4, -location.Z / 4})
 			playerData.Time = append(playerData.Time, frame.Time*1000)
@@ -525,15 +533,16 @@ func formatMap(game *model.QuestRun, data []model.DataFrame) []MapData {
 		}
 		// New location info
 		for gc, location := range frame.PlayerByGcLocation {
-			playerData := mapData.Movement[gc]
+			playerIndex := fmt.Sprintf("%d", playerIndexByGc[gc])
+			playerData := mapData.Movement[playerIndex]
 			if playerData.Coordinates == nil {
 				playerData.Coordinates = make([][]float32, 0)
 				playerData.Time = make([]int64, 0)
-				playerData.Title = fmt.Sprintf("Player %d: %v", playerIndexByGc[gc], playerByGc[gc].Name)
+				playerData.Title = fmt.Sprintf("Player %d: %v", playerIndexByGc[gc] + 1, playerByGc[gc].Name)
 			}
 			playerData.Coordinates = append(playerData.Coordinates, []float32{location.X / 4, -location.Z / 4})
 			playerData.Time = append(playerData.Time, frame.Time*1000)
-			mapData.Movement[gc] = playerData
+			mapData.Movement[playerIndex] = playerData
 		}
 		for monster, location := range frame.MonsterLocation {
 			monsterId := fmt.Sprintf("%d", monster)

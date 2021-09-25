@@ -583,6 +583,7 @@
         };
         {{ end }}
 
+        {{ $playerIndex := .PlayerIndex }}
         {{ range $i, $mapData := .MapData }}
         {{ $mapNum := .MapNum }}
         {{ $mapVariation := .MapVariation }}
@@ -592,7 +593,7 @@
         {{ range $key,$value := .Movement }}
         const e{{$i}}{{$key}}_map{{$mapNum}}_{{$mapVariation}} ={"type":"Feature", "geometry":{"type":"MultiPoint","coordinates":[{{ range .Coordinates }}[{{ range . }}{{.}},{{ end }}],{{ end }}]},"properties":{"title":"{{- js $value.Title}}", "path_options" : { "color" : "{{$value.Color}}" }, "time":[{{ range .Time }}{{.}},{{end}}]}}
         {{ end }}
-        map{{$i}}{{.MapNum}}_{{.MapVariation}}.setView([e{{$i}}0_map{{.MapNum}}_{{.MapVariation}}.geometry.coordinates[0][1], e{{$i}}0_map{{.MapNum}}_{{.MapVariation}}.geometry.coordinates[0][0]], 1);
+        map{{$i}}{{.MapNum}}_{{.MapVariation}}.setView([e{{$i}}{{$playerIndex}}_map{{.MapNum}}_{{.MapVariation}}.geometry.coordinates[0][1], e{{$i}}0_map{{.MapNum}}_{{.MapVariation}}.geometry.coordinates[0][0]], 1);
         const mapTracks{{$i}}_{{$mapNum}}_{{$mapVariation}} = [{{ range $key,$value := .Movement }}e{{$i}}{{$key}}_map{{$mapNum}}_{{$mapVariation}},{{ end }}];
         playback = new L.Playback(map{{$i}}{{$mapNum}}_{{$mapVariation}},  mapTracks{{$i}}_{{$mapNum}}_{{$mapVariation}}, null, playbackOptions)
         {{ end }}
