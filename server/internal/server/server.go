@@ -487,6 +487,12 @@ func formatMap(game *model.QuestRun, data []model.DataFrame) []MapData {
 	mapNum := uint16(255)
 	mapVariation := uint16(255)
 	mapData := MapData{}
+	playerIndexByGc := make(map[string]int)
+	playerByGc := make(map[string]model.BasePlayerInfo)
+	for index, player := range game.AllPlayers {
+		playerIndexByGc[player.GuildCard] = index + 1
+		playerByGc[player.GuildCard] = player
+	}
 	for _, frame := range data {
 		if frame.Map == 0 {
 			continue
@@ -504,17 +510,30 @@ func formatMap(game *model.QuestRun, data []model.DataFrame) []MapData {
 				MapName:      common.GetFloorName(mapNum),
 			}
 		}
+		// PlayerLocation is deprecated
 		for player, location := range frame.PlayerLocation {
 			playerId := fmt.Sprintf("%d", player)
 			playerData := mapData.Movement[playerId]
 			if playerData.Coordinates == nil {
 				playerData.Coordinates = make([][]float32, 0)
 				playerData.Time = make([]int64, 0)
-				playerData.Title = fmt.Sprintf("Player %d: %v", player+1, game.AllPlayers[player].Name)
+				playerData.Title = fmt.Sprintf("Player %d: %v", player, game.AllPlayers[player].Name)
 			}
 			playerData.Coordinates = append(playerData.Coordinates, []float32{location.X / 4, -location.Z / 4})
 			playerData.Time = append(playerData.Time, frame.Time*1000)
 			mapData.Movement[playerId] = playerData
+		}
+		// New location info
+		for gc, location := range frame.PlayerByGcLocation {
+			playerData := mapData.Movement[gc]
+			if playerData.Coordinates == nil {
+				playerData.Coordinates = make([][]float32, 0)
+				playerData.Time = make([]int64, 0)
+				playerData.Title = fmt.Sprintf("Player %d: %v", playerIndexByGc[gc], playerByGc[gc].Name)
+			}
+			playerData.Coordinates = append(playerData.Coordinates, []float32{location.X / 4, -location.Z / 4})
+			playerData.Time = append(playerData.Time, frame.Time*1000)
+			mapData.Movement[gc] = playerData
 		}
 		for monster, location := range frame.MonsterLocation {
 			monsterId := fmt.Sprintf("%d", monster)

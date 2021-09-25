@@ -56,7 +56,7 @@ func GetFloorName(mapNum uint16) string {
 	case 13:
 		floorName = "Control Room"
 	case 14:
-		floorName = "Nearest Place to Heaven"
+		floorName = "????"
 	case 15:
 		floorName = "Lobby"
 	case 16:
@@ -116,7 +116,7 @@ func GetFloorName(mapNum uint16) string {
 	case 43:
 		floorName = "Desert 3"
 	case 44:
-		floorName = "Saint-Milion"
+		floorName = "Meteor Impact Site"
 	case 45:
 		floorName = "Pioneer II"
 	}

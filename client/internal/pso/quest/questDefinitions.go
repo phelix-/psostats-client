@@ -136,6 +136,7 @@ func getAllQuests() []Quest {
 		// ---- VR ----
 		{Episode: 1, Name: "Towards the Future", Start: register(12), End: register(254)},
 		{Episode: 1, Name: "Tyrell's Ego", Start: register(4), End: register(101)},
+		{Episode: 1, Name: "総督の贈り物", Start: floorSwitch(6, 165), End: floorSwitch(6, 33)},
 		// Labyrinthine Trial
 		// Sugoroku
 		// Sim 2.0
@@ -237,6 +238,11 @@ func getAllQuests() []Quest {
 			{Name: "5f", Trigger: register(50)},
 		}},
 		// ---- Extermination ----
+		{Episode: 2, Name: "Malicious Uprising #1", Start: register(205), End: floorSwitch(2, 16)},
+		{Episode: 2, Name: "Malicious Uprising #2", Start: register(205), End: floorSwitch(3, 12)},
+		{Episode: 2, Name: "Malicious Uprising #3", Start: register(205), End: floorSwitch(8, 11)},
+		{Episode: 2, Name: "Malicious Uprising #4", Start: register(205), End: floorSwitch(10, 14)},
+		{Episode: 2, Name: "Malicious Uprising #5", Start: register(205), End: register(157)},
 		{Episode: 2, Name: "Phantasmal World #1", Start: warpIn(), End: register(254)},
 		{Episode: 2, Name: "Phantasmal World #2", Start: warpIn(), End: register(111)},
 		{Episode: 2, Name: "Phantasmal World #3", Start: warpIn(), End: floorSwitch(11, 180)},
@@ -401,7 +407,7 @@ func getAllQuests() []Quest {
 		// The Beak's Cafe Ver.2
 
 		// ---- VR ----
-		{Episode: 4, Name: "Beyond the Horizon", Start: floorSwitch(1, 20), End: register(254)},
+		{Episode: 4, Name: "Beyond the Horizon", Start: floorSwitch(1, 20), End: floorSwitch(8, 80)},
 		// LOGiN presents 勇場のマッチレース
 
 		// ---- Halloween ----

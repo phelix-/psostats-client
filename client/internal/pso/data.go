@@ -318,11 +318,11 @@ func (pso *PSO) consolidateFrame(monsters []Monster) {
 			currentQuestRun.IllegalShifta = true
 		}
 		dataFrame := model.DataFrame{
-			Time:            time.Now().Unix(),
-			Map:             pso.GameState.Map,
-			MapVariation:    pso.GameState.MapVariation,
-			PlayerLocation:  make(map[int]model.Location),
-			MonsterLocation: make(map[int]model.Location),
+			Time:               time.Now().Unix(),
+			Map:                pso.GameState.Map,
+			MapVariation:       pso.GameState.MapVariation,
+			PlayerByGcLocation: make(map[string]model.Location),
+			MonsterLocation:    make(map[int]model.Location),
 		}
 		for _, monster := range monsters {
 			if monster.hp > 0 {
@@ -330,9 +330,9 @@ func (pso *PSO) consolidateFrame(monsters []Monster) {
 			}
 		}
 		if players, err := pso.getOtherPlayers(); err == nil {
-			for i, player := range players {
-				if !player.Warping {
-					dataFrame.PlayerLocation[i] = player.Location
+			for _, player := range players {
+				if !player.Warping && player.Floor == pso.CurrentPlayerData.Floor {
+					dataFrame.PlayerByGcLocation[player.GuildCard] = player.Location
 				}
 			}
 		}

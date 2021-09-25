@@ -99,11 +99,12 @@ type Location struct {
 }
 
 type DataFrame struct {
-	Time            int64
-	Map             uint16
-	MapVariation    uint16
-	PlayerLocation  map[int]Location
-	MonsterLocation map[int]Location
+	Time               int64
+	Map                uint16
+	MapVariation       uint16
+	PlayerByGcLocation map[string]Location
+	PlayerLocation     map[int]Location
+	MonsterLocation    map[int]Location
 }
 
 type BossData struct {
