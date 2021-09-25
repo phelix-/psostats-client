@@ -494,7 +494,7 @@ func formatMap(game *model.QuestRun, data []model.DataFrame) []MapData {
 		playerByGc[player.GuildCard] = player
 	}
 	for _, frame := range data {
-		if frame.Map == 0 {
+		if frame.Map == 0 || frame.Map == 45 {
 			continue
 		}
 		if frame.Map != mapNum || frame.MapVariation != mapVariation {
@@ -517,7 +517,7 @@ func formatMap(game *model.QuestRun, data []model.DataFrame) []MapData {
 			if playerData.Coordinates == nil {
 				playerData.Coordinates = make([][]float32, 0)
 				playerData.Time = make([]int64, 0)
-				playerData.Title = fmt.Sprintf("Player %d: %v", player, game.AllPlayers[player].Name)
+				playerData.Title = fmt.Sprintf("Player %d: %v", player + 1, game.AllPlayers[player].Name)
 			}
 			playerData.Coordinates = append(playerData.Coordinates, []float32{location.X / 4, -location.Z / 4})
 			playerData.Time = append(playerData.Time, frame.Time*1000)
