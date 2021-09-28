@@ -79,7 +79,7 @@ func (pso *PSO) GetFloorName() string {
 					}
 				case 4:
 					if floor == 13 {
-						area = 24
+						area = 27
 					} else {
 						area = 20 + floor
 					}
