@@ -182,6 +182,7 @@ func GetWeapons() []Weapon {
 		{Name: "ES Shot", MinAtp: 10, MaxAtp: 10, Ata: 40, Grind: 125, MaxHit: 0, MaxAttr: 0, Animation: "Shot"},
 		{Name: "ES Bazooka", MinAtp: 10, MaxAtp: 10, Ata: 40, Grind: 250, MaxHit: 0, MaxAttr: 0, Animation: "Shot"},
 
+		{Name: "ES Launcher", MinAtp: 10, MaxAtp: 10, Ata: 40, Grind: 180, MaxHit: 0, MaxAttr: 0, Animation: "Launcher", Special: "Berserk"},
 		{Name: "Cannon Rouge", MinAtp: 600, MaxAtp: 750, Ata: 45, Grind: 30, ComboPreset: Combo{Attack1Hits: 1, Attack2: "NONE", Attack3: "NONE"}, MaxHit: 100, MaxAttr: 100, Animation: "Launcher"},
 
 		{Name: "Gal Wind", MinAtp: 270, MaxAtp: 310, Ata: 40, Grind: 15, MaxHit: 50, ComboPreset: Combo{Attack1Hits: 1, Attack2Hits: 1, Attack3Hits: 3}, MaxAttr: 100, Animation: "Card"},

@@ -752,6 +752,18 @@ const weapons = {
         name: "ES Bazooka", animation: "Shot", minAtp: 10, maxAtp: 10, ata: 40, grind: 250, maxHit: 0, maxAttr: 0,
     },
 
+    "ES Launcher": {
+        name: "ES Launcher",
+        animation: "Launcher",
+        minAtp: 10,
+        maxAtp: 10,
+        ata: 40,
+        grind: 180,
+        maxHit: 0,
+        maxAttr: 0,
+        special: "Berserk"
+    },
+
     "Cannon Rouge": {
         name: "Cannon Rouge",
         animation: "Launcher",
