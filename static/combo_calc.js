@@ -1004,11 +1004,11 @@ function createMonsterRow(
     let baseDamage = calculateBaseDamage(atpInput, enemy);
     let damageToUse = atpInput.useMaxDamageRoll ? baseDamage.nMax : baseDamage.nMin;
     if (autoCombo) {
-        return generateAutoCombo(special, weapon, enemy, modified_evp, base_ata, snGlitch, damageToUse, comboInput)
+        return generateAutoCombo(special, weapon, enemy, modified_evp, base_ata, snGlitch, damageToUse, atpInput, comboInput)
     }
 
     let accuracyResult = getAccuracyForCombo(base_ata, comboInput, special, modified_evp, snGlitch);
-    let comboDamage = getDamageForCombo(comboInput, special, damageToUse);
+    let comboDamage = getDamageForCombo(enemy.hp, atpInput, comboInput, special, damageToUse);
     let percentDamage = 100 * (comboDamage.total / enemy.hp);
     if (percentDamage > 100) {
         percentDamage = 100;
@@ -1055,17 +1055,57 @@ function getAccuracyForCombo(base_ata, comboInput, special, modified_evp, snGlit
     return {overallAccuracy, a1Accuracy, a2Accuracy, a3Accuracy};
 }
 
-function getDamageForCombo(comboInput, special, baseDamage) {
-    let a1Damage = getDamageModifierForAttackType(comboInput.a1Type, special) * baseDamage;
-    let a2Damage = getDamageModifierForAttackType(comboInput.a2Type, special) * baseDamage;
-    let a3Damage = getDamageModifierForAttackType(comboInput.a3Type, special) * baseDamage;
+function getDamageForCombo(enemyHp, atpInput, comboInput, special, baseDamage) {
+    let total = 0;
+    let a1Damage = 0;
+    let a2Damage = 0;
+    let a3Damage = 0;
+    let demonsMultiplier = getDemonsModifier(atpInput.playerClass);
+    if (comboInput.a1Type === "SPECIAL" && special === "Demon's") {
+        for (let i = 0; i < comboInput.a1Hits; i++) {
+            a1Damage = (enemyHp - total) * demonsMultiplier;
+            total += a1Damage;
+        }
+    } else {
+        a1Damage = getDamageModifierForAttackType(comboInput.a1Type, special) * baseDamage;
+        total += a1Damage * comboInput.a1Hits;
+    }
+    if (comboInput.a2Type === "SPECIAL" && special === "Demon's") {
+        for (let i = 0; i < comboInput.a2Hits; i++) {
+            a2Damage = (enemyHp - total) * demonsMultiplier;
+            total += a2Damage;
+        }
+    } else {
+        a2Damage = getDamageModifierForAttackType(comboInput.a2Type, special) * baseDamage;
+        total += a2Damage * comboInput.a2Hits;
+    }
+    if (comboInput.a3Type === "SPECIAL" && special === "Demon's") {
+        for (let i = 0; i < comboInput.a3Hits; i++) {
+            a3Damage = (enemyHp - total) * demonsMultiplier;
+            total += a3Damage;
+        }
+    } else {
+        a3Damage = getDamageModifierForAttackType(comboInput.a3Type, special) * baseDamage;
+        total += a3Damage * comboInput.a3Hits;
+    }
 
-    let total = (a1Damage * comboInput.a1Hits) + (a2Damage * comboInput.a2Hits) + (a3Damage * comboInput.a3Hits);
     return {total, a1Damage, a2Damage, a3Damage};
 }
 
+function getDemonsModifier(playerClass) {
+    switch (playerClass) {
+        case "HUcast":
+        case "HUcaseal":
+        case "RAcast":
+        case "RAcaseal":
+            return 0.45;
+        default:
+            return 0.75;
+    }
+}
+
 function generateAutoCombo(
-    special, weapon, enemy, modified_evp, base_ata, snGlitch, baseDamage, comboInput
+    special, weapon, enemy, modified_evp, base_ata, snGlitch, baseDamage, atpInput, comboInput
 ) {
     let className = $('#class-select').val();
     let frameData = getFrameDataForWeapon(weapon, className);
@@ -1089,7 +1129,7 @@ function generateAutoCombo(
                 comboInput.a3Type = attacks[a3];
                 let frames = getFramesForCombo(attacks[a1], attacks[a2], attacks[a3], frameData.animationFrameData)
                 let accuracyResult = getAccuracyForCombo(base_ata, comboInput, special, modified_evp, snGlitch);
-                let comboDamage = getDamageForCombo(comboInput, special, baseDamage);
+                let comboDamage = getDamageForCombo(enemy.hp, atpInput, comboInput, special, baseDamage);
                 if (accuracyResult.overallAccuracy < 100 && bestCombo != null) {
                     continue;
                 }
@@ -1256,6 +1296,7 @@ function updateDamageTable() {
     // let opm = $('#opm_checkbox').is(":checked");
 
     let atpInput = {
+        playerClass: $('#class-select').val(),
         baseAtp: Number($('#atpInput').val()),
         minAtp: Number($('#minAtpInput').val()),
         maxAtp: Number($('#maxAtpInput').val()),
