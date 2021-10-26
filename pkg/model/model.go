@@ -21,6 +21,7 @@ type BasePlayerInfo struct {
 }
 
 type QuestRun struct {
+	Client              ClientInfo
 	Server              string
 	PlayerName          string
 	PlayerClass         string
@@ -49,6 +50,7 @@ type QuestRun struct {
 	DebandLvl           []int16
 	Invincible          []bool
 	Events              []Event
+	FastWarps           bool
 	Splits              []QuestRunSplit
 	Monsters            map[int]Monster
 	PlayerDamage        map[int]int64

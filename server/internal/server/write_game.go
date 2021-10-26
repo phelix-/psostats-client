@@ -232,10 +232,12 @@ func (s *Server) findMatchingGame(questRun model.QuestRun) *model.QuestRun {
 }
 
 func IsLeaderboardCandidate(questRun model.QuestRun) bool {
-	allowedServer := questRun.Server == "unseen"
+	clientHasWarpInfo :=  getClientVersionInt(questRun.Client) > 10400
+	fastWarpOk := clientHasWarpInfo && !questRun.FastWarps
+
 	cmodeRegex := regexp.MustCompile("[12]c\\d")
 	allowedDifficulty := questRun.Difficulty == "Ultimate" || cmodeRegex.MatchString(questRun.QuestName)
-	return allowedServer && allowedDifficulty && questRun.QuestComplete && !questRun.IllegalShifta
+	return fastWarpOk && allowedDifficulty && questRun.QuestComplete && !questRun.IllegalShifta
 }
 
 func (s *Server) QuestRecordWebhook(questRun model.QuestRun, previousRecord *model.Game) {

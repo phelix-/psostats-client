@@ -144,7 +144,9 @@ func getAllQuests() []Quest {
 		{Episode: 1, Name: "Endless: Episode 1", Start: register(50), End: register(248), ForceTerminal: true},
 
 		// ---- Halloween ----
-		{Episode: 1, Name: "Hollow Battlefield: Caves", Start: warpIn(), End: register(0)},
+		{Episode: 1, Name: "Hollow Battlefield: Forest", Start: warpIn(), End: register(0)},
+		{Episode: 1, Name: "Hollow Battlefield: Cave", Start: warpIn(), End: register(0)},
+		{Episode: 1, Name: "Hollow Battlefield: Mine", Start: warpIn(), End: register(0)},
 		{Episode: 1, Name: "Hollow Battlefield: Ruins", Start: warpIn(), End: register(0)},
 		// ---- Challenge Mode ----
 		{Episode: 1, Name: "Stage1", Remap: remap("1c1")},
@@ -243,6 +245,12 @@ func getAllQuests() []Quest {
 		{Episode: 2, Name: "Malicious Uprising #3", Start: register(205), End: floorSwitch(8, 11)},
 		{Episode: 2, Name: "Malicious Uprising #4", Start: register(205), End: floorSwitch(10, 14)},
 		{Episode: 2, Name: "Malicious Uprising #5", Start: register(205), End: register(157)},
+		{Episode: 2, Name: "Penumbral Surge #1", Start: register(50), End: register(254)},
+		{Episode: 2, Name: "Penumbral Surge #2", Start: register(15), End: register(254)},
+		{Episode: 2, Name: "Penumbral Surge #3", Start: register(90), End: register(254)},
+		{Episode: 2, Name: "Penumbral Surge #4", Start: register(51), End: register(254)},
+		{Episode: 2, Name: "Penumbral Surge #5", Start: register(15), End: register(254)},
+		{Episode: 2, Name: "Penumbral Surge #6", Start: register(15), End: register(254)},
 		{Episode: 2, Name: "Phantasmal World #1", Start: warpIn(), End: register(254)},
 		{Episode: 2, Name: "Phantasmal World #2", Start: warpIn(), End: register(111)},
 		{Episode: 2, Name: "Phantasmal World #3", Start: warpIn(), End: floorSwitch(11, 180)},
@@ -320,6 +328,7 @@ func getAllQuests() []Quest {
 		{Episode: 2, Name: "Hollow Reality: Spaceship", Start: warpIn(), End: register(0)},
 		{Episode: 2, Name: "Hollow Phantasm: Jungle", Start: warpIn(), End: register(0)},
 		{Episode: 2, Name: "Hollow Phantasm: Seabed", Start: warpIn(), End: register(0)},
+		{Episode: 2, Name: "Hollow Phantasm: Tower", Start: warpIn(), End: register(0)},
 		// ---- Challenge Mode ----
 		{Episode: 2, Name: "Stage1", Remap: remap("2c1")},
 		{Episode: 2, Name: "2c1", Start: register(111), End: register(240), CmodeStage: 1},
@@ -412,5 +421,6 @@ func getAllQuests() []Quest {
 
 		// ---- Halloween ----
 		{Episode: 4, Name: "Hollow Wasteland: Wilderness", Start: warpIn(), End: register(0)},
+		{Episode: 4, Name: "Hollow Wasteland: Desert", Start: warpIn(), End: register(0)},
 	}
 }

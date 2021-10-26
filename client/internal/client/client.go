@@ -173,6 +173,7 @@ func (c *Client) uploadGame(game pso.QuestRun) {
 		// Prevent resubmission
 		return
 	}
+	game.Client = c.clientInfo
 	c.pso.GameState.Uploading = true
 	jsonBytes, err := json.Marshal(game)
 	if err != nil {

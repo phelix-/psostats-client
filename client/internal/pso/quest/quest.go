@@ -14,8 +14,8 @@ func GetQuestDataPointer(handle w32.HANDLE, questPtr uintptr) uintptr {
 	return uintptr(numbers.ReadU32Unchecked(handle, questPtr+0x19C))
 }
 
-func GetQuestRegisterPointer(handle w32.HANDLE) uintptr {
-	return uintptr(numbers.ReadU32Unchecked(handle, uintptr(0x00A954B0)))
+func GetQuestRegisterPointer(handle w32.HANDLE, questPtr uintptr) uintptr {
+	return uintptr(numbers.ReadU32Unchecked(handle, questPtr+0x2C))
 }
 
 func IsRegisterSet(handle w32.HANDLE, registerId uint16, questRegisterAddress uintptr) bool {

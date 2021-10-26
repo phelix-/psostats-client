@@ -5,10 +5,10 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/TheTitanrain/w32"
 	"log"
 	"math"
-
-	"github.com/TheTitanrain/w32"
+	"unicode/utf16"
 )
 
 func Uint32From16(slice []uint16) uint32 {
@@ -25,7 +25,7 @@ func Float32FromU16(lsb uint16, msb uint16) float32 {
 }
 
 func ReadString(handle w32.HANDLE, address uintptr, length int) (string, error) {
-	buf, _, ok := w32.ReadProcessMemory(handle, uintptr(address), uintptr(length*2))
+	buf, _, ok := w32.ReadProcessMemory(handle, address, uintptr(length*2))
 	if !ok {
 		return "", errors.New(fmt.Sprintf("Unable to read string at 0x%08x", address))
 	}
@@ -46,20 +46,15 @@ func ReadNullTerminatedString(handle w32.HANDLE, address uintptr) (string, error
 		return "", errors.New(fmt.Sprintf("Unable to read string at 0x%08x", address))
 	}
 
-	dataFound := false
-	byteBuf := bytes.NewBuffer(make([]byte, 0, len(buf)))
-	for i := 0; i < 24; i++ {
-		b := buf[i]
-		if b > 0 {
-			dataFound = true
-		} else if dataFound {
+	endIndex := len(buf)
+	for index, b := range buf {
+		if b == 0x00 {
+			endIndex = index
 			break
 		}
-		split := make([]byte, 1)
-		split[0] = byte(b)
-		byteBuf.Write(split)
 	}
-	return byteBuf.String(), nil
+	name := string(utf16.Decode(buf[0:endIndex]))
+	return name, nil
 }
 
 func ReadI8(handle w32.HANDLE, address uintptr) int8 {

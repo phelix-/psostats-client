@@ -79,6 +79,7 @@ type Event struct {
 }
 
 type QuestRun struct {
+	Client                   model.ClientInfo
 	Server                   string
 	PlayerName               string
 	PlayerClass              string
@@ -111,6 +112,7 @@ type QuestRun struct {
 	DebandLvl                []int16
 	Invincible               []bool
 	Events                   []Event
+	FastWarps                bool
 	Splits                   []model.QuestRunSplit
 	Monsters                 map[int]Monster
 	PlayerDamage             map[uint16]int64
@@ -331,6 +333,9 @@ func (pso *PSO) consolidateFrame(monsters []Monster) {
 		}
 		if players, err := pso.getOtherPlayers(); err == nil {
 			for _, player := range players {
+				if player.Warping && pso.ephineaFastBurstEnabled() {
+					currentQuestRun.FastWarps = true
+				}
 				if !player.Warping && player.Floor == pso.CurrentPlayerData.Floor {
 					dataFrame.PlayerByGcLocation[player.GuildCard] = player.Location
 				}
@@ -408,7 +413,7 @@ func (pso *PSO) updateCurrentSplit(questConfig quest.Quest) {
 
 func (pso *PSO) addExtraQuestInfo(questConfig quest.Quest) {
 	if questConfig.Name == "Endless: Episode 1" {
-		points := quest.GetRegisterValue(pso.handle, 51, quest.GetQuestRegisterPointer(pso.handle))
+		points := quest.GetRegisterValue(pso.handle, 51, pso.GameState.questRegisterPointer)
 		if points > 0 {
 			pso.CurrentQuest.Points = points
 		}
@@ -563,6 +568,7 @@ func (pso *PSO) RefreshData() error {
 	pso.GameState.MapVariation = game.mapVariation
 	pso.GameState.Floor = game.currentFloor
 	pso.GameState.Difficulty = game.DifficultyString()
+	pso.ephineaFastBurstEnabled()
 
 	if address != 0 {
 		playerData, err := player.GetPlayerData(pso.handle, address, pso.server)
@@ -585,7 +591,7 @@ func (pso *PSO) RefreshData() error {
 		questPtr := quest.GetQuestPointer(pso.handle)
 		if questPtr != 0 {
 			if questPtr != pso.GameState.questPointer {
-				pso.GameState.questRegisterPointer = quest.GetQuestRegisterPointer(pso.handle)
+				pso.GameState.questRegisterPointer = quest.GetQuestRegisterPointer(pso.handle, questPtr)
 				pso.GameState.questPointer = questPtr
 			}
 			questStartConditionsMet := false
@@ -606,6 +612,7 @@ func (pso *PSO) RefreshData() error {
 
 			if !pso.GameState.QuestStarted {
 				if exists && !questConfig.Ignore {
+					quest.GetQuestRegisterPointer(pso.handle, questPtr)
 					questStartConditionsMet, err = pso.checkQuestStartConditions(questConfig)
 					if err != nil {
 						return err
@@ -789,10 +796,9 @@ func (pso *PSO) getQuestName(questDataPtr uintptr) (string, error) {
 func (pso *PSO) checkQuestStartConditions(questConfig quest.Quest) (bool, error) {
 	questStart := false
 	if questConfig.StartsOnRegister() {
-		registerPointer := quest.GetQuestRegisterPointer(pso.handle)
-		registerSet := quest.IsRegisterSet(pso.handle, *questConfig.Start.Register, registerPointer)
+		registerSet := quest.IsRegisterSet(pso.handle, *questConfig.Start.Register, pso.GameState.questRegisterPointer)
 		if questConfig.GetCmodeStage() > 0 {
-			cmodeFailedRegister := quest.IsRegisterSet(pso.handle, 253, registerPointer)
+			cmodeFailedRegister := quest.IsRegisterSet(pso.handle, 253, pso.GameState.questRegisterPointer)
 			questStart = registerSet && !cmodeFailedRegister
 		} else {
 			questStart = registerSet
@@ -834,6 +840,17 @@ func (pso *PSO) getRngSeed() uint32 {
 
 func (pso *PSO) getPlayerCount() uint32 {
 	return numbers.ReadU32Unchecked(pso.handle, 0x00AAE168)
+}
+
+func (pso *PSO) ephineaFastBurstEnabled() bool {
+	fastBurst := false
+	a := uintptr(numbers.ReadU32Unchecked(pso.handle, 0x5B92DA))
+	if a > 0 {
+		a += 0x5B92DF
+		slowBurstPtr := uintptr(numbers.ReadU32Unchecked(pso.handle, a))
+		fastBurst = numbers.ReadU16(pso.handle, slowBurstPtr) == 0
+	}
+	return fastBurst
 }
 
 func (pso *PSO) GetMonsterList() ([]Monster, error) {

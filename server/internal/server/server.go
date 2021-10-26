@@ -862,7 +862,7 @@ func (s *Server) PostMotd(c *fiber.Ctx) error {
 		return err
 	}
 	message := fmt.Sprintf("Logged in as %v, up to date", user)
-	if clientInfo.VersionMajor < 1 || clientInfo.VersionMinor < 3 || clientInfo.VersionPatch < 1 {
+	if getClientVersionInt(clientInfo) < 10301 {
 		message = "Update available: location bugfixes. https://psostats.com/download"
 	}
 	motd := model.MessageOfTheDay{
@@ -916,4 +916,8 @@ func GamesMatch(a, b model.QuestRun) bool {
 		}
 	}
 	return true
+}
+
+func getClientVersionInt(clientInfo model.ClientInfo) int {
+	return clientInfo.VersionMajor * 10000 + clientInfo.VersionMinor * 100 + clientInfo.VersionPatch
 }
