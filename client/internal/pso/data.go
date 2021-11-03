@@ -3,6 +3,7 @@ package pso
 import (
 	"errors"
 	"fmt"
+	"github.com/phelix-/psostats/v2/client/internal/pso/constants"
 	"log"
 	"time"
 	"unicode/utf16"
@@ -568,7 +569,6 @@ func (pso *PSO) RefreshData() error {
 	pso.GameState.MapVariation = game.mapVariation
 	pso.GameState.Floor = game.currentFloor
 	pso.GameState.Difficulty = game.DifficultyString()
-	pso.ephineaFastBurstEnabled()
 
 	if address != 0 {
 		playerData, err := player.GetPlayerData(pso.handle, address, pso.server)
@@ -844,11 +844,15 @@ func (pso *PSO) getPlayerCount() uint32 {
 
 func (pso *PSO) ephineaFastBurstEnabled() bool {
 	fastBurst := false
-	a := uintptr(numbers.ReadU32Unchecked(pso.handle, 0x5B92DA))
-	if a > 0 {
-		a += 0x5B92DF
-		slowBurstPtr := uintptr(numbers.ReadU32Unchecked(pso.handle, a))
-		fastBurst = numbers.ReadU16(pso.handle, slowBurstPtr) == 0
+	if pso.server == constants.EphineaServerName {
+		a := uintptr(numbers.ReadU32Unchecked(pso.handle, 0x5B92DA))
+		if a > 0 {
+			a += 0x5B92DF
+			slowBurstPtr := uintptr(numbers.ReadU32Unchecked(pso.handle, a))
+			if slowBurstPtr > 0 {
+				fastBurst = numbers.ReadU16(pso.handle, slowBurstPtr) == 0
+			}
+		}
 	}
 	return fastBurst
 }
