@@ -192,6 +192,17 @@ const weapons = {
         maxHit: 50,
         combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}, special: "None"
     },
+    "Zero Divide": {
+        name: "Zero Divide",
+        animation: "Dagger",
+        minAtp: 200,
+        maxAtp: 300,
+        ata: 29,
+        grind: 99,
+        maxHit: 100,
+        combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2},
+        special: "Blizzard"
+    },
     "P-Arms' Blade": {
         name: "P-Arms' Blade",
         animation: "Dagger",
@@ -219,7 +230,8 @@ const weapons = {
         ata: 39,
         grind: 15,
         maxHit: 50,
-        combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}
+        combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2},
+        special: "None"
     },
     "Two Kamui": {
         name: "Two Kamui",
@@ -229,7 +241,8 @@ const weapons = {
         ata: 50,
         grind: 0,
         maxHit: 0,
-        combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}, special: "None"
+        combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2},
+        special: "None"
     },
     "Lavis Blade": {
         name: "Lavis Blade",
@@ -238,7 +251,8 @@ const weapons = {
         maxAtp: 450,
         ata: 40,
         grind: 0,
-        combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2}, special: "Lavis"
+        combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2},
+        special: "Lavis"
     },
     "Daylight Scar": {
         name: "Daylight Scar",
@@ -440,7 +454,8 @@ const weapons = {
         ata: 35,
         grind: 25,
         maxHit: 50,
-        combo: {"attack1Hits": 1, "attack2Hits": 2, "attack3Hits": 2}
+        combo: {"attack1Hits": 1, "attack2Hits": 2, "attack3Hits": 2},
+        special: "Arrest"
     },
     "Asuka": {
         name: "Asuka",
@@ -533,7 +548,7 @@ const weapons = {
         special: "Demon's",
         maxHit: 50
     },
-    "Frozen Shooter": {name: "Frozen Shooter", animation: "Rifle", minAtp: 240, maxAtp: 250, ata: 60, grind: 9, special: "Lavis"},
+    "Frozen Shooter": {name: "Frozen Shooter", animation: "Rifle", minAtp: 240, maxAtp: 250, ata: 60, grind: 9, special: "Dark Flow"},
     "Snow Queen": {
         name: "Snow Queen",
         animation: "Rifle",
@@ -541,7 +556,7 @@ const weapons = {
         maxAtp: 350,
         ata: 60,
         grind: 18,
-        combo: {"attack2": "NONE", "attack3": "NONE"}, special: "Lavis"
+        combo: {"attack2": "NONE", "attack3": "NONE"}, special: "Dark Flow"
     },
     "Holy Ray": {name: "Holy Ray", animation: "Rifle", minAtp: 290, maxAtp: 300, ata: 70, grind: 40, special: "Arrest"},
     "ES Rifle": {
@@ -953,7 +968,7 @@ function accuracyModifierForAttackType(attackType, special) {
 }
 
 function getSpecialAccuracyModifier(special) {
-    if (special === 'Vjaya' || special === "Dark Flow" || special === "Lavis") {
+    if (special === 'Vjaya' || special === "Dark Flow") {
         return 0.7;
     } else {
         return 0.5;

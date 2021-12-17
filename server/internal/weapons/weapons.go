@@ -85,6 +85,7 @@ func GetWeapons() []Weapon {
 		{Name: "Edge", MinAtp: 105, MaxAtp: 130, Ata: 26, Grind: 25, ComboPreset: Combo{Attack1Hits: 2, Attack2Hits: 2, Attack3Hits: 2}, Animation: "Dagger", MaxHit: 100, MaxAttr: 100},
 		{Name: "Ripper", MinAtp: 125, MaxAtp: 160, Ata: 28, Grind: 15, ComboPreset: Combo{Attack1Hits: 2, Attack2Hits: 2, Attack3Hits: 2}, Animation: "Dagger", MaxHit: 100, MaxAttr: 100},
 		{Name: "S-Beat's Blade", MinAtp: 210, MaxAtp: 220, Ata: 35, Grind: 15, MaxHit: 50, ComboPreset: Combo{Attack1Hits: 2, Attack2Hits: 2, Attack3Hits: 2}, Animation: "Dagger", MaxAttr: 100},
+		{Name: "Zero Divide", MinAtp: 200, MaxAtp: 300, Ata: 29, Grind: 99, MaxHit: 100, ComboPreset: Combo{Attack1Hits: 2, Attack2Hits: 2, Attack3Hits: 2}, Animation: "Dagger", MaxAttr: 100},
 		{Name: "P-Arms' Blade", MinAtp: 250, MaxAtp: 270, Ata: 34, Grind: 25, MaxHit: 50, ComboPreset: Combo{Attack1Hits: 2, Attack2Hits: 2, Attack3Hits: 2}, Animation: "Dagger", MaxAttr: 100},
 		{Name: "Red Dagger", MinAtp: 245, MaxAtp: 280, Ata: 35, Grind: 65, ComboPreset: Combo{Attack1Hits: 2, Attack2Hits: 2, Attack3Hits: 2}, Animation: "Dagger", MaxHit: 100, MaxAttr: 100},
 		{Name: "S-Red's Blade", MinAtp: 340, MaxAtp: 350, Ata: 39, Grind: 15, MaxHit: 50, ComboPreset: Combo{Attack1Hits: 2, Attack2Hits: 2, Attack3Hits: 2}, Animation: "Dagger", MaxAttr: 100},
