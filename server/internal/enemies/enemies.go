@@ -131,6 +131,7 @@ func GetEnemiesUltMulti() []Enemy {
 		{Name: "Gi Gue", Type: "Native", Hp: 5375, Atp: 2615, Dfp: 961, Mst: 0, Ata: 350, Evp: 636, Lck: 55, Efr: 80, Eic: 60, Eth: 80, Edk: 105, Elt: 75, Esp: 100, Xp: 748, Location: "CCA", CcaMiniboss: true},
 		{Name: "Gibbles", Type: "Native", Hp: 7346, Atp: 3551, Dfp: 748, Mst: 0, Ata: 335, Evp: 636, Lck: 60, Efr: 90, Eic: 69, Eth: 88, Edk: 105, Elt: 80, Esp: 100, Xp: 756, Location: "CCA", CcaMiniboss: true},
 		{Name: "Mericarol", Type: "A.Beast", Hp: 3056, Atp: 2147, Dfp: 769, Mst: 0, Ata: 300, Evp: 552, Lck: 58, Efr: 95, Eic: 55, Eth: 80, Edk: 105, Elt: 79, Esp: 20, Xp: 717, Location: "CCA", CcaMiniboss: true},
+		{Name: "Mericarol*", Type: "A.Beast", Hp: 5585, Atp: 2640, Dfp: 870, Mst: 0, Ata: 330, Evp: 516, Lck: 55, Efr: 95, Eic: 55, Eth: 80, Edk: 105, Elt: 79, Esp: 100, Xp: 717, Location: "CCA", CcaMiniboss: true},
 		{Name: "Merikle", Type: "A.Beast", Hp: 4714, Atp: 2330, Dfp: 736, Mst: 0, Ata: 295, Evp: 958, Lck: 55, Efr: 95, Eic: 95, Eth: 95, Edk: 110, Elt: 80, Esp: 100, Xp: 741, Location: "CCA", CcaMiniboss: true},
 		{Name: "Mericus", Type: "A.Beast", Hp: 6725, Atp: 2900, Dfp: 1012, Mst: 0, Ata: 370, Evp: 580, Lck: 55, Efr: 80, Eic: 80, Eth: 95, Edk: 105, Elt: 70, Esp: 100, Xp: 780, Location: "CCA", CcaMiniboss: true},
 		{Name: "Gal Gryphon", Type: "A.Beast", Hp: 30000, Atp: 2665, Dfp: 725, Mst: 0, Ata: 360, Evp: 530, Lck: 5, Efr: 88, Eic: 70, Eth: 90, Edk: 1000, Elt: 95, Esp: 100, Xp: 32110, Location: "CCA"},
