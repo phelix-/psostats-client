@@ -22,29 +22,6 @@ type Combo struct {
 	Attack3Hits int    `json:"attack3Hits"`
 }
 
-type PsoClass struct {
-	Name string
-	Atp  int
-	Ata  int
-}
-
-func GetClasses() []PsoClass {
-	return []PsoClass{
-		{Name: "HUmar", Atp: 1397, Ata: 200},
-		{Name: "HUnewearl", Atp: 1237, Ata: 199},
-		{Name: "HUcast", Atp: 1639, Ata: 191},
-		{Name: "HUcaseal", Atp: 1301, Ata: 218},
-		{Name: "RAmar", Atp: 1260, Ata: 249},
-		{Name: "RAmarl", Atp: 1145, Ata: 241},
-		{Name: "RAcast", Atp: 1350, Ata: 224},
-		{Name: "RAcaseal", Atp: 1175, Ata: 231},
-		{Name: "FOmar", Atp: 1002, Ata: 163},
-		{Name: "FOmarl", Atp: 872, Ata: 170},
-		{Name: "FOnewm", Atp: 814, Ata: 180},
-		{Name: "FOnewearl", Atp: 583, Ata: 186},
-	}
-}
-
 func GetWeapons() []Weapon {
 	return []Weapon{
 		{Name: "Unarmed", MinAtp: 0, MaxAtp: 0, Ata: 0, Grind: 0, MaxHit: 0, MaxAttr: 0, Animation: "Fist", Special: ""},

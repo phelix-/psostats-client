@@ -833,18 +833,18 @@ const barriers = {
     "Black Ring (3)": {atp: 150, ata: 0},
 }
 const classStats = {
-    HUmar: {animation: "male", atp: 1397, ata: 200},
-    HUnewearl: {animation: "female", atp: 1237, ata: 199},
-    HUcast: {animation: "male", atp: 1639, ata: 191},
-    HUcaseal: {animation: "female", atp: 1301, ata: 218},
-    RAmar: {animation: "male", atp: 1260, ata: 249},
-    RAmarl: {animation: "female", atp: 1145, ata: 241},
-    RAcast: {animation: "male", atp: 1350, ata: 224},
-    RAcaseal: {animation: "female", atp: 1175, ata: 231},
-    FOmar: {animation: "male", atp: 1002, ata: 163},
-    FOmarl: {animation: "female", atp: 872, ata: 170},
-    FOnewm: {animation: "male", atp: 814, ata: 180},
-    FOnewearl: {animation: "female", atp: 583, ata: 186}
+    HUmar: {animation: "male",              maxAtp: 1397,   minAtp: 1392, ata: 200},
+    HUnewearl: {animation: "female",        maxAtp: 1237,   minAtp: 1232, ata: 199},
+    HUcast: {animation: "male",             maxAtp: 1639,   minAtp: 1634, ata: 191},
+    HUcaseal: {animation: "female",         maxAtp: 1301,   minAtp: 1296, ata: 218},
+    RAmar: {animation: "male",              maxAtp: 1260,   minAtp: 1256, ata: 249},
+    RAmarl: {animation: "female",           maxAtp: 1145,   minAtp: 1141, ata: 241},
+    RAcast: {animation: "male",             maxAtp: 1350,   minAtp: 1346, ata: 224},
+    RAcaseal: {animation: "female",         maxAtp: 1175,   minAtp: 1171, ata: 231},
+    FOmar: {animation: "male",              maxAtp: 1002,   minAtp: 1000, ata: 163},
+    FOmarl: {animation: "female",           maxAtp: 872,    minAtp: 870, ata: 170},
+    FOnewm: {animation: "male",             maxAtp: 814,    minAtp: 812, ata: 180},
+    FOnewearl: {animation: "female",        maxAtp: 583,    minAtp: 581, ata: 186}
 };
 const frames = {
     NONE: {atp: 0, ata: 0},
@@ -1245,11 +1245,11 @@ function calculateBaseDamage(atpInput, enemy) {
     if (atpInput.zalure > 0) {
         zalureModifier = ((1.3 * (atpInput.zalure - 1)) + 10) * 0.01;
     }
-    let minShiftaAtp = shiftaModifier * atpInput.baseAtp;
-    let maxShiftaAtp = (shiftaModifier * atpInput.baseAtp) + ((atpInput.maxAtp - atpInput.minAtp) * shiftaModifier);
+    let minShiftaAtp = shiftaModifier * atpInput.classMinAtp;
+    let maxShiftaAtp = (shiftaModifier * atpInput.classMaxAtp) + (((atpInput.maxAtp - atpInput.minAtp) + (atpInput.classMaxAtp - atpInput.classMinAtp)) * shiftaModifier);
 
-    let effectiveMinAtp = atpInput.baseAtp + minWeaponAtp + minShiftaAtp;
-    let effectiveMaxAtp = atpInput.baseAtp + maxWeaponAtp + maxShiftaAtp;
+    let effectiveMinAtp = atpInput.classMinAtp + minWeaponAtp + minShiftaAtp;
+    let effectiveMaxAtp = atpInput.classMaxAtp + maxWeaponAtp + maxShiftaAtp;
 
     let effectiveDfp = enemy.dfp * (1.0 - zalureModifier);
 
@@ -1312,7 +1312,8 @@ function updateDamageTable() {
 
     let atpInput = {
         playerClass: $('#class-select').val(),
-        baseAtp: Number($('#atpInput').val()),
+        classMinAtp: Number($('#classMinAtpInput').val()),
+        classMaxAtp: Number($('#classMaxAtpInput').val()),
         minAtp: Number($('#minAtpInput').val()),
         maxAtp: Number($('#maxAtpInput').val()),
         areaPercent: Number($('#sphereInput').val()),

@@ -54,16 +54,16 @@ func Test_sendWebhook(t *testing.T) {
 	duration := (1 * time.Minute) + (25 * time.Second) + (31 * time.Millisecond)
 	questRun := model.QuestRun{QuestName: "Maximum Attack E: CCA", QuestDuration: duration.String(), Id: "1", AllPlayers: []model.BasePlayerInfo{
 		{
-			Name: "phelix",
+			Name:  "phelix",
 			Class: "HUmar",
-		},{
-			Name: "shoebert",
+		}, {
+			Name:  "shoebert",
 			Class: "FOnewearl",
-		},{
-			Name: "Clio",
+		}, {
+			Name:  "Clio",
 			Class: "RAmarl",
-		},{
-			Name: "Krang",
+		}, {
+			Name:  "Krang",
 			Class: "HUcast",
 		},
 	}}

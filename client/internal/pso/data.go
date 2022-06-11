@@ -322,8 +322,18 @@ func (pso *PSO) consolidateFrame(monsters []Monster) {
 		}
 		dataFrame := model.DataFrame{
 			Time:               time.Now().Unix(),
+			HP:                 pso.CurrentPlayerData.HP,
+			TP:                 pso.CurrentPlayerData.TP,
+			PB:                 pso.CurrentPlayerData.PB,
+			MesetaCharged:      mesetaCharged,
+			ShiftaLvl:          pso.CurrentPlayerData.ShiftaLvl,
+			DebandLvl:          pso.CurrentPlayerData.DebandLvl,
+			Invincible:         pso.CurrentPlayerData.InvincibilityFrames > 0,
 			Map:                pso.GameState.Map,
 			MapVariation:       pso.GameState.MapVariation,
+			FT:                 pso.CurrentPlayerData.FreezeTraps,
+			DT:                 pso.CurrentPlayerData.DamageTraps,
+			CT:                 pso.CurrentPlayerData.ConfuseTraps,
 			PlayerByGcLocation: make(map[string]model.Location),
 			MonsterLocation:    make(map[int]model.Location),
 		}
@@ -336,9 +346,6 @@ func (pso *PSO) consolidateFrame(monsters []Monster) {
 			for _, player := range players {
 				if player.Warping && pso.ephineaFastBurstEnabled() {
 					currentQuestRun.FastWarps = true
-				}
-				if !player.Warping && player.Floor == pso.CurrentPlayerData.Floor {
-					dataFrame.PlayerByGcLocation[player.GuildCard] = player.Location
 				}
 			}
 		}
@@ -361,6 +368,14 @@ func (pso *PSO) consolidateFrame(monsters []Monster) {
 		currentQuestRun.TimeStanding++
 	}
 	currentQuestRun.previousState = currentState
+
+	if players, err := pso.getOtherPlayers(); err == nil {
+		for _, player := range players {
+			if player.Warping && pso.ephineaFastBurstEnabled() {
+				currentQuestRun.FastWarps = true
+			}
+		}
+	}
 
 	if currentQuestRun.lastFloor != pso.GameState.Floor {
 		currentQuestRun.Events = append(currentQuestRun.Events, Event{
@@ -815,7 +830,7 @@ func (pso *PSO) checkQuestStartConditions(questConfig quest.Quest) (bool, error)
 			log.Panicf("unable to get all players %v", err)
 		}
 		for _, p := range allPlayers {
-			if p.Floor != 0 && !p.Warping {
+			if p.Location.Floor != 0 && !p.Location.Warping {
 				questStart = true
 				break
 			}
