@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/phelix-/psostats/v2/pkg/common"
+	"github.com/phelix-/psostats/v2/pkg/psoclasses"
 	"github.com/phelix-/psostats/v2/server/internal/db"
 	"github.com/phelix-/psostats/v2/server/internal/enemies"
 	"github.com/phelix-/psostats/v2/server/internal/userdb"
@@ -175,12 +176,12 @@ func (s *Server) comboCalcPage(opm bool, c *fiber.Ctx) error {
 	}
 	infoModel := struct {
 		Opm     bool
-		Classes []weapons.PsoClass
+		Classes []psoclasses.PsoClass
 		Enemies map[string][]enemies.Enemy
 		Weapons []weapons.Weapon
 	}{
 		Opm:     opm,
-		Classes: weapons.GetClasses(),
+		Classes: psoclasses.GetAll(),
 		Enemies: sortedEnemies,
 		Weapons: weapons.GetWeapons(),
 	}
@@ -227,7 +228,7 @@ func (s *Server) PlayerV2Page(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	for _, class := range common.GetAllClasses() {
+	for _, class := range psoclasses.GetAll() {
 		if _, exists := classUsage[class.Name]; !exists {
 			classUsage[class.Name] = 0
 		}
@@ -538,7 +539,7 @@ func formatMap(game *model.QuestRun, data []model.DataFrame) []MapData {
 			if playerData.Coordinates == nil {
 				playerData.Coordinates = make([][]float32, 0)
 				playerData.Time = make([]int64, 0)
-				playerData.Title = fmt.Sprintf("Player %d: %v", playerIndexByGc[gc] + 1, playerByGc[gc].Name)
+				playerData.Title = fmt.Sprintf("Player %d: %v", playerIndexByGc[gc]+1, playerByGc[gc].Name)
 			}
 			playerData.Coordinates = append(playerData.Coordinates, []float32{location.X / 4, -location.Z / 4})
 			playerData.Time = append(playerData.Time, frame.Time*1000)
@@ -862,7 +863,7 @@ func (s *Server) PostMotd(c *fiber.Ctx) error {
 		return err
 	}
 	message := fmt.Sprintf("Logged in as %v, up to date", user)
-	if getClientVersionInt(clientInfo) < 10301 {
+	if getClientVersionInt(clientInfo) < 10500 {
 		message = "Update available: location bugfixes. https://psostats.com/download"
 	}
 	motd := model.MessageOfTheDay{
@@ -919,5 +920,5 @@ func GamesMatch(a, b model.QuestRun) bool {
 }
 
 func getClientVersionInt(clientInfo model.ClientInfo) int {
-	return clientInfo.VersionMajor * 10000 + clientInfo.VersionMinor * 100 + clientInfo.VersionPatch
+	return clientInfo.VersionMajor*10000 + clientInfo.VersionMinor*100 + clientInfo.VersionPatch
 }

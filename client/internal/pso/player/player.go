@@ -3,7 +3,7 @@ package player
 import (
 	"errors"
 	"github.com/phelix-/psostats/v2/pkg/model"
-	"log"
+	"github.com/phelix-/psostats/v2/pkg/psoclasses"
 	"math"
 	"strings"
 	"unicode/utf16"
@@ -37,6 +37,7 @@ type BasePlayerInfo struct {
 	FreezeTraps         uint16
 	ConfuseTraps        uint16
 	Class               string
+	actualClass         psoclasses.PsoClass
 	Meseta              uint32
 	Warping             bool
 	AccountMode         constants.EphineaAccountMode
@@ -98,8 +99,11 @@ func ParsePlayerMemory(buf []uint16, base uintptr) BasePlayerInfo {
 	stateBitfield := buf[(0x33E-base)/2]
 	playerWarping := stateBitfield&0x04 > 0
 
+	floor := buf[(0x3F0-base)/2]
+	room := buf[(0x028-base)/2]
+	playerClass := getClass(class)
 	return BasePlayerInfo{
-		Room:                buf[(0x028-base)/2],
+		Room:                room,
 		ShiftaLvl:           getSDLvlFromMultiplier(shiftaMultiplier),
 		DebandLvl:           getSDLvlFromMultiplier(debandMultiplier),
 		Level:               buf[(0xE44-base)/2] + 1,
@@ -107,21 +111,25 @@ func ParsePlayerMemory(buf []uint16, base uintptr) BasePlayerInfo {
 		MaxTP:               buf[(0x2BE-base)/2],
 		HP:                  buf[(0x334-base)/2],
 		TP:                  buf[(0x336-base)/2],
-		Floor:               buf[(0x3F0-base)/2],
+		Floor:               floor,
 		Warping:             playerWarping,
 		PB:                  numbers.Float32FromU16(buf[(0x520-base)/2], buf[(0x522-base)/2]),
 		InvincibilityFrames: numbers.Uint32FromU16(buf[(0x720-base)/2], buf[(0x722-base)/2]),
 		DamageTraps:         buf[(0x89D-base)/2] & 0x00FF,
 		FreezeTraps:         (buf[(0x89D-base)/2] & 0xFF00) >> 8,
 		ConfuseTraps:        (buf[(0x89F-base)/2] & 0xFF00) >> 8,
-		Class:               getClass(class),
+		Class:               playerClass.Name,
+		actualClass:         playerClass,
 		Meseta:              numbers.Uint32FromU16(buf[(0xE4C-base)/2], buf[(0xE4E-base)/2]),
 		ActionState:         buf[(0x348-base)/2],
 		currentTech:         buf[(0x464-base)/2],
 		Location: model.Location{
-			X: numbers.Float32FromU16(buf[(0x38-base)/2], buf[(0x3A-base)/2]),
-			Y: numbers.Float32FromU16(buf[(0x3C-base)/2], buf[(0x3E-base)/2]),
-			Z: numbers.Float32FromU16(buf[(0x40-base)/2], buf[(0x42-base)/2]),
+			Floor:   floor,
+			Room:    room,
+			Warping: playerWarping,
+			X:       numbers.Float32FromU16(buf[(0x38-base)/2], buf[(0x3A-base)/2]),
+			Y:       numbers.Float32FromU16(buf[(0x3C-base)/2], buf[(0x3E-base)/2]),
+			Z:       numbers.Float32FromU16(buf[(0x40-base)/2], buf[(0x42-base)/2]),
 		},
 	}
 }
@@ -220,44 +228,44 @@ func getEphineaAccountMode(handle w32.HANDLE, playerAddress uintptr) (constants.
 	return mode, nil
 }
 
-func getClass(classBits uint16) string {
-	class := "Unknown class"
+func getClass(classBits uint16) psoclasses.PsoClass {
+	class := psoclasses.HUmar
 	switch classBits {
 	case 0x00:
-		class = "HUmar"
+		class = psoclasses.HUmar
 		break
 	case 0x01:
-		class = "HUnewearl"
+		class = psoclasses.HUnewearl
 		break
 	case 0x02:
-		class = "HUcast"
+		class = psoclasses.HUcast
 		break
 	case 0x09:
-		class = "HUcaseal"
+		class = psoclasses.HUcaseal
 		break
 	case 0x03:
-		class = "RAmar"
+		class = psoclasses.RAmar
 		break
 	case 0x0B:
-		class = "RAmarl"
+		class = psoclasses.RAmarl
 		break
 	case 0x04:
-		class = "RAcast"
+		class = psoclasses.RAcast
 		break
 	case 0x05:
-		class = "RAcaseal"
+		class = psoclasses.RAcaseal
 		break
 	case 0x0A:
-		class = "FOmar"
+		class = psoclasses.FOmar
 		break
 	case 0x06:
-		class = "FOmarl"
+		class = psoclasses.FOmarl
 		break
 	case 0x07:
-		class = "FOnewm"
+		class = psoclasses.FOnewm
 		break
 	case 0x08:
-		class = "FOnewearl"
+		class = psoclasses.FOnewearl
 		break
 	}
 	return class
@@ -280,33 +288,5 @@ func (p *BasePlayerInfo) IsLowered() bool {
 }
 
 func (p *BasePlayerInfo) MaxSupplyableShifta() int16 {
-	switch p.Class {
-	case "FOmar":
-		fallthrough
-	case "FOmarl":
-		fallthrough
-	case "FOnewm":
-		fallthrough
-	case "FOnewearl":
-		return 30
-	case "HUnewearl":
-		fallthrough
-	case "RAmarl":
-		return 20
-	case "RAmar":
-		return 15
-	case "HUmar":
-		fallthrough
-	case "HUcast":
-		fallthrough
-	case "HUcaseal":
-		return 3
-	case "RAcast":
-		fallthrough
-	case "RAcaseal":
-		return 0
-	default:
-		log.Printf("Unrecongnized class '%v'", p.Class)
-		return 0
-	}
+	return int16(p.actualClass.MaxShifta)
 }

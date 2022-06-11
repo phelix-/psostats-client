@@ -232,7 +232,7 @@ func (s *Server) findMatchingGame(questRun model.QuestRun) *model.QuestRun {
 }
 
 func IsLeaderboardCandidate(questRun model.QuestRun) bool {
-	clientHasWarpInfo :=  getClientVersionInt(questRun.Client) > 10400
+	clientHasWarpInfo :=  getClientVersionInt(questRun.Client) >= 10401
 	fastWarpOk := clientHasWarpInfo && !questRun.FastWarps
 
 	cmodeRegex := regexp.MustCompile("[12]c\\d")

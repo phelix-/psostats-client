@@ -174,7 +174,8 @@
                     <div class="input-group-prepend">
                         <div class="input-group-text">ATP</div>
                     </div>
-                    <input type="text" class="form-control" id="atpInput" value="1639" >
+                    <input type="text" class="form-control" id="classMinAtpInput" value="1634" >
+                    <input type="text" class="form-control" id="classMaxAtpInput" value="1639" >
                 </div>
             </div>
             <div class="col-6 col-md-3 mb-1">
@@ -399,9 +400,6 @@
         });
         let selectedWeapon = weapons["Unarmed"];
         let selectedEnemies = [];
-        const classes = {
-        {{ range .Classes }}{{ .Name }}:{atp:{{ .Atp}},ata:{{.Ata}}},{{ end }}
-        }
         const enemies = {
         {{ range $location, $enemy := .Enemies }}{{ range $enemy }}"{{.Name}}": {name: "{{.Name}}", type: "{{.Type}}", hp: {{.Hp}}, atp: {{.Atp}}, dfp: {{.Dfp}}, evp: {{.Evp}}, location: "{{.Location}}", ccaMiniboss: {{.CcaMiniboss}},},{{ end }}{{ end }}
         }
@@ -449,7 +447,8 @@
         $('#sphereInput').change(updateDamageTable);
         $('#minAtpInput').change(updateDamageTable);
         $('#maxAtpInput').change(updateDamageTable);
-        $('#atpInput').change(updateDamageTable)
+        $('#classMinAtpInput').change(updateDamageTable)
+        $('#classMaxAtpInput').change(updateDamageTable)
         $('#ataInput').change(updateDamageTable)
         $('#hits1').change(updateDamageTable)
         $('#hits2').change(updateDamageTable)
@@ -470,11 +469,12 @@
 
         function updateAtpInput() {
             const selectedClass = $('#class-select').val()
-            $('#atpInput').val(classes[selectedClass].atp)
-            $('#ataInput').val(classes[selectedClass].ata)
+            $('#classMinAtpInput').val(classStats[selectedClass].minAtp)
+            $('#classMaxAtpInput').val(classStats[selectedClass].maxAtp)
+            $('#ataInput').val(classStats[selectedClass].ata)
         }
         function updateAtaInput() {
-            const selectedClass = classes[$('#class-select').val()];
+            const selectedClass = classStats[$('#class-select').val()];
             const selectedFrame = $('#frame-select').val();
             const selectedBarrier = $('#barrier-select').val();
             const selectedUnit = $('#unit-select').val()
