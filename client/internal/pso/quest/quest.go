@@ -58,6 +58,7 @@ type Trigger struct {
 type Quest struct {
 	Episode       int
 	Name          string
+	Number        uint16
 	Ignore        bool
 	ForceTerminal bool
 	Remap         *string
@@ -73,11 +74,13 @@ type Split struct {
 }
 
 type Quests struct {
+	questsById   map[uint16]Quest
 	allQuests    map[int]map[string]Quest
 	warnedQuests map[string]bool
 }
 
 func NewQuests() Quests {
+	questsById := make(map[uint16]Quest)
 	allQuests := make(map[int]map[string]Quest)
 	unsortedQuests := getAllQuests()
 
@@ -88,12 +91,19 @@ func NewQuests() Quests {
 		}
 		questsForEpisode[quest.Name] = quest
 		allQuests[quest.Episode] = questsForEpisode
+		questsById[quest.Number] = quest
 	}
 
 	return Quests{
+		questsById:   questsById,
 		allQuests:    allQuests,
 		warnedQuests: make(map[string]bool),
 	}
+}
+
+func (q *Quests) GetQuestByNumber(questNumber uint16) (Quest, bool) {
+	quest, exists := q.questsById[questNumber]
+	return quest, exists
 }
 
 func (q *Quests) GetQuestConfig(episode int, questName string) (Quest, bool) {
