@@ -58,6 +58,7 @@ type Trigger struct {
 type Quest struct {
 	Episode       int
 	Name          string
+	Number        uint16
 	Ignore        bool
 	ForceTerminal bool
 	Remap         *string
@@ -73,11 +74,13 @@ type Split struct {
 }
 
 type Quests struct {
+	questsById   map[uint16]Quest
 	allQuests    map[int]map[string]Quest
 	warnedQuests map[string]bool
 }
 
 func NewQuests() Quests {
+	questsById := make(map[uint16]Quest)
 	allQuests := make(map[int]map[string]Quest)
 	unsortedQuests := getAllQuests()
 
@@ -88,29 +91,34 @@ func NewQuests() Quests {
 		}
 		questsForEpisode[quest.Name] = quest
 		allQuests[quest.Episode] = questsForEpisode
+		questsById[quest.Number] = quest
 	}
 
 	return Quests{
+		questsById:   questsById,
 		allQuests:    allQuests,
 		warnedQuests: make(map[string]bool),
 	}
 }
 
-func (q *Quests) GetQuestConfig(episode int, questName string) (Quest, bool) {
-	questsForEpisode, exists := q.allQuests[episode]
-	if !exists {
-		log.Printf("Episode %v not found?", episode)
-		return Quest{}, false
+func (q *Quests) GetQuestConfig(questNumber uint16, episode int, questName string) (Quest, bool) {
+	quest, questFound := q.questsById[questNumber]
+	if !questFound {
+		questsForEpisode, exists := q.allQuests[episode]
+		if !exists {
+			log.Printf("Episode %v not found?", episode)
+			return Quest{}, false
+		}
+		quest, questFound = questsForEpisode[questName]
 	}
-	quest, questFound := questsForEpisode[questName]
 	if !questFound {
 		if warned := q.warnedQuests[questName]; !warned {
 			q.warnedQuests[questName] = true
-			log.Printf("Episode %v Quest '%v' not configured", episode, questName)
+			log.Printf("Episode %v Quest '%v' number %d not configured", episode, questName, questNumber)
 		}
 	}
 	if questFound && quest.Remap != nil {
-		return q.GetQuestConfig(episode, *quest.Remap)
+		return q.GetQuestConfig(0, episode, *quest.Remap)
 	}
 	return quest, questFound
 }

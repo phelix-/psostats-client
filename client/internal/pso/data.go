@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/phelix-/psostats/v2/client/internal/pso/constants"
 	"log"
+	"strings"
 	"time"
 	"unicode/utf16"
 
@@ -616,7 +617,8 @@ func (pso *PSO) RefreshData() error {
 			if err != nil {
 				return err
 			}
-			questConfig, exists := pso.questTypes.GetQuestConfig(int(pso.GameState.Episode), questName)
+			questNumber := pso.getQuestNumber(questDataPtr)
+			questConfig, exists := pso.questTypes.GetQuestConfig(questNumber, int(pso.GameState.Episode), questName)
 			if exists {
 				questName = questConfig.Name
 			} else {
@@ -792,6 +794,10 @@ func (pso *PSO) getFloorSwitch(switchId uint16, floor uint16) (bool, error) {
 }
 
 // -------------- Quest Data Block -------------- //
+func (pso *PSO) getQuestNumber(questDataPtr uintptr) uint16 {
+	return numbers.ReadU16(pso.handle, questDataPtr+0x10)
+}
+
 func (pso *PSO) getQuestName(questDataPtr uintptr) (string, error) {
 	buf, _, ok := w32.ReadProcessMemory(pso.handle, questDataPtr+0x18, 64)
 	if !ok {
@@ -805,6 +811,7 @@ func (pso *PSO) getQuestName(questDataPtr uintptr) (string, error) {
 		}
 	}
 	questName := string(utf16.Decode(buf[0:endIndex]))
+	questName = strings.TrimSpace(questName)
 	return questName, nil
 }
 
