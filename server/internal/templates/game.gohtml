@@ -59,6 +59,19 @@
             border-radius: 8px;
             background-color: rgba(255, 162, 79, 0.8)
         }
+        .techs-cast-item {
+            margin: -8px 0;
+            padding-left: 8px;
+            border-right: 1px solid #333;
+            display: inline-block;
+            width: 32%;
+        }
+        .techs-cast-item:first-of-type {
+            padding-left: 0;
+        }
+        .techs-cast-item:last-of-type {
+            border-right: none;
+        }
     </style>
     <body>
     <div class="container">
@@ -101,6 +114,17 @@
 
                     {{ end }}
                 </ul>
+                {{if gt (len $game.TechsCast) 0}}
+                <ul class="list-group list-group-flush" style="margin-bottom: 4px">
+                    {{ range $group := .TechsInOrder }}
+                        <li class="list-group-item">
+                            {{ range $tech := $group }}
+                                <span class="techs-cast-item"><img alt="{{ $tech }}" src="/static/{{ $tech }}_icon.png"/><span style="margin-left: 8px">{{if index $game.TechsCast $tech  }} {{ index $game.TechsCast $tech }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                            {{ end }}
+                        </li>
+                    {{ end }}
+                </ul>
+                {{ end }}
             </div>
             <div class="col-12 col-lg-6">
                 <div class="psostats-chart">

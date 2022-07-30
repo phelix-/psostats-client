@@ -64,6 +64,19 @@ func New(dynamo *dynamodb.DynamoDB) *Server {
 		recentGamesCount: 0,
 		recentGamesSize:  cacheSize,
 		webhookUrl:       webhookUrl,
+		anniversaryQuests: map[string]struct{}{
+			"Maximum Attack E: Forest": {},
+			"Maximum Attack E: Caves":  {},
+			"Maximum Attack E: Mines":  {},
+			"Maximum Attack E: Ruins":  {},
+			"Maximum Attack E: Temple": {},
+			"Maximum Attack E: Space":  {},
+			"Maximum Attack E: CCA":    {},
+			"Maximum Attack E: Seabed": {},
+			"Maximum Attack E: Tower":  {},
+			"Maximum Attack E: Crater": {},
+			"Maximum Attack E: Desert": {},
+		},
 	}
 }
 
@@ -434,6 +447,7 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 			FormattedTimeCasting string
 			MapData              []MapData
 			PlayerIndex          int
+			TechsInOrder         [][]string
 		}{
 			Game: *game,
 			HasPov: map[int]bool{
@@ -467,6 +481,14 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 			FormattedTimeCasting: formatDuration(time.Duration(timeCasting) * (time.Second / 30)),
 			MapData:              formatMap(game, game.DataFrames),
 			PlayerIndex:          playerIndex,
+			TechsInOrder: [][]string{
+				{"Foie", "Zonde", "Barta"},
+				{"Gifoie", "Gizonde", "Gibarta"},
+				{"Rafoie", "Razonde", "Rabarta"},
+				{"Grants", "Megid"},
+				{"Resta", "Anti", "Reverser"},
+				{"Shifta", "Deband", "Ryuker"},
+				{"Jellen", "Zalure"}},
 		}
 		s.gameTemplate = ensureParsed("./server/internal/templates/game.gohtml")
 		err = s.gameTemplate.ExecuteTemplate(c.Response().BodyWriter(), "game", model)
