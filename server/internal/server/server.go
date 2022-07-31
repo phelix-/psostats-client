@@ -39,6 +39,7 @@ type Server struct {
 	infoTemplate         *template.Template
 	downloadTemplate     *template.Template
 	gameTemplate         *template.Template
+	gameV3Template       *template.Template
 	playerTemplate       *template.Template
 	gameNotFoundTemplate *template.Template
 	recordsTemplate      *template.Template
@@ -83,6 +84,7 @@ func (s *Server) Run() {
 	// UI
 	s.app.Get("/", s.Index)
 	s.app.Get("/game/:gameId/:gem?", s.GamePage)
+	s.app.Get("/gamev3/:gameId/:gem?", s.GamePageV3)
 	s.app.Get("/info", s.InfoPage)
 	s.app.Get("/download", s.DownloadPage)
 	s.app.Get("/records", s.RecordsV2Page)
@@ -100,6 +102,7 @@ func (s *Server) Run() {
 	s.infoTemplate = ensureParsed("./server/internal/templates/info.gohtml")
 	s.playerTemplate = ensureParsed("./server/internal/templates/playerV2.gohtml")
 	s.gameTemplate = ensureParsed("./server/internal/templates/game.gohtml")
+	s.gameV3Template = ensureParsed("./server/internal/templates/gamev3.gohtml")
 	s.downloadTemplate = ensureParsed("./server/internal/templates/download.gohtml")
 	s.gameNotFoundTemplate = ensureParsed("./server/internal/templates/gameNotFound.gohtml")
 	s.recordsTemplate = ensureParsed("./server/internal/templates/recordsV2.gohtml")
@@ -468,7 +471,6 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 				{"Jellen", "Zalure"}},
 			MostActions: totalActions,
 		}
-		s.gameTemplate = ensureParsed("./server/internal/templates/game.gohtml")
 		err = s.gameTemplate.ExecuteTemplate(c.Response().BodyWriter(), "game", model)
 	}
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")

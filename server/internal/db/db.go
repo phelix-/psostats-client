@@ -163,7 +163,7 @@ func writeDataFrames(questRun *model.QuestRun, db *dynamodb.DynamoDB) error {
 	return err
 }
 
-func getDataFrames(gameId string, gem int, db *dynamodb.DynamoDB) ([]model.DataFrame, error) {
+func GetDataFrames(gameId string, gem int, db *dynamodb.DynamoDB) ([]model.DataFrame, error) {
 	questDataFrameItem := QuestDataFrameItem{}
 	questAndCategory := fmt.Sprintf("%s_%d", gameId, gem)
 	primaryKey := dynamodb.AttributeValue{
@@ -918,7 +918,7 @@ func GetGame(gameId string, gem int, dynamoClient *dynamodb.DynamoDB) (*model.Qu
 
 	if len(questRun.DataFrames) == 0 {
 		playerIndex, _ := getPlayerIndex(questRun)
-		dataFrames, err := getDataFrames(questRun.Id, playerIndex, dynamoClient)
+		dataFrames, err := GetDataFrames(questRun.Id, playerIndex, dynamoClient)
 		if err != nil {
 			return nil, err
 		}
