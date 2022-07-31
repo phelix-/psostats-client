@@ -24,7 +24,7 @@ func main() {
 	defer file.Close()
 	version := model.ClientInfo{
 		VersionMajor: 1,
-		VersionMinor: 5,
+		VersionMinor: 7,
 		VersionPatch: 0,
 	}
 

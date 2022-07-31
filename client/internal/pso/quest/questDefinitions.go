@@ -98,7 +98,7 @@ func getAllQuests() []Quest {
 			{Name: "Room 3", Trigger: floorSwitch(2, 3)},
 			{Name: "Room 4", Trigger: register(50)},
 		}},
-		{Episode: 1, Name: "Maximum Attack E: Forest -MM-", Start: floorSwitch(2, 0), End: register(50),
+		{Episode: 1, Name: "Maximum Attack E: Forest -MM-", Number: 960, Start: floorSwitch(2, 0), End: register(50),
 			Splits: []Split{
 				{Name: "Room 1", Trigger: floorSwitch(2, 99)},
 				{Name: "Room 2", Trigger: floorSwitch(2, 3)},
@@ -115,7 +115,7 @@ func getAllQuests() []Quest {
 			{Name: "Room 6", Trigger: floorSwitch(4, 6)},
 			{Name: "Room 7", Trigger: register(50)},
 		}},
-		{Episode: 1, Name: "Maximum Attack E: Caves -MM-", Start: floorSwitch(4, 0), End: register(50),
+		{Episode: 1, Name: "Maximum Attack E: Caves -MM-", Number: 961, Start: floorSwitch(4, 0), End: register(50),
 			Splits: []Split{
 				{Name: "Room 1", Trigger: floorSwitch(4, 1)},
 				{Name: "Room 2", Trigger: floorSwitch(4, 2)},
@@ -132,7 +132,7 @@ func getAllQuests() []Quest {
 			{Name: "Room 3", Trigger: floorSwitch(6, 3)},
 			{Name: "Room 4", Trigger: register(50)},
 		}},
-		{Episode: 1, Name: "Maximum Attack E: Mines -MM-", Start: floorSwitch(6, 0), End: register(50),
+		{Episode: 1, Name: "Maximum Attack E: Mines -MM-", Number: 962, Start: floorSwitch(6, 0), End: register(50),
 			Splits: []Split{
 				{Name: "Room 1", Trigger: floorSwitch(6, 3)},
 				{Name: "Room 2", Trigger: floorSwitch(6, 4)},
@@ -145,7 +145,7 @@ func getAllQuests() []Quest {
 			{Name: "Room 3", Trigger: floorSwitch(10, 3)},
 			{Name: "Room 4", Trigger: register(50)},
 		}},
-		{Episode: 1, Name: "Maximum Attack E: Ruins -MM-", Start: floorSwitch(10, 0), End: register(50),
+		{Episode: 1, Name: "Maximum Attack E: Ruins -MM-", Number: 963, Start: floorSwitch(10, 0), End: register(50),
 			Splits: []Split{
 				{Name: "Room 1", Trigger: floorSwitch(10, 1)},
 				{Name: "Room 2", Trigger: floorSwitch(10, 2)},
@@ -160,7 +160,7 @@ func getAllQuests() []Quest {
 		{Episode: 1, Name: "Maximum Attack 4th Stage -1B-", Remap: remap("Maximum Attack 4 -1B-")},
 		{Episode: 1, Name: "Maximum Attack 4 -1C-", Number: 146, Start: floorSwitch(4, 99), End: register(254)},
 		{Episode: 1, Name: "Maximum Attack 4th Stage -1C-", Remap: remap("Maximum Attack 4 -1C-")},
-		{Episode: 1, Name: "C1AM", Start: floorSwitch(10, 99), End: register(50),
+		{Episode: 1, Name: "C1AM", Number: 147, Start: floorSwitch(10, 99), End: register(50),
 			Splits: []Split{
 				{Name: "Room 1", Trigger: floorSwitch(10, 4)},
 				{Name: "Room 2", Trigger: floorSwitch(10, 5)},
@@ -355,7 +355,7 @@ func getAllQuests() []Quest {
 		{Episode: 2, Name: "Maximum Attack 4th Stage -2B-", Remap: remap("Maximum Attack 4 -2B-")},
 		{Episode: 2, Name: "Maximum Attack 4 -2B-", Number: 242, Start: floorSwitch(5, 99), End: floorSwitch(11, 29)},
 		{Episode: 2, Name: "Maximum Attack 4th Stage -2C-", Remap: remap("Maximum Attack 4 -2C-")},
-		{Episode: 2, Name: "Maximum Attack 4 -2C-", Number: 243, Start: floorSwitch(5, 99), End: floorSwitch(11, 29)},
+		{Episode: 2, Name: "Maximum Attack 4 -2C-", Number: 243, Start: floorSwitch(5, 99), End: register(254)},
 		// Maximum Attack 4th Stage -2R-
 		{Episode: 2, Name: "Maximum Attack E: VR", Number: 943, Start: floorSwitch(1, 0), End: register(254)},
 		{Episode: 2, Name: "Maximum Attack E: GDV", Number: 944, Start: floorSwitch(5, 0), End: register(254)},

@@ -211,4 +211,6 @@ type Equipment struct {
 	Type            string
 	Display         string
 	SecondsEquipped int
+	Attacks         int
+	Techs           int
 }

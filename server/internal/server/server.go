@@ -1,8 +1,6 @@
 package server
 
 import (
-	"bytes"
-	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"github.com/phelix-/psostats/v2/pkg/common"
@@ -11,7 +9,6 @@ import (
 	"github.com/phelix-/psostats/v2/server/internal/enemies"
 	"github.com/phelix-/psostats/v2/server/internal/userdb"
 	"github.com/phelix-/psostats/v2/server/internal/weapons"
-	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -335,51 +332,24 @@ func (s *Server) DownloadPage(c *fiber.Ctx) error {
 	return err
 }
 
-func getGameGzip(game *model.Game, gem string) ([]byte, string) {
-	var gameGzip []byte
-	var videoUrl string
-	if game != nil {
-		if len(gem) > 0 {
-			if gemNum, err := strconv.Atoi(gem); err == nil {
-				switch gemNum + 1 {
-				case 1:
-					gameGzip = game.P1Gzip
-					videoUrl = game.P1Video
-				case 2:
-					gameGzip = game.P2Gzip
-					videoUrl = game.P2Video
-				case 3:
-					gameGzip = game.P3Gzip
-					videoUrl = game.P3Video
-				case 4:
-					gameGzip = game.P4Gzip
-					videoUrl = game.P4Video
-				}
-			}
-		}
-		if gameGzip == nil {
-			gameGzip = game.GameGzip
-		}
-	}
-	return gameGzip, videoUrl
-}
-
 func (s *Server) GamePage(c *fiber.Ctx) error {
 	gameId := c.Params("gameId")
-	gem := c.Params("gem")
+	gem, err := strconv.Atoi(c.Params("gem"))
+	if err != nil {
+		gem = -1
+	}
 	fullGame, err := db.GetFullGame(gameId, s.dynamoClient)
 	if err != nil {
 		return err
 	}
-	gameGzip, videoUrl := getGameGzip(fullGame, gem)
+	game, err := db.GetGame(gameId, gem, s.dynamoClient)
+	if err != nil {
+		return err
+	}
 
-	if gameGzip == nil {
+	if game == nil {
 		err = s.gameNotFoundTemplate.ExecuteTemplate(c.Response().BodyWriter(), "gameNotFound", nil)
 	} else {
-		game, err := parseGameGzip(gameGzip)
-		if err != nil {
-			return err
-		}
 		duration, err := time.ParseDuration(game.QuestDuration)
 		if err != nil {
 			return err
@@ -419,6 +389,13 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 		timeStanding := game.TimeByState[1]
 		timeAttacking := game.TimeByState[5] + game.TimeByState[6] + game.TimeByState[7]
 		timeCasting := game.TimeByState[8]
+		totalActions := 0
+		for _, weapon := range game.Weapons {
+			actions := weapon.Attacks + weapon.Techs
+			if actions > totalActions {
+				totalActions = actions
+			}
+		}
 		model := struct {
 			Game                 model.QuestRun
 			HasPov               map[int]bool
@@ -448,6 +425,7 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 			MapData              []MapData
 			PlayerIndex          int
 			TechsInOrder         [][]string
+			MostActions          int
 		}{
 			Game: *game,
 			HasPov: map[int]bool{
@@ -473,7 +451,6 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 			Frames:               getEquipment(game, model.EquipmentTypeFrame),
 			Units:                getEquipment(game, model.EquipmentTypeUnit),
 			Mags:                 getEquipment(game, model.EquipmentTypeMag),
-			VideoUrl:             videoUrl,
 			TimeMoving:           formatDuration(time.Duration(timeMoving) * (time.Second / 30)),
 			TimeStanding:         formatDuration(time.Duration(timeStanding) * (time.Second / 30)),
 			TimeAttacking:        formatDuration(time.Duration(timeAttacking) * (time.Second / 30)),
@@ -489,6 +466,7 @@ func (s *Server) GamePage(c *fiber.Ctx) error {
 				{"Resta", "Anti", "Reverser"},
 				{"Shifta", "Deband", "Ryuker"},
 				{"Jellen", "Zalure"}},
+			MostActions: totalActions,
 		}
 		s.gameTemplate = ensureParsed("./server/internal/templates/game.gohtml")
 		err = s.gameTemplate.ExecuteTemplate(c.Response().BodyWriter(), "game", model)
@@ -600,26 +578,10 @@ func getEquipment(game *model.QuestRun, equipmentType string) []model.Equipment 
 			equipmentOfType = append(equipmentOfType, model.Equipment{Display: k, SecondsEquipped: v})
 		}
 	}
+	sort.Slice(equipmentOfType, func(i, j int) bool {
+		return equipmentOfType[i].Display < equipmentOfType[j].Display
+	})
 	return equipmentOfType
-}
-
-func parseGameGzip(gameBytes []byte) (*model.QuestRun, error) {
-	questRun := model.QuestRun{}
-	buffer := bytes.NewBuffer(gameBytes)
-	reader, err := gzip.NewReader(buffer)
-	if err != nil {
-		return nil, err
-	}
-	jsonBytes, err := io.ReadAll(reader)
-	if err != io.ErrUnexpectedEOF {
-		return nil, err
-	}
-	err = json.Unmarshal(jsonBytes, &questRun)
-	if err != nil {
-		return nil, err
-	}
-
-	return &questRun, err
 }
 
 func formatDuration(d time.Duration) string {
@@ -776,17 +738,18 @@ func getFormattedGame(game model.Game) model.FormattedGame {
 func (s *Server) GetGame(c *fiber.Ctx) error {
 	gameId := c.Params("gameId")
 	gem := c.Params("gem")
-	fullGame, err := db.GetFullGame(gameId, s.dynamoClient)
+	gemInt, err := strconv.Atoi(gem)
 	if err != nil {
-		return err
+		gemInt = -1
 	}
-	gameGzip, _ := getGameGzip(fullGame, gem)
+	game, _ := db.GetGame(gameId, gemInt, s.dynamoClient)
 
-	if gameGzip == nil {
+	if game == nil {
 		c.Status(404)
 		return nil
 	} else {
-		c.Response().AppendBody(gameGzip)
+		compressed, _ := db.CompressGame(game)
+		c.Response().AppendBody(compressed)
 		c.Response().Header.Set("Content-Type", "application/json")
 		c.Response().Header.Set("Content-Encoding", "gzip")
 		return nil
@@ -815,7 +778,7 @@ func (s *Server) GetRecordSplits(c *fiber.Ctx) error {
 		c.Status(404)
 		return nil
 	} else {
-		game, err := db.GetGame(questRecord.Id, s.dynamoClient)
+		game, err := db.GetGame(questRecord.Id, -1, s.dynamoClient)
 		if err != nil {
 			return err
 		}
@@ -859,7 +822,7 @@ func (s *Server) GetPbSplits(c *fiber.Ctx) error {
 		c.Status(404)
 		return nil
 	} else {
-		game, err := db.GetGame(questRecord.Id, s.dynamoClient)
+		game, err := db.GetGame(questRecord.Id, -1, s.dynamoClient)
 		if err != nil {
 			return err
 		}

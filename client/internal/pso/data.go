@@ -127,6 +127,7 @@ type QuestRun struct {
 	DamageDealt              []int64
 	MonstersDead             int
 	Weapons                  map[string]model.Equipment
+	equippedWeaponId         string
 	FreezeTraps              []uint16
 	previousFt               uint16
 	previousDt               uint16
@@ -216,6 +217,7 @@ func (pso *PSO) StartNewQuest(questConfig quest.Quest) {
 		MonsterHpPool:            make([]int, 0),
 		DamageDealt:              make([]int64, 0),
 		Weapons:                  make(map[string]model.Equipment),
+		equippedWeaponId:         "",
 		FreezeTraps:              make([]uint16, 0),
 		previousDt:               0,
 		previousFt:               0,
@@ -290,9 +292,6 @@ func (pso *PSO) consolidateFrame(monsters []Monster) {
 		currentQuestRun.previousDamageDealt = damageDealt
 		weaponFound := false
 		for _, equipment := range pso.Equipment {
-			if equipment.Type == model.EquipmentTypeWeapon {
-				weaponFound = true
-			}
 			storedEquipment, exists := currentQuestRun.Weapons[equipment.Id]
 			if !exists {
 				storedEquipment = model.Equipment{
@@ -301,6 +300,10 @@ func (pso *PSO) consolidateFrame(monsters []Monster) {
 					Display:         equipment.Display,
 					SecondsEquipped: 0,
 				}
+			}
+			if equipment.Type == model.EquipmentTypeWeapon {
+				weaponFound = true
+				currentQuestRun.equippedWeaponId = equipment.Id
 			}
 			storedEquipment.SecondsEquipped += 1
 			currentQuestRun.Weapons[equipment.Id] = storedEquipment
@@ -313,9 +316,12 @@ func (pso *PSO) consolidateFrame(monsters []Monster) {
 					Type:            model.EquipmentTypeWeapon,
 					Display:         model.WeaponBareHanded,
 					SecondsEquipped: 0,
+					Attacks:         0,
+					Techs:           0,
 				}
 			}
 			storedEquipment.SecondsEquipped += 1
+			currentQuestRun.equippedWeaponId = model.WeaponBareHanded
 			currentQuestRun.Weapons[model.WeaponBareHanded] = storedEquipment
 		}
 		if pso.CurrentPlayerData.ShiftaLvl > currentQuestRun.maxPartyPbShifta {
@@ -344,19 +350,27 @@ func (pso *PSO) consolidateFrame(monsters []Monster) {
 			}
 		}
 		if players, err := pso.getOtherPlayers(); err == nil {
+			playerByGcLocation := dataFrame.PlayerByGcLocation
 			for _, player := range players {
 				if player.Warping && pso.ephineaFastBurstEnabled() {
 					currentQuestRun.FastWarps = true
 				}
+				playerByGcLocation[player.GuildCard] = player.Location
 			}
+			dataFrame.PlayerByGcLocation = playerByGcLocation
 		}
 		currentQuestRun.DataFrames = append(currentQuestRun.DataFrames, dataFrame)
 	}
 
 	currentState := pso.CurrentPlayerData.ActionState
 	currentQuestRun.TimeByState[pso.CurrentPlayerData.ActionState] = currentQuestRun.TimeByState[pso.CurrentPlayerData.ActionState] + 1
-	if currentState == 5 || currentState == 6 || currentState == 7 {
+	currentWeapon, found := currentQuestRun.Weapons[currentQuestRun.equippedWeaponId]
+	if isAttackState(currentState) {
 		currentQuestRun.TimeAttacking++
+		if found && !isAttackState(currentQuestRun.previousState) {
+			currentWeapon.Attacks = currentWeapon.Attacks + 1
+			currentQuestRun.Weapons[currentQuestRun.equippedWeaponId] = currentWeapon
+		}
 	} else if currentState == 2 || currentState == 4 {
 		currentQuestRun.TimeMoving++
 	} else if currentState == 8 {
@@ -364,6 +378,10 @@ func (pso *PSO) consolidateFrame(monsters []Monster) {
 		if currentQuestRun.previousState != 8 {
 			tech := pso.CurrentPlayerData.GetCurrentTech()
 			currentQuestRun.TechsCast[tech] = currentQuestRun.TechsCast[tech] + 1
+			if found {
+				currentWeapon.Techs = currentWeapon.Techs + 1
+				currentQuestRun.Weapons[currentQuestRun.equippedWeaponId] = currentWeapon
+			}
 		}
 	} else if currentState == 1 {
 		currentQuestRun.TimeStanding++
@@ -560,6 +578,10 @@ func isBoss(monster Monster) (bool, string) {
 		}
 	}
 	return false, ""
+}
+
+func isAttackState(state uint16) bool {
+	return state == 5 || state == 6 || state == 7
 }
 
 func (pso *PSO) RefreshData() error {

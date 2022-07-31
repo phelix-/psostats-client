@@ -30,6 +30,8 @@ const (
 	PlayerClassCount         = "player_class_count"
 	PlayerQuestCount         = "player_quest_count"
 	OverallQuestCount        = "overall_quest_count"
+	QuestSeriesPbTable       = "quest_series_pb"
+	QuestDataFramesTable     = "quest_data_frames"
 )
 
 type PsoStatsDb struct {
@@ -56,7 +58,9 @@ func WriteGameById(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) (s
 		return "", err
 	}
 	questRun.Id = fmt.Sprintf("%d", gameId)
-	gameGzip, err := compressGame(questRun)
+	_ = writeDataFrames(questRun, dynamoClient)
+	questRun.DataFrames = make([]model.DataFrame, 0)
+	gameGzip, err := CompressGame(questRun)
 	if err != nil {
 		return "", err
 	}
@@ -121,8 +125,82 @@ func getPlayerIndex(questRun model.QuestRun) (int, error) {
 	return playerIndex, nil
 }
 
+type QuestDataFrameItem struct {
+	QuestAndPlayerId     string
+	CompressedDataFrames []byte
+}
+
+func writeDataFrames(questRun *model.QuestRun, db *dynamodb.DynamoDB) error {
+	buffer := new(bytes.Buffer)
+	writer := gzip.NewWriter(buffer)
+	jsonQuestBytes, err := json.Marshal(questRun.DataFrames)
+	if err != nil {
+		return err
+	}
+	_, err = writer.Write(jsonQuestBytes)
+	if err != nil {
+		return err
+	}
+	err = writer.Flush()
+	if err != nil {
+		return err
+	}
+	index, _ := getPlayerIndex(*questRun)
+	item := QuestDataFrameItem{
+		QuestAndPlayerId:     fmt.Sprintf("%s_%d", questRun.Id, index),
+		CompressedDataFrames: buffer.Bytes(),
+	}
+	marshalled, err := dynamodbattribute.MarshalMap(item)
+	if err != nil {
+		return err
+	}
+
+	putItem := &dynamodb.PutItemInput{
+		Item:      marshalled,
+		TableName: aws.String(QuestDataFramesTable),
+	}
+	_, err = db.PutItem(putItem)
+	return err
+}
+
+func getDataFrames(gameId string, gem int, db *dynamodb.DynamoDB) ([]model.DataFrame, error) {
+	questDataFrameItem := QuestDataFrameItem{}
+	questAndCategory := fmt.Sprintf("%s_%d", gameId, gem)
+	primaryKey := dynamodb.AttributeValue{
+		S: aws.String(questAndCategory),
+	}
+	getItem := dynamodb.GetItemInput{
+		TableName: aws.String(QuestDataFramesTable),
+		Key:       map[string]*dynamodb.AttributeValue{"QuestAndPlayerId": &primaryKey},
+	}
+	item, err := db.GetItem(&getItem)
+	if err != nil || item.Item == nil {
+		return nil, err
+	}
+
+	err = dynamodbattribute.UnmarshalMap(item.Item, &questDataFrameItem)
+	if err != nil {
+		return nil, err
+	}
+
+	buffer := bytes.NewBuffer(questDataFrameItem.CompressedDataFrames)
+	reader, err := gzip.NewReader(buffer)
+	if err != nil {
+		return nil, err
+	}
+	jsonBytes, err := io.ReadAll(reader)
+	if err != io.ErrUnexpectedEOF {
+		return nil, err
+	}
+	dataFrames := make([]model.DataFrame, 0)
+	err = json.Unmarshal(jsonBytes, &dataFrames)
+	return dataFrames, err
+}
+
 func AttachGameToId(questRun model.QuestRun, id string, dynamoClient *dynamodb.DynamoDB) error {
-	gameGzip, err := compressGame(&questRun)
+	_ = writeDataFrames(&questRun, dynamoClient)
+	questRun.DataFrames = make([]model.DataFrame, 0)
+	gameGzip, err := CompressGame(&questRun)
 	if err != nil {
 		return err
 	}
@@ -223,7 +301,7 @@ func writeRecentGame(game model.Game, dynamoClient *dynamodb.DynamoDB) error {
 	return err
 }
 
-func compressGame(questRun *model.QuestRun) ([]byte, error) {
+func CompressGame(questRun *model.QuestRun) ([]byte, error) {
 	buffer := new(bytes.Buffer)
 	writer := gzip.NewWriter(buffer)
 	jsonQuestBytes, err := json.Marshal(questRun)
@@ -405,6 +483,86 @@ func GetPlayerRecentGamesOld(player string, dynamoClient *dynamodb.DynamoDB) ([]
 	err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &games)
 	sort.Slice(games, func(i, j int) bool { return games[i].Timestamp.After(games[j].Timestamp) })
 	return games, err
+}
+
+type QuestSeriesPb struct {
+	Series       string
+	UserAndQuest string
+	User         string
+	QuestName    string
+	Id           int
+	Time         time.Duration
+	Timestamp    time.Time
+}
+
+func questSeriesPbFromQuestRun(series string, questRun *model.QuestRun) *QuestSeriesPb {
+	idInt, _ := strconv.Atoi(questRun.Id)
+	duration, _ := time.ParseDuration(questRun.QuestDuration)
+	pb := QuestSeriesPb{
+		Series:       series,
+		UserAndQuest: fmt.Sprintf("%s+%s", questRun.UserName, questRun.QuestName),
+		User:         questRun.UserName,
+		QuestName:    questRun.QuestName,
+		Id:           idInt,
+		Time:         duration,
+		Timestamp:    questRun.QuestStartTime,
+	}
+	return &pb
+}
+
+func WriteQuestSeriesPb(series string, questRun *model.QuestRun, db *dynamodb.DynamoDB) error {
+	pb := questSeriesPbFromQuestRun(series, questRun)
+	marshalled, err := dynamodbattribute.MarshalMap(pb)
+	if err != nil {
+		return err
+	}
+	_, err = db.PutItem(&dynamodb.PutItemInput{
+		Item:      marshalled,
+		TableName: aws.String(QuestSeriesPbTable),
+	})
+	return err
+}
+
+func GetQuestSeriesPb(series, user, quest string, db *dynamodb.DynamoDB) (*QuestSeriesPb, error) {
+	userAndQuest := fmt.Sprintf("%s+%s", user, quest)
+	requestExpression, err := expression.NewBuilder().
+		WithKeyCondition(expression.KeyEqual(expression.Key("UserAndQuest"), expression.Value(userAndQuest)).
+			And(expression.KeyEqual(expression.Key("Series"), expression.Value(series)))).
+		Build()
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := db.Query(&dynamodb.QueryInput{
+		ExpressionAttributeNames:  requestExpression.Names(),
+		ExpressionAttributeValues: requestExpression.Values(),
+		KeyConditionExpression:    requestExpression.KeyCondition(),
+		TableName:                 aws.String(QuestSeriesPbTable),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	pb := QuestSeriesPb{}
+	err = dynamodbattribute.UnmarshalMap(result.Items[0], &pb)
+	return &pb, err
+}
+
+func WriteAnniversaryStats(questRun *model.QuestRun, db *dynamodb.DynamoDB) {
+	mesetaCharged := int64(questRun.MesetaCharged[len(questRun.MesetaCharged)-1])
+	addAnniversaryCounter(questRun.QuestName, "MesetaCharged", mesetaCharged)
+	addAnniversaryCounter(questRun.QuestName, fmt.Sprintf("MesetaCharged.%s", questRun.PlayerClass), mesetaCharged)
+	addAnniversaryCounter(questRun.QuestName, "Runs", 1)
+	addAnniversaryCounter(questRun.QuestName, "Moving", int64(questRun.TimeByState[2]+questRun.TimeByState[4]))
+	addAnniversaryCounter(questRun.QuestName, "Standing", int64(questRun.TimeByState[1]))
+	addAnniversaryCounter(questRun.QuestName, "Attacking", int64(questRun.TimeByState[5]+questRun.TimeByState[6]+questRun.TimeByState[7]))
+	addAnniversaryCounter(questRun.QuestName, "Casting", int64(questRun.TimeByState[8]))
+	addAnniversaryCounter(questRun.QuestName, "Deaths", int64(questRun.DeathCount))
+	addAnniversaryCounter(questRun.QuestName, fmt.Sprintf("ClassUse.%s", questRun.PlayerClass), 1)
+}
+
+func addAnniversaryCounter(questName, counterName string, value int64) {
+
 }
 
 func GetPlayerPB(quest, player string, numPlayers int, pbCategory bool, dynamoClient *dynamodb.DynamoDB) (*model.Game, error) {
@@ -722,7 +880,7 @@ func GetFullGame(gameId string, dynamoClient *dynamodb.DynamoDB) (*model.Game, e
 	return &game, err
 }
 
-func GetGame(gameId string, dynamoClient *dynamodb.DynamoDB) (*model.QuestRun, error) {
+func GetGame(gameId string, gem int, dynamoClient *dynamodb.DynamoDB) (*model.QuestRun, error) {
 	questRun := model.QuestRun{}
 	game := model.Game{}
 	primaryKey := dynamodb.AttributeValue{
@@ -741,7 +899,10 @@ func GetGame(gameId string, dynamoClient *dynamodb.DynamoDB) (*model.QuestRun, e
 	if err != nil {
 		return nil, err
 	}
-	buffer := bytes.NewBuffer(game.GameGzip)
+
+	gameGzip := getGameGzip(&game, gem)
+
+	buffer := bytes.NewBuffer(gameGzip)
 	reader, err := gzip.NewReader(buffer)
 	if err != nil {
 		return nil, err
@@ -755,5 +916,35 @@ func GetGame(gameId string, dynamoClient *dynamodb.DynamoDB) (*model.QuestRun, e
 		return nil, err
 	}
 
+	if len(questRun.DataFrames) == 0 {
+		playerIndex, _ := getPlayerIndex(questRun)
+		dataFrames, err := getDataFrames(questRun.Id, playerIndex, dynamoClient)
+		if err != nil {
+			return nil, err
+		}
+		questRun.DataFrames = dataFrames
+	}
+
 	return &questRun, err
+}
+
+func getGameGzip(game *model.Game, gem int) []byte {
+	var gameGzip []byte
+	if game != nil {
+		switch gem + 1 {
+		case 1:
+			gameGzip = game.P1Gzip
+		case 2:
+			gameGzip = game.P2Gzip
+		case 3:
+			gameGzip = game.P3Gzip
+		case 4:
+			gameGzip = game.P4Gzip
+		}
+	}
+	if gameGzip == nil {
+		gameGzip = game.GameGzip
+	}
+
+	return gameGzip
 }

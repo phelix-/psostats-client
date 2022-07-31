@@ -160,7 +160,7 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 }
 
 func (s *Server) updateAnniv2020Record(questRun model.QuestRun, matchingGame *model.QuestRun) {
-	_,anniversaryQuest := s.anniversaryQuests[questRun.QuestName]
+	_, anniversaryQuest := s.anniversaryQuests[questRun.QuestName]
 	if questRun.PbCategory || !anniversaryQuest || questRun.Server != "ephinea" {
 		return
 	}
@@ -182,6 +182,12 @@ func (s *Server) updateAnniv2020Record(questRun model.QuestRun, matchingGame *mo
 		if err = db.WriteAnniv2021Record(&questRun, s.dynamoClient); err != nil {
 			log.Printf("failed to update anniv leaderboard for game %v - %v", questRun.Id, err)
 		}
+	}
+
+	pb, err := db.GetQuestSeriesPb("a2022", questRun.UserName, questRun.QuestName, s.dynamoClient)
+	questDuration, _ := time.ParseDuration(questRun.QuestDuration)
+	if questDuration < pb.Time {
+		db.WriteQuestSeriesPb("a2022", &questRun, s.dynamoClient)
 	}
 }
 
@@ -232,7 +238,7 @@ func (s *Server) findMatchingGame(questRun model.QuestRun) *model.QuestRun {
 }
 
 func IsLeaderboardCandidate(questRun model.QuestRun) bool {
-	clientHasWarpInfo :=  getClientVersionInt(questRun.Client) >= 10401
+	clientHasWarpInfo := getClientVersionInt(questRun.Client) >= 10401
 	fastWarpOk := clientHasWarpInfo && !questRun.FastWarps
 
 	cmodeRegex := regexp.MustCompile("[12]c\\d")
@@ -256,7 +262,7 @@ func (s *Server) QuestRecordWebhook(questRun model.QuestRun, previousRecord *mod
 		if previousRecord != nil {
 			timeDifference := previousRecord.Time - duration
 			if isRankedByScore(questRun) {
-				previousRecordText = fmt.Sprintf("\nbeating the previous record by %v points", int(questRun.Points) - previousRecord.Points)
+				previousRecordText = fmt.Sprintf("\nbeating the previous record by %v points", int(questRun.Points)-previousRecord.Points)
 				if timeDifference >= 0 {
 					previousRecordText = fmt.Sprintf("%v (%v faster)", previousRecordText, formatDuration(timeDifference))
 				} else {
