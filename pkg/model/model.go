@@ -117,6 +117,9 @@ type DataFrame struct {
 	FT                 uint16
 	DT                 uint16
 	CT                 uint16
+	MonstersAlive      int
+	DamageDealt        int64
+	Kills              int
 	PlayerByGcLocation map[string]Location
 	PlayerLocation     map[int]Location
 	MonsterLocation    map[int]Location

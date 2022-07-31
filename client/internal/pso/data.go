@@ -124,7 +124,6 @@ type QuestRun struct {
 	MonstersKilledCount      []int
 	MonsterHpPool            []int
 	previousDamageDealt      int64
-	DamageDealt              []int64
 	MonstersDead             int
 	Weapons                  map[string]model.Equipment
 	equippedWeaponId         string
@@ -215,7 +214,6 @@ func (pso *PSO) StartNewQuest(questConfig quest.Quest) {
 		MonsterCount:             make([]int, 0),
 		MonstersKilledCount:      make([]int, 0),
 		MonsterHpPool:            make([]int, 0),
-		DamageDealt:              make([]int64, 0),
 		Weapons:                  make(map[string]model.Equipment),
 		equippedWeaponId:         "",
 		FreezeTraps:              make([]uint16, 0),
@@ -288,7 +286,6 @@ func (pso *PSO) consolidateFrame(monsters []Monster) {
 		currentQuestRun.FreezeTraps = append(currentQuestRun.FreezeTraps, pso.CurrentPlayerData.FreezeTraps)
 		currentQuestRun.Invincible = append(currentQuestRun.Invincible, pso.CurrentPlayerData.InvincibilityFrames > 0)
 		damageDealt := currentQuestRun.PlayerDamage[uint16(pso.CurrentPlayerIndex)]
-		currentQuestRun.DamageDealt = append(currentQuestRun.DamageDealt, damageDealt-currentQuestRun.previousDamageDealt)
 		currentQuestRun.previousDamageDealt = damageDealt
 		weaponFound := false
 		for _, equipment := range pso.Equipment {
@@ -341,12 +338,15 @@ func (pso *PSO) consolidateFrame(monsters []Monster) {
 			FT:                 pso.CurrentPlayerData.FreezeTraps,
 			DT:                 pso.CurrentPlayerData.DamageTraps,
 			CT:                 pso.CurrentPlayerData.ConfuseTraps,
+			DamageDealt:        damageDealt,
+			Kills:              pso.CurrentQuest.LastHits[uint16(pso.CurrentPlayerIndex)],
 			PlayerByGcLocation: make(map[string]model.Location),
 			MonsterLocation:    make(map[int]model.Location),
 		}
 		for _, monster := range monsters {
 			if monster.hp > 0 {
 				dataFrame.MonsterLocation[int(monster.Id)] = monster.Location
+				dataFrame.MonstersAlive++
 			}
 		}
 		if players, err := pso.getOtherPlayers(); err == nil {
@@ -470,16 +470,24 @@ func (pso *PSO) consolidateMonsterState(monsters []Monster) {
 			currentQuestRun.Monsters[monsterId] = monster
 			existingMonster = monster
 		} else if existingMonster.Alive && monster.hp <= 0 {
-			// We don't allow frame 0 kills because some of the monsters appear to spawn in with 0 hp.
+			// We don't allow frame 0 kills because some monsters appear to spawn in with 0 hp.
 			// This could be a synchronization issue w/ pso (data is still initializing when we catch it?)
 			existingMonster.Alive = false
 			currentQuestRun.MonstersDead += 1
 			existingMonster.KilledTime = now
-			if existingMonster.UnitxtId != 34 && existingMonster.UnitxtId != 45 {
+			if existingMonster.UnitxtId != 34 &&
+				existingMonster.UnitxtId != 45 &&
+				existingMonster.UnitxtId != 73 && // barba ray
+				existingMonster.UnitxtId != 68 { // recon
 				// Excluding DRL and Dark Gunners because they're buggy
+				playerName := ""
+				if int(monster.LastAttackerIdx) < len(currentQuestRun.AllPlayers) {
+					player := currentQuestRun.AllPlayers[monster.LastAttackerIdx]
+					playerName = player.Name
+				}
 				existingMonster.Frame1 = existingMonster.KilledTime.Sub(existingMonster.SpawnTime).Milliseconds() < 60
 				if existingMonster.Frame1 {
-					log.Printf("frame1? %v(%v) %v", existingMonster.Name, existingMonster.UnitxtId, existingMonster.Id)
+					log.Printf("frame1? %v(%v) %v - %s", existingMonster.Name, existingMonster.UnitxtId, existingMonster.Id, playerName)
 				}
 			}
 			currentQuestRun.LastHits[monster.LastAttackerIdx] = currentQuestRun.LastHits[monster.LastAttackerIdx] + 1
