@@ -120,6 +120,8 @@ type DataFrame struct {
 	MonstersAlive      int
 	DamageDealt        int64
 	Kills              int
+	State              uint16
+	Weapon             string
 	PlayerByGcLocation map[string]Location
 	PlayerLocation     map[int]Location
 	MonsterLocation    map[int]Location

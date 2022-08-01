@@ -401,7 +401,7 @@
         });
 
         const weaponDonutOptions = {
-            series: [ {{ range .Weapons }} {{ .SecondsEquipped }}, {{ end }}],
+            series: [ {{ range .Weapons }} {{ add .Attacks .Techs }}, {{ end }}],
             labels: [ {{ range .Weapons }} "{{ .Display }}", {{ end }}],
             chart: {
                 type: 'donut',

@@ -339,6 +339,8 @@ func (pso *PSO) consolidateFrame(monsters []Monster) {
 			DT:                 pso.CurrentPlayerData.DamageTraps,
 			CT:                 pso.CurrentPlayerData.ConfuseTraps,
 			DamageDealt:        damageDealt,
+			State:              pso.CurrentPlayerData.ActionState,
+			Weapon:             currentQuestRun.equippedWeaponId,
 			Kills:              pso.CurrentQuest.LastHits[uint16(pso.CurrentPlayerIndex)],
 			PlayerByGcLocation: make(map[string]model.Location),
 			MonsterLocation:    make(map[int]model.Location),

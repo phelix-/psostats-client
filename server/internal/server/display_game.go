@@ -5,6 +5,7 @@ import (
 	"github.com/phelix-/psostats/v2/pkg/model"
 	"github.com/phelix-/psostats/v2/server/internal/db"
 	"strconv"
+	"text/template"
 	"time"
 )
 
@@ -168,7 +169,10 @@ func (s *Server) GamePageV3(c *fiber.Ctx) error {
 			MostActions:      totalActions,
 			PlayerDataFrames: playerDataFrames,
 		}
-		err = s.gameV3Template.ExecuteTemplate(c.Response().BodyWriter(), "game", model)
+		funcMap := template.FuncMap{
+			"add": func(a, b int) int { return a + b },
+		}
+		err = s.gameV3Template.Funcs(funcMap).ExecuteTemplate(c.Response().BodyWriter(), "game", model)
 	}
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
