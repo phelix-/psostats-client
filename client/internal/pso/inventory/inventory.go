@@ -121,7 +121,7 @@ func ReadInventory(handle w32.HANDLE, playerIndex uint8) (Inventory, error) {
 						case 3:
 							unit := readUnit(handle, int(itemAddr), indexInGroup, itemId)
 							currentEquipment.Type = model.EquipmentTypeUnit
-							currentEquipment.Display = unit.String()
+							currentEquipment.Display = unit.StringNoSlots()
 							equipment = append(equipment, currentEquipment)
 						}
 					case 2:
