@@ -43,17 +43,17 @@ const (
 )
 
 type Inventory struct {
-	Equipment []Equipment
-	Monomate  uint8
-	Dimate    uint8
-	Trimate   uint8
-	Monofluid uint8
-	Difluid   uint8
-	Trifluid  uint8
-	Moon      uint8
-	Star      uint8
-	Sol       uint8
-	Pipe      uint8
+	Equipment    []Equipment
+	Monomate     uint8
+	Dimate       uint8
+	Trimate      uint8
+	Monofluid    uint8
+	Difluid      uint8
+	Trifluid     uint8
+	MoonAtomizer uint8
+	StarAtomizer uint8
+	SolAtomizer  uint8
+	Telepipe     uint8
 }
 
 type Equipment struct {
@@ -453,15 +453,15 @@ func addConsumableToInventory(inventory *Inventory, group, index, count uint8) {
 			inventory.Trifluid = count
 		}
 	case 3:
-		inventory.Sol = count
+		inventory.SolAtomizer = count
 	case 4:
-		inventory.Moon = count
+		inventory.MoonAtomizer = count
 	case 5:
-		inventory.Star = count
+		inventory.StarAtomizer = count
 	//case 6:
 	// 0 - antidote
 	// 1 - antipara
 	case 7:
-		inventory.Pipe = count
+		inventory.Telepipe = count
 	}
 }
