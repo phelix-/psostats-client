@@ -92,7 +92,7 @@
                     {{ if gt .Game.Points 0}}<li class="list-group-item">Time: <span style="float: right">{{ .FormattedQuestTime}}</span></li>{{ end }}
                     <li class="list-group-item">Date: <span style="float: right">{{ .Game.QuestStartDate }}</span></li>
                     <a class="list-group-item" href="/players/{{ .Game.UserName }}">Player: <span style="float: right">{{ .Game.UserName }}</span></a>
-                    <li class="list-group-item">Section ID: <span style="float: right"><img alt="{{ .SectionId }}" src="/static/icons/{{ .SectionId }}_icon.png"/></span> </li>
+                    <li class="list-group-item">Section ID: <span style="float: right"><img alt="{{ .SectionId }}" height="24px" width="24px" src="/static/icons/{{ .SectionId }}.png"/></span> </li>
                     <li class="list-group-item">Deaths: <span style="float: right">{{ .Game.DeathCount }}</span></li>
                     <li class="list-group-item">Enemies Killed: <span style="float: right">{{ .Game.MonstersDead }}</span></li>
                     {{ if gt .Game.TPUsed 0 }}<li class="list-group-item">TP Used: <span style="float: right">{{ .Game.TPUsed }}</span></li> {{ end }}
