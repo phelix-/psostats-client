@@ -571,6 +571,7 @@ func getEquipment(game *model.QuestRun, equipmentType string) []model.Equipment 
 	if game.Weapons != nil && len(game.Weapons) > 0 {
 		for _, equipment := range game.Weapons {
 			if equipment.Type == equipmentType {
+				equipment.Attacks = equipment.Attacks + equipment.Techs // ugly
 				equipmentOfType = append(equipmentOfType, equipment)
 			}
 		}
@@ -850,7 +851,7 @@ func (s *Server) PostMotd(c *fiber.Ctx) error {
 		return err
 	}
 	message := fmt.Sprintf("Logged in as %v, up to date", user)
-	if getClientVersionInt(clientInfo) < 10500 {
+	if getClientVersionInt(clientInfo) < 10800 {
 		message = "Update available: location bugfixes. https://psostats.com/download"
 	}
 	motd := model.MessageOfTheDay{

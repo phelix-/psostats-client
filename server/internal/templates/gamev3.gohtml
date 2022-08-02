@@ -92,11 +92,9 @@
                     {{ if gt .Game.Points 0}}<li class="list-group-item">Time: <span style="float: right">{{ .FormattedQuestTime}}</span></li>{{ end }}
                     <li class="list-group-item">Date: <span style="float: right">{{ .Game.QuestStartDate }}</span></li>
                     <a class="list-group-item" href="/players/{{ .Game.UserName }}">Player: <span style="float: right">{{ .Game.UserName }}</span></a>
+                    <li class="list-group-item">Section ID: <span style="float: right"><img alt="{{ .SectionId }}" height="24px" width="24px" src="/static/icons/{{ .SectionId }}.png"/></span> </li>
                     <li class="list-group-item">Deaths: <span style="float: right">{{ .Game.DeathCount }}</span></li>
                     <li class="list-group-item">Enemies Killed: <span style="float: right">{{ .Game.MonstersDead }}</span></li>
-                    {{ if gt .Game.FTUsed 0 }}<li class="list-group-item">FT Used: <span style="float: right">{{ .Game.FTUsed }}</span></li> {{ end }}
-                    {{ if gt .Game.DTUsed 0 }}<li class="list-group-item">DT Used: <span style="float: right">{{ .Game.DTUsed }}</span></li> {{ end }}
-                    {{ if gt .Game.CTUsed 0 }}<li class="list-group-item">CT Used: <span style="float: right">{{ .Game.CTUsed }}</span></li> {{ end }}
                     {{ if gt .Game.TPUsed 0 }}<li class="list-group-item">TP Used: <span style="float: right">{{ .Game.TPUsed }}</span></li> {{ end }}
                     {{ if gt (len .Game.TimeByState) 0 }}<li class="list-group-item">Time Moving: <span style="float: right">{{ .TimeMoving }}</span></li> {{ end }}
                     {{ if gt (len .Game.TimeByState) 0}}<li class="list-group-item">Time Standing: <span style="float: right">{{ .TimeStanding }}</span></li> {{ end }}
@@ -127,6 +125,31 @@
                     {{ end }}
                 </ul>
                 {{ end }}
+                <ul class="list-group list-group-flush" style="margin-bottom: 4px">
+                    {{ if gt (index $game.DataFrames 0).FT 0 }}
+                        <li class="list-group-item">
+                            <span class="techs-cast-item"><img alt="Freeze Traps" src="/static/icons/FT_icon.png"/><span style="margin-left: 8px">{{if gt $game.FTUsed 0 }} {{ $game.FTUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                            <span class="techs-cast-item"><img alt="Damage Traps" src="/static/icons/DT_icon.png"/><span style="margin-left: 8px">{{if gt $game.DTUsed 0 }} {{ $game.DTUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                            <span class="techs-cast-item"><img alt="Confuse Traps" src="/static/icons/CT_icon.png"/><span style="margin-left: 8px">{{if gt $game.CTUsed 0 }} {{ $game.CTUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                        </li>
+                    {{ end }}
+
+                    <li class="list-group-item">
+                        <span class="techs-cast-item"><img alt="Monomate" src="/static/icons/Monomate_icon.png"/><span style="margin-left: 8px">{{if gt $game.MonomateUsed 0 }} {{ $game.MonomateUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                        <span class="techs-cast-item"><img alt="Dimate" src="/static/icons/Dimate_icon.png"/><span style="margin-left: 8px">{{if gt $game.DimateUsed 0 }} {{ $game.DimateUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                        <span class="techs-cast-item"><img alt="Trimate" src="/static/icons/Trimate_icon.png"/><span style="margin-left: 8px">{{if gt $game.TrimateUsed 0 }} {{ $game.TrimateUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                    </li>
+                    <li class="list-group-item">
+                        <span class="techs-cast-item"><img alt="Monofluid" src="/static/icons/Monofluid_icon.png"/><span style="margin-left: 8px">{{if gt $game.MonofluidUsed 0 }} {{ $game.MonofluidUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                        <span class="techs-cast-item"><img alt="Difluid" src="/static/icons/Difluid_icon.png"/><span style="margin-left: 8px">{{if gt $game.DifluidUsed 0 }} {{ $game.DifluidUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                        <span class="techs-cast-item"><img alt="Trifluid" src="/static/icons/Trifluid_icon.png"/><span style="margin-left: 8px">{{if gt $game.TrifluidUsed 0 }} {{ $game.TrifluidUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                    </li>
+                    <li class="list-group-item">
+                        <span class="techs-cast-item"><img alt="Moon Atomizer" src="/static/icons/MoonAtomizer_icon.png"/><span style="margin-left: 8px">{{if gt $game.MoonAtomizerUsed 0 }} {{ $game.MoonAtomizerUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                        <span class="techs-cast-item"><img alt="Sol Atomizer" src="/static/icons/SolAtomizer_icon.png"/><span style="margin-left: 8px">{{if gt $game.SolAtomizerUsed 0 }} {{ $game.SolAtomizerUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                        <span class="techs-cast-item"><img alt="Star Atomizer" src="/static/icons/StarAtomizer_icon.png"/><span style="margin-left: 8px">{{if gt $game.StarAtomizerUsed 0 }} {{ $game.StarAtomizerUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                    </li>
+                </ul>
             </div>
             <div class="col-12 col-lg-6">
                 <div class="psostats-chart">
@@ -189,25 +212,8 @@
             },
         };
 
-        var PEAK = {
-            type: 'line',
-            scaleID: 'x',
-            value: '50',
-            order: 50,
-            borderColor: 'rgba(255,255,255,0.5)',
-            borderWidth: 1,
-            borderDash: [2,4],
-            label: {
-                offsetCustom: -8,
-                content: 'PEAK',
-                color: 'rgba(255,255,255,0.5)',
-                enabled: true
-            },
-            // click: function({chart, element}) {
-            //     drapeLog(arguments.callee.name,'Peak annotation clicked');
-            // }
-        };
-
+        const annotations = window['chartjs-plugin-annotation'];
+        Chart.register(annotations)
         const gameTimelineContext = document.getElementById("game-timeline");
         Chart.defaults.elements.point.radius = 0;
         const gameTimelineChart = new Chart(gameTimelineContext, {
@@ -335,20 +341,17 @@
                     },
                     annotation: {
                         annotations: {
-                            PEAK,
+                        {{ range .Game.Events }}{{ if ne .Description "Died"}}
+                        "{{.Description}}": {xMin: {{ .Second }}, xMax: {{ .Second }}, borderColor: "rgba(255,255,255,.5)", borderDash: [2,4], borderWidth: 1, label: { content: '{{ .Description }}', borderWidth: 0, color: 'rgba(255,255,255,0.5)', display: true,}},
+                        {{ end }}{{ end }}
+
                         }
                     }
-                    // limits: {
-                    //     y: 'original',
-                    //     y1: 'original'
-                    // },
                 },
                 scales: {
                     yHP: {
                         type: 'linear',
                         display: false,
-                        // min: 0,
-                        // max: 500,
                         ticks: {
                             display: false,
                             autoSkip: true,
@@ -367,8 +370,6 @@
                     yMeseta: {
                         type: 'linear',
                         display: false,
-                        // min: 0,
-                        // max: 100000,
                     },
                     yPB: {
                         type: 'linear',
@@ -401,7 +402,7 @@
         });
 
         const weaponDonutOptions = {
-            series: [ {{ range .Weapons }} {{ .SecondsEquipped }}, {{ end }}],
+            series: [ {{ range .Weapons }} {{ .Attacks }}, {{ end }}],
             labels: [ {{ range .Weapons }} "{{ .Display }}", {{ end }}],
             chart: {
                 type: 'donut',

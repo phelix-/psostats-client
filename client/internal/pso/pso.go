@@ -33,7 +33,7 @@ type PSO struct {
 	handle             w32.HANDLE
 	CurrentPlayerData  player.BasePlayerInfo
 	CurrentPlayerIndex uint8
-	Equipment          []inventory.Equipment
+	Inventory          inventory.Inventory
 	GameState          GameState
 	CurrentQuest       QuestRun
 	errors             chan error

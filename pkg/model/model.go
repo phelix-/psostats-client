@@ -16,6 +16,7 @@ const (
 type BasePlayerInfo struct {
 	Name      string
 	GuildCard string
+	SectionId uint8
 	Level     uint16
 	Class     string
 }
@@ -69,6 +70,16 @@ type QuestRun struct {
 	DTUsed              uint16
 	CTUsed              uint16
 	TPUsed              uint16
+	MonomateUsed        uint8
+	DimateUsed          uint8
+	TrimateUsed         uint8
+	MonofluidUsed       uint8
+	DifluidUsed         uint8
+	TrifluidUsed        uint8
+	MoonAtomizerUsed    uint8
+	StarAtomizerUsed    uint8
+	SolAtomizerUsed     uint8
+	TelepipeUsed        uint8
 	TimeByState         map[int]uint64
 	TechsCast           map[string]int
 	Points              uint16
@@ -120,6 +131,8 @@ type DataFrame struct {
 	MonstersAlive      int
 	DamageDealt        int64
 	Kills              int
+	State              uint16
+	Weapon             string
 	PlayerByGcLocation map[string]Location
 	PlayerLocation     map[int]Location
 	MonsterLocation    map[int]Location
@@ -211,6 +224,7 @@ type PostGameResponse struct {
 
 type Equipment struct {
 	Id              string
+	UnitxtIndex     string
 	Type            string
 	Display         string
 	SecondsEquipped int

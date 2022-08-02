@@ -5,6 +5,7 @@ import (
 	"github.com/phelix-/psostats/v2/pkg/model"
 	"github.com/phelix-/psostats/v2/server/internal/db"
 	"strconv"
+	"text/template"
 	"time"
 )
 
@@ -96,6 +97,7 @@ func (s *Server) GamePageV3(c *fiber.Ctx) error {
 
 		model := struct {
 			Game                 model.QuestRun
+			SectionId            string
 			HasPov               map[int]bool
 			FormattedQuestTime   string
 			InvincibleRanges     map[int]int
@@ -126,7 +128,8 @@ func (s *Server) GamePageV3(c *fiber.Ctx) error {
 			MostActions          int
 			PlayerDataFrames     map[int][]model.DataFrame
 		}{
-			Game: *game,
+			Game:      *game,
+			SectionId: getSectionId(game),
 			HasPov: map[int]bool{
 				0: fullGame.P1Gzip != nil,
 				1: fullGame.P2Gzip != nil,
@@ -168,8 +171,40 @@ func (s *Server) GamePageV3(c *fiber.Ctx) error {
 			MostActions:      totalActions,
 			PlayerDataFrames: playerDataFrames,
 		}
-		err = s.gameV3Template.ExecuteTemplate(c.Response().BodyWriter(), "game", model)
+		funcMap := template.FuncMap{
+			"add": func(a, b int) int { return a + b },
+		}
+		s.gameV3Template = ensureParsed("./server/internal/templates/gamev3.gohtml")
+		err = s.gameV3Template.Funcs(funcMap).ExecuteTemplate(c.Response().BodyWriter(), "game", model)
 	}
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
+}
+
+func getSectionId(questRun *model.QuestRun) string {
+	sectionId := questRun.AllPlayers[0].SectionId
+	sectionIdString := ""
+	switch sectionId {
+	case 0:
+		sectionIdString = "Viridia"
+	case 1:
+		sectionIdString = "Greenill"
+	case 2:
+		sectionIdString = "Skyly"
+	case 3:
+		sectionIdString = "Bluefull"
+	case 4:
+		sectionIdString = "Purplenum"
+	case 5:
+		sectionIdString = "Pinkal"
+	case 6:
+		sectionIdString = "Redria"
+	case 7:
+		sectionIdString = "Oran"
+	case 8:
+		sectionIdString = "Yellowboze"
+	case 9:
+		sectionIdString = "Whitill"
+	}
+	return sectionIdString
 }

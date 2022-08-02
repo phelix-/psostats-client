@@ -22,6 +22,7 @@ const (
 type BasePlayerInfo struct {
 	Name                string
 	GuildCard           string
+	SectionId           uint8
 	Room                uint16
 	ShiftaLvl           int16
 	DebandLvl           int16
@@ -106,6 +107,7 @@ func ParsePlayerMemory(buf []uint16, base uintptr) BasePlayerInfo {
 		Room:                room,
 		ShiftaLvl:           getSDLvlFromMultiplier(shiftaMultiplier),
 		DebandLvl:           getSDLvlFromMultiplier(debandMultiplier),
+		SectionId:           uint8(buf[(0x960-base)/2]),
 		Level:               buf[(0xE44-base)/2] + 1,
 		MaxHP:               buf[(0x2BC-base)/2],
 		MaxTP:               buf[(0x2BE-base)/2],

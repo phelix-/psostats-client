@@ -131,11 +131,22 @@ type QuestRun struct {
 	previousFt               uint16
 	previousDt               uint16
 	previousCt               uint16
+	previousInventory        inventory.Inventory
 	FTUsed                   uint16
 	DTUsed                   uint16
 	CTUsed                   uint16
 	previousTp               uint16
 	TPUsed                   uint16
+	MonomateUsed             uint8
+	DimateUsed               uint8
+	TrimateUsed              uint8
+	MonofluidUsed            uint8
+	DifluidUsed              uint8
+	TrifluidUsed             uint8
+	MoonAtomizerUsed         uint8
+	StarAtomizerUsed         uint8
+	SolAtomizerUsed          uint8
+	TelepipeUsed             uint8
 	previousState            uint16
 	TimeByState              map[uint16]uint64
 	TechsCast                map[string]int
@@ -220,6 +231,7 @@ func (pso *PSO) StartNewQuest(questConfig quest.Quest) {
 		previousDt:               0,
 		previousFt:               0,
 		previousCt:               0,
+		previousInventory:        inventory.Inventory{},
 		FTUsed:                   0,
 		DTUsed:                   0,
 		CTUsed:                   0,
@@ -267,8 +279,9 @@ func (pso *PSO) consolidateFrame(monsters []Monster) {
 
 		if previousMeseta != -1 {
 			mesetaDifference := previousMeseta - int(pso.CurrentPlayerData.Meseta)
-			if mesetaDifference > 0 {
+			if mesetaDifference > 0 && pso.CurrentPlayerData.Floor > 0 {
 				// negative means meseta picked up, ignoring I guess
+				// Floor 0 means you're on P2, probably shopping
 				mesetaCharged = mesetaDifference + currentQuestRun.previousMesetaCharged
 			}
 		}
@@ -288,11 +301,12 @@ func (pso *PSO) consolidateFrame(monsters []Monster) {
 		damageDealt := currentQuestRun.PlayerDamage[uint16(pso.CurrentPlayerIndex)]
 		currentQuestRun.previousDamageDealt = damageDealt
 		weaponFound := false
-		for _, equipment := range pso.Equipment {
+		for _, equipment := range pso.Inventory.Equipment {
 			storedEquipment, exists := currentQuestRun.Weapons[equipment.Id]
 			if !exists {
 				storedEquipment = model.Equipment{
 					Id:              equipment.Id,
+					UnitxtIndex:     equipment.UnitxtIndex,
 					Type:            equipment.Type,
 					Display:         equipment.Display,
 					SecondsEquipped: 0,
@@ -310,6 +324,7 @@ func (pso *PSO) consolidateFrame(monsters []Monster) {
 			if !exists {
 				storedEquipment = model.Equipment{
 					Id:              model.WeaponBareHanded,
+					UnitxtIndex:     "",
 					Type:            model.EquipmentTypeWeapon,
 					Display:         model.WeaponBareHanded,
 					SecondsEquipped: 0,
@@ -339,6 +354,8 @@ func (pso *PSO) consolidateFrame(monsters []Monster) {
 			DT:                 pso.CurrentPlayerData.DamageTraps,
 			CT:                 pso.CurrentPlayerData.ConfuseTraps,
 			DamageDealt:        damageDealt,
+			State:              pso.CurrentPlayerData.ActionState,
+			Weapon:             currentQuestRun.equippedWeaponId,
 			Kills:              pso.CurrentQuest.LastHits[uint16(pso.CurrentPlayerIndex)],
 			PlayerByGcLocation: make(map[string]model.Location),
 			MonsterLocation:    make(map[int]model.Location),
@@ -395,6 +412,38 @@ func (pso *PSO) consolidateFrame(monsters []Monster) {
 			}
 		}
 	}
+
+	if pso.Inventory.Monomate+1 == currentQuestRun.previousInventory.Monomate {
+		currentQuestRun.MonomateUsed++
+	}
+	if pso.Inventory.Dimate+1 == currentQuestRun.previousInventory.Dimate {
+		currentQuestRun.DimateUsed++
+	}
+	if pso.Inventory.Trimate+1 == currentQuestRun.previousInventory.Trimate {
+		currentQuestRun.TrimateUsed++
+	}
+	if pso.Inventory.Monofluid+1 == currentQuestRun.previousInventory.Monofluid {
+		currentQuestRun.MonofluidUsed++
+	}
+	if pso.Inventory.Difluid+1 == currentQuestRun.previousInventory.Difluid {
+		currentQuestRun.DifluidUsed++
+	}
+	if pso.Inventory.Trifluid+1 == currentQuestRun.previousInventory.Trifluid {
+		currentQuestRun.TrifluidUsed++
+	}
+	if pso.Inventory.MoonAtomizer+1 == currentQuestRun.previousInventory.MoonAtomizer {
+		currentQuestRun.MoonAtomizerUsed++
+	}
+	if pso.Inventory.StarAtomizer+1 == currentQuestRun.previousInventory.StarAtomizer {
+		currentQuestRun.StarAtomizerUsed++
+	}
+	if pso.Inventory.SolAtomizer+1 == currentQuestRun.previousInventory.SolAtomizer {
+		currentQuestRun.SolAtomizerUsed++
+	}
+	if pso.Inventory.Telepipe+1 == currentQuestRun.previousInventory.Telepipe {
+		currentQuestRun.TelepipeUsed++
+	}
+	currentQuestRun.previousInventory = pso.Inventory
 
 	if currentQuestRun.lastFloor != pso.GameState.Floor {
 		currentQuestRun.Events = append(currentQuestRun.Events, Event{
@@ -623,11 +672,11 @@ func (pso *PSO) RefreshData() error {
 		}
 		pso.CurrentPlayerData = playerData
 
-		equipment, err := inventory.ReadInventory(pso.handle, index)
+		inventory, err := inventory.ReadInventory(pso.handle, index)
 		if err != nil {
 			return err
 		}
-		pso.Equipment = equipment
+		pso.Inventory = inventory
 
 		monsters, err := pso.GetMonsterList()
 		if err != nil {

@@ -187,7 +187,7 @@ func (s *Server) updateAnniv2020Record(questRun model.QuestRun, matchingGame *mo
 	pb, err := db.GetQuestSeriesPb("a2022", questRun.UserName, questRun.QuestName, s.dynamoClient)
 	questDuration, _ := time.ParseDuration(questRun.QuestDuration)
 	if questDuration < pb.Time {
-		db.WriteQuestSeriesPb("a2022", &questRun, s.dynamoClient)
+		_ = db.WriteQuestSeriesPb("a2022", &questRun, s.dynamoClient)
 	}
 }
 
