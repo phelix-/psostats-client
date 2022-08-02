@@ -189,25 +189,8 @@
             },
         };
 
-        var PEAK = {
-            type: 'line',
-            scaleID: 'x',
-            value: '50',
-            order: 50,
-            borderColor: 'rgba(255,255,255,0.5)',
-            borderWidth: 1,
-            borderDash: [2,4],
-            label: {
-                offsetCustom: -8,
-                content: 'PEAK',
-                color: 'rgba(255,255,255,0.5)',
-                enabled: true
-            },
-            // click: function({chart, element}) {
-            //     drapeLog(arguments.callee.name,'Peak annotation clicked');
-            // }
-        };
-
+        const annotations = window['chartjs-plugin-annotation'];
+        Chart.register(annotations)
         const gameTimelineContext = document.getElementById("game-timeline");
         Chart.defaults.elements.point.radius = 0;
         const gameTimelineChart = new Chart(gameTimelineContext, {
@@ -335,20 +318,17 @@
                     },
                     annotation: {
                         annotations: {
-                            PEAK,
+                        {{ range .Game.Events }}{{ if ne .Description "Died"}}
+                        "{{.Description}}": {xMin: {{ .Second }}, xMax: {{ .Second }}, borderColor: "rgba(255,255,255,.5)", borderDash: [2,4], borderWidth: 1, label: { content: '{{ .Description }}', borderWidth: 0, color: 'rgba(255,255,255,0.5)', display: true,}},
+                        {{ end }}{{ end }}
+
                         }
                     }
-                    // limits: {
-                    //     y: 'original',
-                    //     y1: 'original'
-                    // },
                 },
                 scales: {
                     yHP: {
                         type: 'linear',
                         display: false,
-                        // min: 0,
-                        // max: 500,
                         ticks: {
                             display: false,
                             autoSkip: true,
@@ -367,8 +347,6 @@
                     yMeseta: {
                         type: 'linear',
                         display: false,
-                        // min: 0,
-                        // max: 100000,
                     },
                     yPB: {
                         type: 'linear',
@@ -401,7 +379,7 @@
         });
 
         const weaponDonutOptions = {
-            series: [ {{ range .Weapons }} {{ add .Attacks .Techs }}, {{ end }}],
+            series: [ {{ range .Weapons }} {{ .Attacks }}, {{ end }}],
             labels: [ {{ range .Weapons }} "{{ .Display }}", {{ end }}],
             chart: {
                 type: 'donut',

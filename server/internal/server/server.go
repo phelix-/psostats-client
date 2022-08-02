@@ -571,6 +571,7 @@ func getEquipment(game *model.QuestRun, equipmentType string) []model.Equipment 
 	if game.Weapons != nil && len(game.Weapons) > 0 {
 		for _, equipment := range game.Weapons {
 			if equipment.Type == equipmentType {
+				equipment.Attacks = equipment.Attacks + equipment.Techs // ugly
 				equipmentOfType = append(equipmentOfType, equipment)
 			}
 		}

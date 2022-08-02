@@ -288,7 +288,7 @@ func (pso *PSO) consolidateFrame(monsters []Monster) {
 		damageDealt := currentQuestRun.PlayerDamage[uint16(pso.CurrentPlayerIndex)]
 		currentQuestRun.previousDamageDealt = damageDealt
 		weaponFound := false
-		for _, equipment := range pso.Equipment {
+		for _, equipment := range pso.Inventory.Equipment {
 			storedEquipment, exists := currentQuestRun.Weapons[equipment.Id]
 			if !exists {
 				storedEquipment = model.Equipment{
@@ -625,11 +625,11 @@ func (pso *PSO) RefreshData() error {
 		}
 		pso.CurrentPlayerData = playerData
 
-		equipment, err := inventory.ReadInventory(pso.handle, index)
+		inventory, err := inventory.ReadInventory(pso.handle, index)
 		if err != nil {
 			return err
 		}
-		pso.Equipment = equipment
+		pso.Inventory = inventory
 
 		monsters, err := pso.GetMonsterList()
 		if err != nil {

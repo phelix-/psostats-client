@@ -172,6 +172,7 @@ func (s *Server) GamePageV3(c *fiber.Ctx) error {
 		funcMap := template.FuncMap{
 			"add": func(a, b int) int { return a + b },
 		}
+		s.gameV3Template = ensureParsed("./server/internal/templates/gamev3.gohtml")
 		err = s.gameV3Template.Funcs(funcMap).ExecuteTemplate(c.Response().BodyWriter(), "game", model)
 	}
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")

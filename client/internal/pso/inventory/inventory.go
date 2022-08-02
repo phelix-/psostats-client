@@ -42,28 +42,44 @@ const (
 	itemMesetaAmount   = 0x100
 )
 
-type Equipment struct {
-	Id      string
-	Type    string
-	Display string
+type Inventory struct {
+	Equipment []Equipment
+	Monomate  uint8
+	Dimate    uint8
+	Trimate   uint8
+	Monofluid uint8
+	Difluid   uint8
+	Trifluid  uint8
+	Moon      uint8
+	Star      uint8
+	Sol       uint8
+	Pipe      uint8
 }
 
-func ReadInventory(handle w32.HANDLE, playerIndex uint8) ([]Equipment, error) {
+type Equipment struct {
+	Id          string
+	UnitxtIndex string
+	Type        string
+	Display     string
+}
+
+func ReadInventory(handle w32.HANDLE, playerIndex uint8) (Inventory, error) {
+	inventory := Inventory{}
 	equipment := make([]Equipment, 0)
 	buf, _, ok := w32.ReadProcessMemory(handle, uintptr(itemArrayCount), 2)
 	if !ok {
-		return equipment, errors.New("could not read item count")
+		return inventory, errors.New("could not read item count")
 	}
 	count := numbers.Uint32From16(buf[0:2])
 	buf, _, ok = w32.ReadProcessMemory(handle, uintptr(itemArray), 4)
 	if !ok {
-		return equipment, errors.New("could not read item array")
+		return inventory, errors.New("could not read item array")
 	}
 	address := numbers.Uint32From16(buf[0:2])
 	if count != 0 && address != 0 {
 		buf, _, ok = w32.ReadProcessMemory(handle, uintptr(address), uintptr(4*count))
 		if !ok {
-			return equipment, errors.New("could not read item array")
+			return inventory, errors.New("could not read item array")
 		}
 
 		for i := 0; i < int(count); i++ {
@@ -71,40 +87,61 @@ func ReadInventory(handle w32.HANDLE, playerIndex uint8) ([]Equipment, error) {
 			if itemAddr != 0 {
 				itemBuffer, _, ok := w32.ReadProcessMemory(handle, uintptr(itemAddr+0xD8), 4)
 				if !ok {
-					return equipment, errors.New("could not read item")
+					return inventory, errors.New("could not read item")
 				}
 				itemId := fmt.Sprintf("%04x%04x", itemBuffer[1], itemBuffer[0])
 				itemType := numbers.ReadU8(handle, uintptr(itemAddr+itemTypeOffset))
 				itemGroup := numbers.ReadU8(handle, uintptr(itemAddr+itemGroupOffset))
+				indexInGroup := numbers.ReadU8(handle, uintptr(itemAddr+0xF4))
 				equipped := numbers.ReadU8(handle, uintptr(itemAddr+itemEquippedOffset))&0x01 == 1
 				itemOwner := numbers.ReadU8(handle, uintptr(itemAddr+itemOwnerOffset))
 				if itemOwner == playerIndex && equipped {
+					currentEquipment := Equipment{
+						Id:          itemId,
+						UnitxtIndex: fmt.Sprintf("%02x%02x%02x", itemType, itemGroup, indexInGroup),
+					}
 					switch itemType {
 					case 0:
-						weapon := readWeapon(handle, int(itemAddr), itemId, itemGroup)
-						equipment = append(equipment, Equipment{Id: itemId, Type: model.EquipmentTypeWeapon, Display: weapon.String()})
+						weapon := readWeapon(handle, int(itemAddr), itemId, itemGroup, indexInGroup)
+						currentEquipment.Type = model.EquipmentTypeWeapon
+						currentEquipment.Display = weapon.String()
+						equipment = append(equipment, currentEquipment)
 					case 1:
 						switch itemGroup {
 						case 1:
-							frame := readFrame(handle, int(itemAddr), itemId, itemGroup)
-							equipment = append(equipment, Equipment{Id: itemId, Type: model.EquipmentTypeFrame, Display: frame.String()})
+							frame := readFrame(handle, int(itemAddr), itemId, itemGroup, indexInGroup)
+							currentEquipment.Type = model.EquipmentTypeFrame
+							currentEquipment.Display = frame.String()
+							equipment = append(equipment, currentEquipment)
 						case 2:
-							barrier := readBarrier(handle, int(itemAddr), itemId, itemGroup)
-							equipment = append(equipment, Equipment{Id: itemId, Type: model.EquipmentTypeBarrier, Display: barrier.StringNoSlots()})
+							barrier := readBarrier(handle, int(itemAddr), itemId, itemGroup, indexInGroup)
+							currentEquipment.Type = model.EquipmentTypeBarrier
+							currentEquipment.Display = barrier.String()
+							equipment = append(equipment, currentEquipment)
 						case 3:
-							unit := readUnit(handle, int(itemAddr), itemId)
-							equipment = append(equipment, Equipment{Id: itemId, Type: model.EquipmentTypeUnit, Display: unit.Name})
+							unit := readUnit(handle, int(itemAddr), indexInGroup, itemId)
+							currentEquipment.Type = model.EquipmentTypeUnit
+							currentEquipment.Display = unit.String()
+							equipment = append(equipment, currentEquipment)
 						}
 					case 2:
 						mag := readMag(handle, int(itemAddr), itemId, itemGroup)
-						equipment = append(equipment, Equipment{Id: itemId, Type: model.EquipmentTypeMag, Display: mag.String()})
+						currentEquipment.Type = model.EquipmentTypeMag
+						currentEquipment.Display = mag.String()
+						equipment = append(equipment, currentEquipment)
 					}
+				} else if itemType == 3 {
+					count := numbers.ReadU8(handle, uintptr(itemAddr+itemToolCount))
+					count = count ^ uint8(itemAddr+itemToolCount)
+					addConsumableToInventory(&inventory, itemGroup, indexInGroup, count)
+
 				}
 			}
 		}
 	}
 
-	return equipment, nil
+	inventory.Equipment = equipment
+	return inventory, nil
 }
 
 func getWeaponIndex(handle w32.HANDLE, group uint8, index uint8, typeOffset uint8, sizeSomething uint32) uint32 {
@@ -134,8 +171,7 @@ func readItemName(handle w32.HANDLE, index int) string {
 	return fmt.Sprintf("%v", weaponName)
 }
 
-func readWeapon(handle w32.HANDLE, itemAddr int, itemId string, itemGroup uint8) Weapon {
-	itemIndex := numbers.ReadU8(handle, uintptr(itemAddr+0xF4))
+func readWeapon(handle w32.HANDLE, itemAddr int, itemId string, itemGroup, itemIndex uint8) Weapon {
 	weaponIndex := getWeaponIndex(handle, itemGroup, itemIndex, 0x00, 44)
 	weapon := Weapon{
 		Id: itemId,
@@ -194,8 +230,7 @@ func (w Weapon) String() string {
 	return fmt.Sprintf("%v%v%v [%v/%v/%v/%v|%v]", w.Name, grindString, specialString, w.Native, w.ABeast, w.Machine, w.Dark, w.Hit)
 }
 
-func readFrame(handle w32.HANDLE, itemAddr int, itemId string, itemGroup uint8) Frame {
-	itemIndex := numbers.ReadU8(handle, uintptr(itemAddr+0xF4))
+func readFrame(handle w32.HANDLE, itemAddr int, itemId string, itemGroup, itemIndex uint8) Frame {
 	weaponIndex := getWeaponIndex(handle, itemGroup-1, itemIndex, 0x04, 32)
 	weapon := Frame{
 		Id:    itemId,
@@ -224,8 +259,7 @@ func (f Frame) String() string {
 	return fmt.Sprintf("%v [%v|%v] [%vs]", f.Name, f.Dfp, f.Evp, f.Slots)
 }
 
-func readBarrier(handle w32.HANDLE, itemAddr int, itemId string, itemGroup uint8) Frame {
-	itemIndex := numbers.ReadU8(handle, uintptr(itemAddr+0xF4))
+func readBarrier(handle w32.HANDLE, itemAddr int, itemId string, itemGroup, itemIndex uint8) Frame {
 	weaponIndex := getWeaponIndex(handle, itemGroup-1, itemIndex, 0x04, 32)
 	weapon := Frame{
 		Id:   itemId,
@@ -236,8 +270,7 @@ func readBarrier(handle w32.HANDLE, itemAddr int, itemId string, itemGroup uint8
 	return weapon
 }
 
-func readUnit(handle w32.HANDLE, itemAddr int, itemId string) Frame {
-	itemIndex := numbers.ReadU8(handle, uintptr(itemAddr+0xF4))
+func readUnit(handle w32.HANDLE, itemAddr int, itemIndex uint8, itemId string) Frame {
 	weaponIndex := getWeaponIndex(handle, 0, itemIndex, 0x08, 20)
 	weapon := Frame{
 		Id:   itemId,
@@ -397,4 +430,38 @@ func getWeaponSpecial(specialId uint8) string {
 		specialName = "Demon's"
 	}
 	return specialName
+}
+
+func addConsumableToInventory(inventory *Inventory, group, index, count uint8) {
+	switch group {
+	case 0:
+		switch index {
+		case 0:
+			inventory.Monomate = count
+		case 1:
+			inventory.Dimate = count
+		case 2:
+			inventory.Trimate = count
+		}
+	case 1:
+		switch index {
+		case 0:
+			inventory.Monofluid = count
+		case 1:
+			inventory.Difluid = count
+		case 2:
+			inventory.Trifluid = count
+		}
+	case 3:
+		inventory.Sol = count
+	case 4:
+		inventory.Moon = count
+	case 5:
+		inventory.Star = count
+	//case 6:
+	// 0 - antidote
+	// 1 - antipara
+	case 7:
+		inventory.Pipe = count
+	}
 }
