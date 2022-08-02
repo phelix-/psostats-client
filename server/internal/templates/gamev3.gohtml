@@ -115,15 +115,15 @@
                     {{ end }}
                 </ul>
                 {{if gt (len $game.TechsCast) 0}}
-                <ul class="list-group list-group-flush" style="margin-bottom: 4px">
-                    {{ range $group := .TechsInOrder }}
-                        <li class="list-group-item">
-                            {{ range $tech := $group }}
-                                <span class="techs-cast-item"><img alt="{{ $tech }}" src="/static/icons/{{ $tech }}_icon.png"/><span style="margin-left: 8px">{{if index $game.TechsCast $tech  }} {{ index $game.TechsCast $tech }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
-                            {{ end }}
-                        </li>
-                    {{ end }}
-                </ul>
+                    <ul class="list-group list-group-flush" style="margin-bottom: 4px">
+                        {{ range $group := .TechsInOrder }}
+                            <li class="list-group-item">
+                                {{ range $tech := $group }}
+                                    <span class="techs-cast-item"><img alt="{{ $tech }}" src="/static/icons/{{ $tech }}_icon.png"/><span style="margin-left: 8px">{{if index $game.TechsCast $tech  }} {{ index $game.TechsCast $tech }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                                {{ end }}
+                            </li>
+                        {{ end }}
+                    </ul>
                 {{ end }}
                 <ul class="list-group list-group-flush" style="margin-bottom: 4px">
                     {{ if gt (index $game.DataFrames 0).FT 0 }}
@@ -174,12 +174,12 @@
             </div>
         </div>
         {{ range $i, $mapData := .MapData }}
-        <div class="row">
-            <div class="col">
-                <h4 class="psostats-equipment">{{ .MapName }}</h4>
-                <div id="map{{$i}}{{.MapNum}}_{{.MapVariation}}" class="map"></div>
+            <div class="row">
+                <div class="col">
+                    <h4 class="psostats-equipment">{{ .MapName }}</h4>
+                    <div id="map{{$i}}{{.MapNum}}_{{.MapVariation}}" class="map"></div>
+                </div>
             </div>
-        </div>
         {{ end }}
     </div>
     </body>
@@ -212,6 +212,36 @@
             },
         };
 
+        function playerStateName(state) {
+            switch (state) {
+                case "1":return "Standing";
+                case "2": return "Walking";
+                case "4": return "Running";
+                case "5": return "Attacking";
+                case "6": return "Attacking";
+                case "7": return "Attacking";
+                case "8": return "Casting";
+                case "10": return "Recoil";
+                case "14": return "Knocked Down";
+                case "15": return "Dead";
+                case "18": return "Reviving";
+                case "20": return "Teleporting";
+                case "23": return "Emoting";
+            }
+            return "State " + state;
+        }
+        const weapons = {
+            {{ range $id, $weapon := $game.Weapons}} "{{$id}}": "{{$weapon.Display}}",
+            {{ end }}
+        }
+        const equippedWeapons = [{{ range $index, $frame := $game.DataFrames }} "{{ $frame.Weapon }}", {{ end }}];
+        const playerState = [{{ range $index, $frame := $game.DataFrames }} "{{ $frame.State}}", {{ end }}]
+
+
+        const afterTitle = (toolTipItems) => {
+            return weapons[equippedWeapons[toolTipItems[0].parsed.x]] + "\n" + playerStateName(playerState[toolTipItems[0].parsed.x]);
+        }
+
         const annotations = window['chartjs-plugin-annotation'];
         Chart.register(annotations)
         const gameTimelineContext = document.getElementById("game-timeline");
@@ -222,17 +252,17 @@
                 labels: [ {{ range $index, $frame := $game.DataFrames }} {{ $index }}, {{ end }} ],
                 datasets: [
                     {{ range $index, $player := .Game.AllPlayers }}
-                        {{ if index $root.HasPov $index}}
-                            {
-                                label: '{{ $player.Name }} HP',
-                                data: [ {{ range (index $root.PlayerDataFrames $index) }} {{ .HP }}, {{ end }} ],
-                                borderColor: 'rgba(255,99,132,1)',
-                                backgroundColor: 'rgba(255, 99, 132, 1)',
-                                yAxisID: 'yHP',
-                                borderWidth: 1,
-                                {{ if eq $player.GuildCard $game.GuildCard }} {{ else }} hidden: true,{{ end }}
-                            },
-                        {{ end }}
+                    {{ if index $root.HasPov $index}}
+                    {
+                        label: '{{ $player.Name }} HP',
+                        data: [ {{ range (index $root.PlayerDataFrames $index) }} {{ .HP }}, {{ end }} ],
+                        borderColor: 'rgba(255,99,132,1)',
+                        backgroundColor: 'rgba(255, 99, 132, 1)',
+                        yAxisID: 'yHP',
+                        borderWidth: 1,
+                        {{ if eq $player.GuildCard $game.GuildCard }} {{ else }} hidden: true,{{ end }}
+                    },
+                    {{ end }}
                     {{ end }}
                     {
                         label: 'Damage Traps',
@@ -333,6 +363,11 @@
                     intersect: false,
                 },
                 plugins: {
+                    tooltip: {
+                        callbacks: {
+                            afterTitle: afterTitle,
+                        }
+                    },
                     legend: {
                         position: 'right',
                     },
@@ -341,9 +376,9 @@
                     },
                     annotation: {
                         annotations: {
-                        {{ range .Game.Events }}{{ if ne .Description "Died"}}
-                        "{{.Description}}": {xMin: {{ .Second }}, xMax: {{ .Second }}, borderColor: "rgba(255,255,255,.5)", borderDash: [2,4], borderWidth: 1, label: { content: '{{ .Description }}', borderWidth: 0, color: 'rgba(255,255,255,0.5)', display: true,}},
-                        {{ end }}{{ end }}
+                            {{ range .Game.Events }}{{ if ne .Description "Died"}}
+                            "{{.Description}}": {xMin: {{ .Second }}, xMax: {{ .Second }}, borderColor: "rgba(255,255,255,.5)", borderDash: [2,4], borderWidth: 1, label: { content: '{{ .Description }}', borderWidth: 0, color: 'rgba(255,255,255,0.5)', display: true,}},
+                            {{ end }}{{ end }}
 
                         }
                     }
@@ -509,7 +544,7 @@
                 }
                 return {
                     icon: icon,
-                        getPopup: function (feature) {
+                    getPopup: function (feature) {
                         return feature.properties.title;
                     }
                 }
