@@ -198,6 +198,7 @@ type FormattedGame struct {
 	NumPlayers   int
 	Episode      int
 	Quest        string
+	Duration     time.Duration
 	Time         string
 	Date         string
 	RelativeDate string

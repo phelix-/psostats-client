@@ -8,6 +8,7 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
         <link href="/static/main2.css" rel="stylesheet" type="text/css">
         <script src='https://code.jquery.com/jquery-1.11.3.min.js'></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.8.2/chart.min.js" integrity="sha512-zjlf0U0eJmSo1Le4/zcZI51ks5SjuQXkU0yOdsOBubjSmio9iCUp8XPLkEAADZNBdR9crRy3cniZ65LF2w8sRA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     </head>
     <style>
@@ -21,7 +22,7 @@
         }
     </style>
     <body>
-    <div class="container">
+    <div class="container-fluid">
         {{ template "navbar" }}
         <div class="row">
             <div class="col">
@@ -42,8 +43,44 @@
                 <div class="psostats-chart">
                     <div class="psostats-chart">
                         <div id="class-donut" ></div>
+                        <canvas id="class-radar"></canvas>
                     </div>
                 </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="row">
+                    <div class="col-1">MAE PBs</div>
+                    <div class="col-1">Forest</div>
+                    <div class="col-1">Cave</div>
+                    <div class="col-1">Mine</div>
+                    <div class="col-1">Ruins</div>
+                    <div class="col-1">Temple</div>
+                    <div class="col-1">Space</div>
+                    <div class="col-1">CCA</div>
+                    <div class="col-1">Seabed</div>
+                    <div class="col-1">Tower</div>
+                    <div class="col-1">Crater</div>
+                    <div class="col-1">Desert</div>
+                </div>
+                <div class="row">
+                    <div class="col-1">{{ .MaeTotal }}</div>
+                    <div class="col-1">{{ index .MaePbs "Maximum Attack E: Forest" }} </div>
+                    <div class="col-1">{{ index .MaePbs "Maximum Attack E: Caves" }} </div>
+                    <div class="col-1">{{ index .MaePbs "Maximum Attack E: Mines" }} </div>
+                    <div class="col-1">{{ index .MaePbs "Maximum Attack E: Ruins" }} </div>
+                    <div class="col-1">{{ index .MaePbs "Maximum Attack E: Temple" }} </div>
+                    <div class="col-1">{{ index .MaePbs "Maximum Attack E: Space" }} </div>
+                    <div class="col-1">{{ index .MaePbs "Maximum Attack E: CCA" }} </div>
+                    <div class="col-1">{{ index .MaePbs "Maximum Attack E: Seabed" }} </div>
+                    <div class="col-1">{{ index .MaePbs "Maximum Attack E: Tower" }} </div>
+                    <div class="col-1">{{ index .MaePbs "Maximum Attack E: Crater" }} </div>
+                        <div class="col-1">{{ index .MaePbs "Maximum Attack E: Desert" }} </div>
+                </div>
+                <ul class="list-group list-group-flush" style="margin-bottom: 4px;">
+                    <li class="list-group-item">MAE: <div style="display: inline-block;">hi</div></li>
+                </ul>
             </div>
         </div>
         <div class="row">
@@ -168,6 +205,36 @@
                 }
             },
         };
+        const classRadarContext = document.getElementById("class-radar")
+        const classRadar = new Chart(classRadarContext, {
+            type: 'radar',
+                data: {
+                    labels: [
+                        "HUmar", "HUnewearl", "HUcast", "HUcaseal",
+                        "RAmar", "RAmarl", "RAcast", "RAcaseal",
+                        "FOmar", "FOmarl", "FOnewm", "FOnewearl"
+                    ],
+                    datasets: [
+                        {
+                            label: "Usage",
+                            data: [
+                                {{ .Classes.HUmar }},{{ .Classes.HUnewearl }},{{ .Classes.HUcast }},{{ .Classes.HUcaseal }},
+                                {{ .Classes.RAmar }},{{ .Classes.RAmarl }},{{ .Classes.RAcast }},{{ .Classes.RAcaseal }},
+                                {{ .Classes.FOmar }},{{ .Classes.FOmarl }},{{ .Classes.FOnewm }},{{ .Classes.FOnewearl }},
+                            ]
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                        plugins: {
+                        title: {
+                            display: true,
+                                text: 'Classes'
+                        }
+                    }
+                },
+        });
         const classDonutOptions = {
             series: [{
                 data: [

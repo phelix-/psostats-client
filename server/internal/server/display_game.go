@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/phelix-/psostats/v2/pkg/model"
 	"github.com/phelix-/psostats/v2/server/internal/db"
@@ -94,6 +95,13 @@ func (s *Server) GamePageV3(c *fiber.Ctx) error {
 				totalActions = actions
 			}
 		}
+		timeByState := make(map[string]TimeAndStateDisplay)
+		for _, frame := range game.DataFrames {
+			nameForState := getNameForState(frame.State)
+			currentValue := timeByState[nameForState.Display]
+			nameForState.Time = 1 + currentValue.Time
+			timeByState[nameForState.Display] = nameForState
+		}
 
 		model := struct {
 			Game                 model.QuestRun
@@ -124,8 +132,10 @@ func (s *Server) GamePageV3(c *fiber.Ctx) error {
 			FormattedTimeCasting string
 			MapData              []MapData
 			PlayerIndex          int
+			SubmittedTime        int64
 			TechsInOrder         [][]string
 			MostActions          int
+			TimeByState          map[string]TimeAndStateDisplay
 			PlayerDataFrames     map[int][]model.DataFrame
 		}{
 			Game:      *game,
@@ -160,6 +170,7 @@ func (s *Server) GamePageV3(c *fiber.Ctx) error {
 			FormattedTimeCasting: formatDuration(time.Duration(timeCasting) * (time.Second / 30)),
 			MapData:              formatMap(game, game.DataFrames),
 			PlayerIndex:          playerIndex,
+			SubmittedTime:        game.SubmittedTime.UnixMilli(),
 			TechsInOrder: [][]string{
 				{"Foie", "Zonde", "Barta"},
 				{"Gifoie", "Gizonde", "Gibarta"},
@@ -170,6 +181,7 @@ func (s *Server) GamePageV3(c *fiber.Ctx) error {
 				{"Jellen", "Zalure"}},
 			MostActions:      totalActions,
 			PlayerDataFrames: playerDataFrames,
+			TimeByState:      timeByState,
 		}
 		funcMap := template.FuncMap{
 			"add": func(a, b int) int { return a + b },
@@ -179,6 +191,38 @@ func (s *Server) GamePageV3(c *fiber.Ctx) error {
 	}
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
+}
+
+func getNameForState(state uint16) TimeAndStateDisplay {
+	switch state {
+	case 1:
+		return TimeAndStateDisplay{Display: "Standing", Color: "rgba(255,255,255,.3)"}
+	case 2:
+		return TimeAndStateDisplay{Display: "Walking", Color: "rgba(122,255,122,0.3)"}
+	case 4:
+		return TimeAndStateDisplay{Display: "Running", Color: "rgba(122, 255, 122, 0.5)"}
+	case 5:
+		return TimeAndStateDisplay{Display: "Attacking", Color: "rgba(255, 122, 122, 0.5)"}
+	case 6:
+		return TimeAndStateDisplay{Display: "Attacking", Color: "rgba(255, 122, 122, 0.5)"}
+	case 7:
+		return TimeAndStateDisplay{Display: "Attacking", Color: "rgba(255, 122, 122, 0.5)"}
+	case 8:
+		return TimeAndStateDisplay{Display: "Casting", Color: "rgba(122, 122, 255, 0.5)"}
+	case 10:
+		return TimeAndStateDisplay{Display: "Recoil", Color: "rgba(255,255,255,1)"}
+	case 14:
+		return TimeAndStateDisplay{Display: "Knocked Down", Color: "rgba(255,255,255,1)"}
+	case 15:
+		return TimeAndStateDisplay{Display: "Dead", Color: "rgba(0,0,0,0.3)"}
+	case 18:
+		return TimeAndStateDisplay{Display: "Reviving", Color: "rgba(255,255,255,1)"}
+	case 20:
+		return TimeAndStateDisplay{Display: "Teleporting", Color: "rgba(255,255,255,1)"}
+	case 23:
+		return TimeAndStateDisplay{Display: "Emoting", Color: "rgba(255,255,255,1)"}
+	}
+	return TimeAndStateDisplay{Display: fmt.Sprintf("State %d", state), Color: "white"}
 }
 
 func getSectionId(questRun *model.QuestRun) string {
@@ -207,4 +251,10 @@ func getSectionId(questRun *model.QuestRun) string {
 		sectionIdString = "Whitill"
 	}
 	return sectionIdString
+}
+
+type TimeAndStateDisplay struct {
+	Time    int
+	Display string
+	Color   string
 }
