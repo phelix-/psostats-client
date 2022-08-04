@@ -132,7 +132,6 @@ func (s *Server) GamePageV3(c *fiber.Ctx) error {
 			FormattedTimeCasting string
 			MapData              []MapData
 			PlayerIndex          int
-			SubmittedTime        int64
 			TechsInOrder         [][]string
 			MostActions          int
 			TimeByState          map[string]TimeAndStateDisplay
@@ -170,7 +169,6 @@ func (s *Server) GamePageV3(c *fiber.Ctx) error {
 			FormattedTimeCasting: formatDuration(time.Duration(timeCasting) * (time.Second / 30)),
 			MapData:              formatMap(game, game.DataFrames),
 			PlayerIndex:          playerIndex,
-			SubmittedTime:        game.SubmittedTime.UnixMilli(),
 			TechsInOrder: [][]string{
 				{"Foie", "Zonde", "Barta"},
 				{"Gifoie", "Gizonde", "Gibarta"},
