@@ -96,6 +96,18 @@
         .psostats-map-row {
             flex-grow: 1;
         }
+        li.psostats-weapon {
+            height: 30px;
+        }
+        .psostats-weapon > .usage-bar {
+            height: 29px;
+            margin-top: -27px;
+            margin-bottom: -8px;
+            display: inline-block;
+        }
+        .psostats-weapon > .usage-bar:first-of-type {
+            margin-left: -16px;
+        }
     </style>
     <body>
     <div class="container-fluid">
@@ -129,20 +141,19 @@
                         {{ end }}
                     </ul>
                     <div class="psostats-chart">
-                        <canvas id="time-spent-donut"></canvas>
-                        <div id="time-spent-legend"></div>
-                    </div>
-                </div>
-                <div class="psostats-questbasics">
-                    <div class="psostats-chart">
-                        <h4 class="psostats-equipment">{{ .Game.PlayerName}}'s Equipment</h4>
-                        {{ if gt (len .Weapons) 0 }}
-                            <canvas id="weapon-donut" width="250px" style="width: 250px"></canvas>
-                            <div id="weapon-donut-legend" ></div>
+                        {{ range .TimeByState }}
+                            <li class="list-group-item psostats-weapon">
+                                <div class="usage-bar" style="background-color: {{.Color}}; width: {{.PercentTime}}%;"></div><div class="usage-bar" style="width: {{.PercentRest}}%;margin-right:-100%;"></div><div style="font-size:12px;display:inline-block;margin-left:8px;margin-top:-24px">{{.Display}} - {{.Time}}s</div></li>
                         {{ end }}
                     </div>
                 </div>
                 <div class="psostats-questbasics">
+                    <ul class="list-group list-group-flush" style="margin-bottom: 4px">
+                        {{ range .SortedWeapons }}
+                            <li class="list-group-item psostats-weapon">
+                                <div class="usage-bar" style="background-color: rgba(255,100,100,0.3); width: {{.Attacks}}%;"></div><div class="usage-bar" style="background-color: rgba(120,120,255,0.5); width: {{.Techs}}%;"></div><div class="usage-bar" style="width: {{.Rest}}%;margin-right:-100%;"></div><div style="font-size:12px;display:inline-block;margin-left:8px;margin-top:-24px">{{.Display}}</div></li>
+                        {{ end }}
+                    </ul>
                     <div class="psostats-chart">
                         <div class="psostats-equipment">
                             {{ range .Frames }} <div><img alt="Frame" src="/static/Frame_icon.png"/> {{ .Display }}</div>{{ end}}
@@ -151,6 +162,9 @@
                             {{ range .Mags }} <div><img alt="Mag" src="/static/Mag_icon.png"/> {{ .Display }}</div> {{ end}}
                         </div>
                     </div>
+                </div>
+                <div class="psostats-questbasics">
+
                     <ul class="list-group list-group-flush" style="margin-bottom: 4px">
                         {{ if gt (index $game.DataFrames 0).FT 0 }}
                             <li class="list-group-item">
@@ -536,56 +550,6 @@
                 });
             }
         };
-
-        const weaponDonutContext = document.getElementById("weapon-donut")
-        const weaponDonutChart = new Chart(weaponDonutContext, {
-            type: "doughnut",
-            data: {
-                labels: [ {{ range .Weapons }} "{{ .Display }}", {{ end }}],
-                datasets: [
-                    {
-                        data: [ {{ range .Weapons }} {{ .Attacks }}, {{ end }}],
-                        backgroundColor: [ {{ range $name,$count := .TimeByState }} "{{ $count.Color }}", {{ end }} ],
-                    }
-                ]
-            },
-            options: {
-                plugins: {
-                    htmlLegend: {
-                        containerID: "weapon-donut-legend"
-                    },
-                    legend: {
-                        display: false,
-                    }
-                }
-            },
-            plugins: [htmlLegendPlugin],
-        });
-        const timeSpentDonutContext = document.getElementById("time-spent-donut")
-        const timeSpentDonutChart = new Chart(timeSpentDonutContext, {
-            type: "doughnut",
-            data: {
-                labels: [ {{ range $name,$count := .TimeByState }} "{{ $name }}", {{ end }}],
-                datasets: [
-                    {
-                        data: [ {{ range $name,$count := .TimeByState }} "{{ $count.Time }}", {{ end }} ],
-                        backgroundColor: [ {{ range $name,$count := .TimeByState }} "{{ $count.Color }}", {{ end }} ],
-                    }
-                ]
-            },
-            options: {
-                plugins: {
-                    htmlLegend: {
-                        containerID: "time-spent-legend",
-                    },
-                    legend: {
-                        display: false,
-                    }
-                }
-            },
-            plugins: [htmlLegendPlugin],
-        });
-
 
         {{ if gt (len .MapData) 0 }}
         const mapImages = {

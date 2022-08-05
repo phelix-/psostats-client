@@ -5,6 +5,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/phelix-/psostats/v2/pkg/model"
 	"github.com/phelix-/psostats/v2/server/internal/db"
+	"sort"
 	"strconv"
 	"text/template"
 	"time"
@@ -95,13 +96,51 @@ func (s *Server) GamePageV3(c *fiber.Ctx) error {
 				totalActions = actions
 			}
 		}
-		timeByState := make(map[string]TimeAndStateDisplay)
+		mostTime := 0
+		timeByStateMap := make(map[string]TimeAndStateDisplay)
 		for _, frame := range game.DataFrames {
 			nameForState := getNameForState(frame.State)
-			currentValue := timeByState[nameForState.Display]
+			currentValue := timeByStateMap[nameForState.Display]
 			nameForState.Time = 1 + currentValue.Time
-			timeByState[nameForState.Display] = nameForState
+			timeByStateMap[nameForState.Display] = nameForState
 		}
+		for _, state := range timeByStateMap {
+			if state.Time > mostTime {
+				mostTime = state.Time
+			}
+		}
+		timeByState := make([]TimeAndStateDisplay, 0)
+		for _, state := range timeByStateMap {
+			percentTime := state.Time * 100 / mostTime
+			timeByState = append(timeByState, TimeAndStateDisplay{
+				Time:        state.Time,
+				PercentTime: percentTime,
+				PercentRest: 100 - percentTime,
+				Display:     state.Display,
+				Color:       state.Color,
+			})
+		}
+		sort.Slice(timeByState, func(i, j int) bool {
+			return timeByState[i].Time > timeByState[j].Time
+		})
+
+		weaponDisplay := make([]WeaponDisplay, 0)
+		for _, weapon := range game.Weapons {
+			if weapon.Attacks > 0 || weapon.Techs > 0 {
+				attacks := weapon.Attacks * 100 / totalActions
+				techs := weapon.Techs * 100 / totalActions
+				rest := 100 - attacks - techs
+				weaponDisplay = append(weaponDisplay, WeaponDisplay{
+					Display: weapon.Display,
+					Attacks: attacks,
+					Techs:   techs,
+					Rest:    rest,
+				})
+			}
+		}
+		sort.Slice(weaponDisplay, func(i, j int) bool {
+			return weaponDisplay[i].Rest < weaponDisplay[j].Rest
+		})
 
 		model := struct {
 			Game                 model.QuestRun
@@ -134,8 +173,9 @@ func (s *Server) GamePageV3(c *fiber.Ctx) error {
 			PlayerIndex          int
 			TechsInOrder         [][]string
 			MostActions          int
-			TimeByState          map[string]TimeAndStateDisplay
+			TimeByState          []TimeAndStateDisplay
 			PlayerDataFrames     map[int][]model.DataFrame
+			SortedWeapons        []WeaponDisplay
 		}{
 			Game:      *game,
 			SectionId: getSectionId(game),
@@ -180,6 +220,7 @@ func (s *Server) GamePageV3(c *fiber.Ctx) error {
 			MostActions:      totalActions,
 			PlayerDataFrames: playerDataFrames,
 			TimeByState:      timeByState,
+			SortedWeapons:    weaponDisplay,
 		}
 		funcMap := template.FuncMap{
 			"add": func(a, b int) int { return a + b },
@@ -213,6 +254,8 @@ func getNameForState(state uint16) TimeAndStateDisplay {
 		return TimeAndStateDisplay{Display: "Knocked Down", Color: "rgba(255,255,255,1)"}
 	case 15:
 		return TimeAndStateDisplay{Display: "Dead", Color: "rgba(0,0,0,0.3)"}
+	case 16:
+		return TimeAndStateDisplay{Display: "Cutscene", Color: "rgba(255,255,0,.5)"}
 	case 18:
 		return TimeAndStateDisplay{Display: "Reviving", Color: "rgba(255,255,255,1)"}
 	case 20:
@@ -252,7 +295,16 @@ func getSectionId(questRun *model.QuestRun) string {
 }
 
 type TimeAndStateDisplay struct {
-	Time    int
+	Time        int
+	PercentTime int
+	PercentRest int
+	Display     string
+	Color       string
+}
+
+type WeaponDisplay struct {
 	Display string
-	Color   string
+	Attacks int
+	Techs   int
+	Rest    int
 }
