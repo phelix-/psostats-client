@@ -3,7 +3,10 @@ package server
 import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
+	"github.com/phelix-/psostats/v2/pkg/model"
+	"github.com/phelix-/psostats/v2/pkg/psoclasses"
 	"github.com/phelix-/psostats/v2/server/internal/db"
+	"log"
 	"sort"
 	"strconv"
 	"strings"
@@ -12,23 +15,111 @@ import (
 
 func (s *Server) Anniv2022RecordsPage(c *fiber.Ctx) error {
 	overallCounters, questCounters := s.getCounters()
-
+	records, err := db.GetQuestRecords(db.Anniv2021RecordsTable, s.dynamoClient)
+	if err != nil {
+		log.Printf("get recent games %v", err)
+		c.Status(500)
+		return err
+	}
+	recordHistory, err := db.GetQuestRecords(db.AnnivRecordHistory, s.dynamoClient)
+	sortedRecordHistory := s.sortRecordHistory(recordHistory)
+	sortedRecs := sortAnnivGames(records)
 	recordModel := struct {
-		QuestNames     []string
-		TopLaps        []AnniversaryTimes
-		OverallCounter QuestCounters
-		QuestCounters  map[string]QuestCounters
+		QuestNames      []string
+		QuestShortNames []string
+		TopLaps         []AnniversaryTimes
+		OverallCounter  QuestCounters
+		QuestCounters   map[string]QuestCounters
+		Records         map[string]map[string]model.FormattedGame
+		Classes         []psoclasses.PsoClass
+		SectionIds      []string
+		RecordHistory   map[string][]RecordHistoryPoint
 	}{
-		QuestNames:     s.anniversaryNamesInOrder,
+		QuestNames: s.anniversaryNamesInOrder,
+		QuestShortNames: []string{"Forest",
+			"Caves",
+			"Mines",
+			"Ruins",
+			"Temple",
+			"Space",
+			"CCA",
+			"Seabed",
+			"Tower",
+			"Crater",
+			"Desert"},
 		TopLaps:        s.getTopLaps(),
 		OverallCounter: overallCounters,
 		QuestCounters:  questCounters,
+		Records:        sortedRecs,
+		Classes:        psoclasses.GetAll(),
+		SectionIds: []string{
+			"Viridia",
+			"Greenill",
+			"Skyly",
+			"Bluefull",
+			"Purplenum",
+			"Pinkal",
+			"Redria",
+			"Oran",
+			"Yellowboze",
+			"Whitill",
+		},
+		RecordHistory: sortedRecordHistory,
 	}
 
 	s.anniversary2022Template = ensureParsed("./server/internal/templates/anniv2022.gohtml")
-	err := s.anniversary2022Template.ExecuteTemplate(c.Response().BodyWriter(), "index", recordModel)
+	err = s.anniversary2022Template.ExecuteTemplate(c.Response().BodyWriter(), "index", recordModel)
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
+}
+
+func sortAnnivGames(games []model.Game) map[string]map[string]model.FormattedGame {
+	recordModel := make(map[string]map[string]model.FormattedGame)
+	for _, game := range games {
+		formattedGame := getFormattedGame(game)
+
+		gamesForQuest := recordModel[game.Quest]
+		if gamesForQuest == nil {
+			gamesForQuest = make(map[string]model.FormattedGame)
+		}
+		gamesForQuest[game.Category] = formattedGame
+		recordModel[game.Quest] = gamesForQuest
+	}
+	return recordModel
+}
+
+func (s *Server) sortRecordHistory(games []model.Game) map[string][]RecordHistoryPoint {
+	sort.Slice(games, func(i, j int) bool {
+		return games[i].Timestamp.Before(games[j].Timestamp)
+	})
+	gamesByQuest := make(map[string][]RecordHistoryPoint)
+	for _, quest := range s.anniversaryNamesInOrder {
+		gamesByQuest[quest] = make([]RecordHistoryPoint, 0)
+	}
+	for i, game := range games {
+		gamesForQuest := gamesByQuest[game.Quest]
+		nextGame := RecordHistoryPoint{Time: game.Timestamp}
+		if len(gamesForQuest) > 0 {
+			lastGame := gamesForQuest[len(gamesForQuest)-1]
+			nextGame.P1 = lastGame.P1
+			nextGame.P2 = lastGame.P2
+			nextGame.P3 = lastGame.P3
+			nextGame.P4 = lastGame.P4
+		}
+		switch game.Category {
+		case "1n":
+			nextGame.P1 = &games[i]
+		case "2n":
+			nextGame.P2 = &games[i]
+		case "3n":
+			nextGame.P3 = &games[i]
+		case "4n":
+			nextGame.P4 = &games[i]
+		}
+		gamesForQuest = append(gamesForQuest, nextGame)
+		gamesByQuest[game.Quest] = gamesForQuest
+	}
+	return gamesByQuest
 }
 
 func (s *Server) getCounters() (QuestCounters, map[string]QuestCounters) {
@@ -181,10 +272,10 @@ func (s *Server) getTopLaps() []AnniversaryTimes {
 	for _, times := range anniversaryTimes {
 		for i, questName := range s.anniversaryNamesInOrder {
 			if times.individualTimes[i] == questWorst[questName] {
-				times.Colors[i] = "rgba(255,0,0,.3)"
+				times.Colors[i] = "rgba(255,150,150,0.1)"
 			}
 			if times.individualTimes[i] == questBest[questName] {
-				times.Colors[i] = "rgba(0,255,0,.3)"
+				times.Colors[i] = "rgba(150,255,150,0.1)"
 			}
 		}
 	}
@@ -219,4 +310,12 @@ type QuestCounters struct {
 	Players            map[int]int64
 	Shifta             map[int]int64
 	RunsByDay          map[time.Time]int64
+}
+
+type RecordHistoryPoint struct {
+	Time time.Time
+	P1   *model.Game
+	P2   *model.Game
+	P3   *model.Game
+	P4   *model.Game
 }

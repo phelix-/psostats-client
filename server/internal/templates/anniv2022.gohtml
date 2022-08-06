@@ -47,11 +47,11 @@
             </div>
         </div>
 
-        <div class="row psostats-chart">
-            <div class="col-12" style="height: 400px; width: 400px">
-                <canvas id="overall-class-use"></canvas>
-            </div>
-        </div>
+{{/*        <div class="row psostats-chart">*/}}
+{{/*            <div class="col-12" style="height: 400px; width: 400px">*/}}
+{{/*                <canvas id="overall-class-use"></canvas>*/}}
+{{/*            </div>*/}}
+{{/*        </div>*/}}
 
         <div class="row episode-header">
             <div class="col">
@@ -60,7 +60,6 @@
         </div>
 
         <div class="row psostats-chart">
-
             <div class="col-12">
                 <table class="table table-dark">
                     <thead>
@@ -89,6 +88,53 @@
                     {{ end }}
                 </table>
             </div>
+        </div>
+
+        <div class="row psostats-chart">
+            {{ range $questIndex,$quest := .QuestNames }}
+                {{ $questMap := (index $root.Records $quest) }}
+                {{ $counters := (index $root.QuestCounters $quest)}}
+                <div class="col-12 episode-header">
+                    <div class="col">
+                        <h2>{{$quest}} - {{$counters.Runs}} Games</h2>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                <div class="row">
+                    {{ range $category, $game := $questMap }}
+                        <div class="col-6 col-sm-3 mt-3">
+                            <h3>{{$category}}<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/><a href="/gamev3/{{$game.Id}}">{{$game.Time}}</a></h3>
+                            {{ range $index,$player := $game.Players }}
+                                <div><span style="width:85px; display: inline-block">{{$player.Class}}</span>{{$player.Name}}</div>
+                            {{ end }}
+                        </div>
+                    {{ end }}
+                </div>
+                </div>
+                    <div class="col-12">
+                        <canvas id="{{index $root.QuestShortNames $questIndex}}-record-history"></canvas>
+                    </div>
+                <div class="col-sm-4">
+                    <canvas id="{{index $root.QuestShortNames $questIndex}}-class-use"></canvas>
+                </div>
+                <div class="col-sm-4">
+                    <canvas id="{{index $root.QuestShortNames $questIndex}}-sid-use"></canvas>
+                </div>
+
+                <div class="col-sm-3">
+                        <table class="table table-dark">
+                            <tr>
+                                <th scope="row">Meseta Charged</th>
+                                <td>{{$counters.MesetaCharged}}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Deaths</th>
+                                <td>{{$counters.Deaths}}</td>
+                            </tr>
+                        </table>
+                    </div>
+            {{ end }}
         </div>
     </div>
     </body>
@@ -135,39 +181,79 @@
                 }
             }
         });
-        const overallClassContext = document.getElementById("overall-class-use");
-        const overallClassChart = new Chart(overallClassContext, {
+        const classLabels = [ "HUmr", "HUnl", "HUct", "HUcl", "RAmr", "RAml", "RAct", "RAcl", "FOmr", "FOml", "FOnm", "FOnl"];
+        const sectionIdLabels = ["Viridia", "Greenill", "Skyly", "Bluefull", "Purplenum", "Pinkal", "Redria", "Oran", "Yellowboze", "Whitill",];
+        const sectionIdColors = ["#017203", "#11DC11", "#00E7E6", "#0001E9", "#AC3AE7", "#E69293", "#E90002", "#E67300", "#E8E700", "#E8E8E8",]
+        const classColors = ["#ff0028", "#ff7e8a", "#6b1e31", "#803442", "#48ff00", "#7eff80", "#346b1e", "#3e8034", "#0059ff", "#7eb2ff", "#1e4b6b", "#345a80",];
+        const overallClassUse = [{{ range $root.Classes }}{{index $root.OverallCounter.ClassUse .Name}}, {{ end }}]
+        const questClassUse = {
+            {{ range $quest,$counters := $root.QuestCounters }}"{{$quest}}": [{{ range $root.Classes}}{{index $counters.ClassUse .Name}}, {{ end }}],
+            {{ end }}
+        }
+        const questSidUse = {
+            {{ range $quest,$counters := $root.QuestCounters }}"{{$quest}}": [{{ range $root.SectionIds}}{{index $counters.SID .}}, {{ end }}],
+            {{ end }}
+        }
+
+
+        {{ range $questIndex,$questName := $root.QuestNames }}
+        {{$shortName := (index $root.QuestShortNames $questIndex)}}
+        const {{$shortName}}RecContext = document.getElementById("{{$shortName}}-record-history");
+        new Chart({{$shortName}}RecContext, {
+            type: "line",
+            data: {
+                labels: [{{ range (index $root.RecordHistory $questName)}} {{ .Time.UnixMilli }}, {{ end }}],
+                datasets: [
+                    {label: "1P", data: [{{ range (index $root.RecordHistory $questName)}} {{ if .P1 }} {{ .P1.Time.Seconds }} {{ else }} 0 {{ end }}, {{ end }}], borderColor: "rgba(255,100,100,0.5)",backgroundColor: "rgba(255,100,100,0.5)", stepped: true},
+                    {label: "2P", data: [{{ range (index $root.RecordHistory $questName)}} {{ if .P2 }} {{ .P2.Time.Seconds }} {{ else }} 0 {{ end }}, {{ end }}], borderColor: "rgba(255,255,100,0.5)",backgroundColor: "rgba(255,255,100,0.5)", stepped: true},
+                    {label: "3P", data: [{{ range (index $root.RecordHistory $questName)}} {{ if .P3 }} {{ .P3.Time.Seconds }} {{ else }} 0 {{ end }}, {{ end }}], borderColor: "rgba(100,100,255,0.5)",backgroundColor: "rgba(100,100,255,0.5)", stepped: true},
+                    {label: "4P", data: [{{ range (index $root.RecordHistory $questName)}} {{ if .P4 }} {{ .P4.Time.Seconds }} {{ else }} 0 {{ end }}, {{ end }}], borderColor: "rgba(100,255,100,0.5)",backgroundColor: "rgba(100,255,100,0.5)", stepped: true},
+                ],
+            },  options: {
+                interaction: {
+                    mode: 'index', intersect: false,
+                },
+                responsive: true,
+                plugins: {title: {display: false}}
+            }, scales: { y: {min: 0, max: 21,
+                    type: 'linear',}},
+        });
+
+        const {{$shortName}}ClassContext = document.getElementById("{{$shortName}}-class-use");
+        new Chart({{$shortName}}ClassContext, {
             type: "pie",
             data: {
-                labels: [ "HUmr", "HUnl", "HUct", "HUcl", "RAmr", "RAml", "RAct", "RAcl", "FOmr", "FOml", "FOnm", "FOnl"],
-                datasets: [{
-                    data: [ {{ index .OverallCounter.ClassUse "HUmar" }},
-                        {{ index .OverallCounter.ClassUse "HUnewearl" }},
-                        {{ index .OverallCounter.ClassUse "HUcast" }},
-                        {{ index .OverallCounter.ClassUse "HUcaseal" }},
-                        {{ index .OverallCounter.ClassUse "RAmar" }},
-                        {{ index .OverallCounter.ClassUse "RAmarl" }},
-                        {{ index .OverallCounter.ClassUse "RAcast" }},
-                        {{ index .OverallCounter.ClassUse "RAcaseal" }},
-                        {{ index .OverallCounter.ClassUse "FOmar" }},
-                        {{ index .OverallCounter.ClassUse "FOmarl" }},
-                        {{ index .OverallCounter.ClassUse "FOnewm" }},
-                        {{ index .OverallCounter.ClassUse "FOnewearl"}}
-                    ],
-                    backgroundColor: ["#ff0028", "#ff7e8a", "#6b1e31", "#803442", "#48ff00", "#7eff80", "#346b1e", "#3e8034", "#0059ff", "#7eb2ff", "#1e4b6b", "#345a80",],
-                }]
-
+                labels: classLabels,
+                datasets: [{data: questClassUse["{{$questName}}"], backgroundColor: classColors,}]
             },  options: {
                 responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                    title: {
-                        display: false,
-                    }
-                }
+                plugins: {title: {display: false}}
             },
         });
+        const {{$shortName}}SidContext = document.getElementById("{{$shortName}}-sid-use");
+        new Chart({{$shortName}}SidContext, {
+            type: "pie",
+            data: {
+                labels: sectionIdLabels,
+                datasets: [{data: questSidUse["{{$questName}}"], backgroundColor: sectionIdColors,}]
+            },  options: {
+                responsive: true,
+                plugins: {title: {display: false}}
+            },
+        });
+
+        {{ end }}
+
+        // const overallClassContext = document.getElementById("overall-class-use");
+        // const overallClassChart = new Chart(overallClassContext, {
+        //     type: "pie",
+        //     data: {
+        //         labels: classLabels,
+        //         datasets: [{data: overallClassUse, backgroundColor: classColors,}]
+        //     },  options: {
+        //         responsive: true,
+        //         plugins: {title: {display: false}}
+        //     },
+        // });
     </script>
 {{end}}

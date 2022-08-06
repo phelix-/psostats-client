@@ -38,7 +38,11 @@
         a.list-group-item {
             color: #abcdff;
         }
-        .map { height: calc(100% - 40px); }
+        .map {
+            min-height: 400px;
+            min-width: 400px;
+            height: calc(100% - 40px);
+        }
         .leaflet-container {
             background: #181818;
         }
@@ -243,17 +247,18 @@
                 <canvas id="game-timeline"></canvas>
             </div>
         </div>
-        {{ range $i, $mapData := .MapData }}
+        <div class="row">
+            {{ range $i, $mapData := .MapData }}
             {{ if gt $i 0}}
-            <div class="row">
-                <div class="col">
+                <div class="col-xl-6 col-12">
                     <h4 class="psostats-equipment">{{ .MapName }}</h4>
                     <div id="map{{$i}}{{.MapNum}}_{{.MapVariation}}" class="map"></div>
                 </div>
-            </div>
             {{ end }}
         {{ end }}
-    </div>
+        </div>
+
+        </div>
     </body>
     </html>
     <script>
@@ -374,6 +379,7 @@
                         backgroundColor: 'rgba(255,145,0,0.5)',
                         yAxisID: 'yDamage',
                         // borderWidth: 1,
+                        {{ if eq $player.GuildCard $game.GuildCard }} {{ else }} borderDash: [2,4],{{ end }}
                         {{ if eq $player.GuildCard $game.GuildCard }} {{ else }} hidden: true,{{ end }}
                     },
                     {{ end }}
@@ -446,7 +452,7 @@
                         type: 'linear', display: false,
                     },
                     yShifta: {
-                        suggestedMin: 0, suggestedMax: 21,
+                        suggestedMin: 0, suggestedMax: 31,
                         type: 'linear', display: false,
                     },
                     yMeseta: {

@@ -161,7 +161,7 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 
 func (s *Server) updateAnniv2020Record(questRun model.QuestRun, matchingGame *model.QuestRun) {
 	_, anniversaryQuest := s.anniversaryQuests[questRun.QuestName]
-	if questRun.PbCategory || !anniversaryQuest /*|| questRun.Server != "ephinea"*/ {
+	if questRun.PbCategory || !anniversaryQuest || questRun.Server != "ephinea" {
 		return
 	}
 	numPlayers := len(questRun.AllPlayers)
