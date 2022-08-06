@@ -311,6 +311,7 @@
                         backgroundColor: 'rgba(255, 99, 132, 1)',
                         yAxisID: 'yHP',
                         borderWidth: 1,
+                        {{ if eq $player.GuildCard $game.GuildCard }} {{ else }} borderDash: [2,4],{{ end }}
                         {{ if eq $player.GuildCard $game.GuildCard }} {{ else }} hidden: true,{{ end }}
                     },
                     {{ end }}
@@ -366,6 +367,7 @@
                         backgroundColor: 'rgba(62,128,52, .5)',
                         yAxisID: 'yPB',
                         // borderWidth: 1,
+                        {{ if eq $player.GuildCard $game.GuildCard }} {{ else }} borderDash: [2,4],{{ end }}
                         {{ if eq $player.GuildCard $game.GuildCard }} {{ else }} hidden: true,{{ end }}
                     },
                     {{ end }}
@@ -393,6 +395,7 @@
                         backgroundColor: 'rgba(0,0,0,0.5)',
                         yAxisID: 'yKills',
                         // borderWidth: 1,
+                        {{ if eq $player.GuildCard $game.GuildCard }} {{ else }} borderDash: [2,4],{{ end }}
                         {{ if eq $player.GuildCard $game.GuildCard }} {{ else }} hidden: true,{{ end }}
                     },
                     {{ end }}

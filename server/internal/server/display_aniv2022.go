@@ -67,7 +67,6 @@ func (s *Server) Anniv2022RecordsPage(c *fiber.Ctx) error {
 		RecordHistory: sortedRecordHistory,
 	}
 
-	s.anniversary2022Template = ensureParsed("./server/internal/templates/anniv2022.gohtml")
 	err = s.anniversary2022Template.ExecuteTemplate(c.Response().BodyWriter(), "index", recordModel)
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err

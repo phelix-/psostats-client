@@ -149,7 +149,6 @@ func (s *Server) PlayerV2Page(c *fiber.Ctx) error {
 		}
 		infoModel.RecentGames = append(infoModel.RecentGames, formattedGame)
 	}
-	s.playerTemplate = ensureParsed("./server/internal/templates/playerV2.gohtml")
 	err = s.playerTemplate.ExecuteTemplate(c.Response().BodyWriter(), "player", infoModel)
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
