@@ -178,7 +178,7 @@ func (s *Server) GamePageV3(c *fiber.Ctx) error {
 			SortedWeapons        []WeaponDisplay
 		}{
 			Game:      *game,
-			SectionId: getSectionId(game),
+			SectionId: getSectionIdForQuest(game),
 			HasPov: map[int]bool{
 				0: fullGame.P1Gzip != nil,
 				1: fullGame.P2Gzip != nil,
@@ -266,10 +266,14 @@ func getNameForState(state uint16) TimeAndStateDisplay {
 	return TimeAndStateDisplay{Display: fmt.Sprintf("State %d", state), Color: "white"}
 }
 
-func getSectionId(questRun *model.QuestRun) string {
+func getSectionIdForQuest(questRun *model.QuestRun) string {
 	sectionId := questRun.AllPlayers[0].SectionId
+	return getSectionId(int(sectionId))
+}
+
+func getSectionId(index int) string {
 	sectionIdString := ""
-	switch sectionId {
+	switch index {
 	case 0:
 		sectionIdString = "Viridia"
 	case 1:

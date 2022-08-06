@@ -11,7 +11,6 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
         <link href="/static/main2.css" rel="stylesheet" type="text/css">
         <script src='https://code.jquery.com/jquery-1.11.3.min.js'></script>
-        <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.8.2/chart.min.js" integrity="sha512-zjlf0U0eJmSo1Le4/zcZI51ks5SjuQXkU0yOdsOBubjSmio9iCUp8XPLkEAADZNBdR9crRy3cniZ65LF2w8sRA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/2.0.0/chartjs-plugin-annotation.min.js" integrity="sha512-sLZhA8NE4bIPKMnsROQpJTBKVOQf8ie2GMFVXVfcg90tJ0aNhAWxhPyN0BRjwvZ35dSQF7kSzXtCU11KvWvNwQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
@@ -39,7 +38,7 @@
         a.list-group-item {
             color: #abcdff;
         }
-        .map { height: 40vh; }
+        .map { height: calc(100% - 40px); }
         .leaflet-container {
             background: #181818;
         }
@@ -83,9 +82,14 @@
         .psostats-questbasics {
             display: flex;
             flex-wrap: wrap;
-            width: 300px;
+            width: 100%;
             margin-right: 4px;
-            /*align-items: flex-start;*/
+            align-items: flex-start;
+        }
+        @media screen and (min-width: 660px) {
+            .psostats-questbasics {
+                width: 330px;
+            }
         }
         .psostats-questbasics > * {
             width: 100%;
@@ -101,9 +105,12 @@
         }
         .psostats-weapon > .usage-bar {
             height: 29px;
-            margin-top: -27px;
+            margin-top: -8px;
             margin-bottom: -8px;
             display: inline-block;
+        }
+        @supports (-moz-appearance: none) {
+            .psostats-weapon > .usage-bar { margin-top: -27px; }
         }
         .psostats-weapon > .usage-bar:first-of-type {
             margin-left: -16px;
@@ -111,102 +118,128 @@
     </style>
     <body>
     <div class="container-fluid">
-        {{ template "navbar" }}
-        <div class="row">
-            <div class="flex-container" style="flex-direction: column;">
+        <div class="flex-container">
+            <div class="flex-container" style="width: 1010px; min-height: 50vh; flex-direction: column;">
+                <ul class="nav">
+                    <li class="nav-item">
+                        <img src="/static/egotrap.png" height="48" width="48" alt="PSOStats"/>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Recent</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/records">Records</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/anniv2021">Anniversary</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/info">Info</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/download">Download</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/combo-calculator">Combo Calculator</a>
+                    </li>
+                </ul>
                 <div class="flex-container">
-                    <img alt="{{ .SectionId }}" height="48px" width="48px" src="/static/icons/{{ .SectionId }}.png"/>
-                    &nbsp<h1>{{ .Game.QuestName}}&nbsp;<small class="text-muted">Episode {{ .Game.Episode }} - {{ $game.Difficulty}}</small></h1>
-                </div>
-                <div class="flex-container">
-                    <h2 class="display-6" style="margin-right: 16px">{{ .FormattedQuestTime }}</h2>
-                    <span class="quest-category" style="line-height: 60px">{{ len $game.AllPlayers }}P
-                                        {{ if $game.PbCategory }}
-                                            <img src="/static/twins_cropped.png" height="24px" width="24px" alt="PB" title="PB" style="margin-bottom: 4px"/><span aria-hidden="true" class="invisible-label">PB</span>
-                                        {{ else }}
-                                            <img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/>
-                                        {{ end }}</span>
-                    <span style="line-height: 60px">{{ .Game.QuestStartDate }} by <a href="/players/{{ .Game.UserName }}">{{ .Game.UserName }}</a></span>
-                </div>
-            </div>
-            <div class="flex-container">
-                <div class="psostats-questbasics">
-                    <ul class="list-group list-group-flush" style="margin-bottom: 4px">
-                        {{ range $index, $player := .Game.AllPlayers }}
-                            {{ if index $root.HasPov $index}}
-                                <a href="/gamev3/{{ $game.Id }}/{{ $index }}" class="list-group-item{{ if eq $player.GuildCard $game.GuildCard }} current-player{{ end }}">{{ $player.Class }} (Lv.{{ $player.Level }}) {{ $player.Name }}</a>
-                            {{ else }}
-                                <li class="list-group-item">{{ $player.Class }} (Lv.{{ $player.Level }}) {{ $player.Name }}</li>
-                            {{ end }}
-                        {{ end }}
-                    </ul>
-                    <div class="psostats-chart">
-                        {{ range .TimeByState }}
-                            <li class="list-group-item psostats-weapon">
-                                <div class="usage-bar" style="background-color: {{.Color}}; width: {{.PercentTime}}%;"></div><div class="usage-bar" style="width: {{.PercentRest}}%;margin-right:-100%;"></div><div style="font-size:12px;display:inline-block;margin-left:8px;margin-top:-24px">{{.Display}} - {{.Time}}s</div></li>
-                        {{ end }}
-                    </div>
-                </div>
-                <div class="psostats-questbasics">
-                    <ul class="list-group list-group-flush" style="margin-bottom: 4px">
-                        {{ range .SortedWeapons }}
-                            <li class="list-group-item psostats-weapon">
-                                <div class="usage-bar" style="background-color: rgba(255,100,100,0.3); width: {{.Attacks}}%;"></div><div class="usage-bar" style="background-color: rgba(120,120,255,0.5); width: {{.Techs}}%;"></div><div class="usage-bar" style="width: {{.Rest}}%;margin-right:-100%;"></div><div style="font-size:12px;display:inline-block;margin-left:8px;margin-top:-24px">{{.Display}}</div></li>
-                        {{ end }}
-                    </ul>
-                    <div class="psostats-chart">
-                        <div class="psostats-equipment">
-                            {{ range .Frames }} <div><img alt="Frame" src="/static/Frame_icon.png"/> {{ .Display }}</div>{{ end}}
-                            {{ range .Units }} <div><img alt="Unit" src="/static/Unit_icon.png" style="margin-left: 16px;"/> {{ .Display }}</div> {{ end}}
-                            {{ range .Barriers }} <div><img alt="Barrier" src="/static/Shield_icon.png"/> {{ .Display }}</div> {{ end}}
-                            {{ range .Mags }} <div><img alt="Mag" src="/static/Mag_icon.png"/> {{ .Display }}</div> {{ end}}
+                    <div class="flex-container" style="flex-direction: column;">
+                        <div class="flex-container">
+                            <img alt="{{ .SectionId }}" height="48px" width="48px" src="/static/icons/{{ .SectionId }}.png"/>
+                            &nbsp<h1>{{ .Game.QuestName}}&nbsp;<small class="text-muted">Episode {{ .Game.Episode }} - {{ $game.Difficulty}}</small></h1>
+                        </div>
+                        <div class="flex-container">
+                            <h2 class="display-6" style="margin-right: 16px">{{ .FormattedQuestTime }}</h2>
+                            <span class="quest-category" style="line-height: 60px">{{ len $game.AllPlayers }}P
+                                            {{ if $game.PbCategory }}
+                                                <img src="/static/twins_cropped.png" height="24px" width="24px" alt="PB" title="PB" style="margin-bottom: 4px"/><span aria-hidden="true" class="invisible-label">PB</span>
+                                            {{ else }}
+                                                <img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/>
+                                            {{ end }}</span>
+                            <span style="line-height: 60px">{{ .Game.QuestStartDate }} by <a href="/players/{{ .Game.UserName }}">{{ .Game.UserName }}</a></span>
                         </div>
                     </div>
-                </div>
-                <div class="psostats-questbasics">
-
-                    <ul class="list-group list-group-flush" style="margin-bottom: 4px">
-                        {{ if gt (index $game.DataFrames 0).FT 0 }}
-                            <li class="list-group-item">
-                                <span class="techs-cast-item"><img alt="Freeze Traps" height=30px width=34px src="/static/icons/FT_icon.png"/><span style="margin-left: 8px">{{if gt $game.FTUsed 0 }} {{ $game.FTUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
-                                <span class="techs-cast-item"><img alt="Damage Traps" height=30px width=34px src="/static/icons/DT_icon.png"/><span style="margin-left: 8px">{{if gt $game.DTUsed 0 }} {{ $game.DTUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
-                                <span class="techs-cast-item"><img alt="Confuse Traps" height=30px width=34px src="/static/icons/CT_icon.png"/><span style="margin-left: 8px">{{if gt $game.CTUsed 0 }} {{ $game.CTUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
-                            </li>
-                        {{ end }}
-                        {{if gt (len $game.TechsCast) 0}}
-                            {{ range $group := .TechsInOrder }}
+                    <div class="psostats-questbasics">
+                        <ul class="list-group list-group-flush" style="margin-bottom: 4px">
+                            {{ range $index, $player := .Game.AllPlayers }}
+                                {{ if index $root.HasPov $index}}
+                                    <a href="/gamev3/{{ $game.Id }}/{{ $index }}" class="list-group-item{{ if eq $player.GuildCard $game.GuildCard }} current-player{{ end }}">{{ $player.Class }} (Lv.{{ $player.Level }}) {{ $player.Name }}</a>
+                                {{ else }}
+                                    <li class="list-group-item">{{ $player.Class }} (Lv.{{ $player.Level }}) {{ $player.Name }}</li>
+                                {{ end }}
+                            {{ end }}
+                        </ul>
+                        <div class="psostats-chart">
+                            {{ range .TimeByState }}
+                                <li class="list-group-item psostats-weapon">
+                                    <div class="usage-bar" style="background-color: {{.Color}}; width: {{.PercentTime}}%;"></div><div class="usage-bar" style="width: {{.PercentRest}}%;margin-right:-100%;"></div><div style="font-size:12px;display:inline-block;margin-left:8px;margin-top:-24px">{{.Display}} - {{.Time}}s</div></li>
+                            {{ end }}
+                        </div>
+                    </div>
+                    <div class="psostats-questbasics">
+                        <ul class="list-group list-group-flush" style="margin-bottom: 4px">
+                            {{ range .SortedWeapons }}
+                                <li class="list-group-item psostats-weapon">
+                                    <div class="usage-bar" style="background-color: rgba(255,100,100,0.3); width: {{.Attacks}}%;"></div><div class="usage-bar" style="background-color: rgba(120,120,255,0.5); width: {{.Techs}}%;"></div><div class="usage-bar" style="width: {{.Rest}}%;margin-right:-100%;"></div><div style="font-size:12px;display:inline-block;margin-left:8px;margin-top:-24px">{{.Display}}</div></li>
+                            {{ end }}
+                        </ul>
+                        <div class="psostats-chart">
+                            <div class="psostats-equipment">
+                                {{ range .Frames }} <div><img alt="Frame" src="/static/Frame_icon.png"/> {{ .Display }}</div>{{ end}}
+                                {{ range .Units }} <div><img alt="Unit" src="/static/Unit_icon.png" style="margin-left: 16px;"/> {{ .Display }}</div> {{ end}}
+                                {{ range .Barriers }} <div><img alt="Barrier" src="/static/Shield_icon.png"/> {{ .Display }}</div> {{ end}}
+                                {{ range .Mags }} <div><img alt="Mag" src="/static/Mag_icon.png"/> {{ .Display }}</div> {{ end}}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="psostats-questbasics">
+                        <ul class="list-group list-group-flush" style="margin-bottom: 4px">
+                            {{ if gt (index $game.DataFrames 0).FT 0 }}
                                 <li class="list-group-item">
-                                    {{ range $tech := $group }}
-                                        <span class="techs-cast-item"><img alt="{{ $tech }}" src="/static/icons/{{ $tech }}_icon.png"/><span style="margin-left: 8px">{{if index $game.TechsCast $tech  }} {{ index $game.TechsCast $tech }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
-                                    {{ end }}
+                                    <span class="techs-cast-item"><img alt="Freeze Traps" height=30px width=34px src="/static/icons/FT_icon.png"/><span style="margin-left: 8px">{{if gt $game.FTUsed 0 }} {{ $game.FTUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                                    <span class="techs-cast-item"><img alt="Damage Traps" height=30px width=34px src="/static/icons/DT_icon.png"/><span style="margin-left: 8px">{{if gt $game.DTUsed 0 }} {{ $game.DTUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                                    <span class="techs-cast-item"><img alt="Confuse Traps" height=30px width=34px src="/static/icons/CT_icon.png"/><span style="margin-left: 8px">{{if gt $game.CTUsed 0 }} {{ $game.CTUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
                                 </li>
                             {{ end }}
-                        {{ end }}
+                            {{if gt (len $game.TechsCast) 0}}
+                                {{ range $group := .TechsInOrder }}
+                                    <li class="list-group-item">
+                                        {{ range $tech := $group }}
+                                            <span class="techs-cast-item"><img alt="{{ $tech }}" src="/static/icons/{{ $tech }}_icon.png"/><span style="margin-left: 8px">{{if index $game.TechsCast $tech  }} {{ index $game.TechsCast $tech }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                                        {{ end }}
+                                    </li>
+                                {{ end }}
+                            {{ end }}
 
-                        <li class="list-group-item">
-                            <span class="techs-cast-item"><img height=30px width=34px alt="Monomate" src="/static/icons/Monomate_icon.png"/><span style="margin-left: 8px">{{if gt $game.MonomateUsed 0 }} {{ $game.MonomateUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
-                            <span class="techs-cast-item"><img height=30px width=34px alt="Dimate" src="/static/icons/Dimate_icon.png"/><span style="margin-left: 8px">{{if gt $game.DimateUsed 0 }} {{ $game.DimateUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
-                            <span class="techs-cast-item"><img height=30px width=34px alt="Trimate" src="/static/icons/Trimate_icon.png"/><span style="margin-left: 8px">{{if gt $game.TrimateUsed 0 }} {{ $game.TrimateUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
-                        </li>
-                        {{ if gt .Game.TPUsed 0 }}<li class="list-group-item">
-                            <span class="techs-cast-item"><img height=30px width=34px alt="Monofluid" src="/static/icons/Monofluid_icon.png"/><span style="margin-left: 8px">{{if gt $game.MonofluidUsed 0 }} {{ $game.MonofluidUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
-                            <span class="techs-cast-item"><img height=30px width=34px alt="Difluid" src="/static/icons/Difluid_icon.png"/><span style="margin-left: 8px">{{if gt $game.DifluidUsed 0 }} {{ $game.DifluidUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
-                            <span class="techs-cast-item"><img height=30px width=34px alt="Trifluid" src="/static/icons/Trifluid_icon.png"/><span style="margin-left: 8px">{{if gt $game.TrifluidUsed 0 }} {{ $game.TrifluidUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
-                        </li>{{ end }}
-                        <li class="list-group-item">
-                            <span class="techs-cast-item"><img height=30px width=34px alt="Moon Atomizer" src="/static/icons/MoonAtomizer_icon.png"/><span style="margin-left: 8px">{{if gt $game.MoonAtomizerUsed 0 }} {{ $game.MoonAtomizerUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
-                            <span class="techs-cast-item"><img height=30px width=34px alt="Sol Atomizer" src="/static/icons/SolAtomizer_icon.png"/><span style="margin-left: 8px">{{if gt $game.SolAtomizerUsed 0 }} {{ $game.SolAtomizerUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
-                            <span class="techs-cast-item"><img height=30px width=34px alt="Star Atomizer" src="/static/icons/StarAtomizer_icon.png"/><span style="margin-left: 8px">{{if gt $game.StarAtomizerUsed 0 }} {{ $game.StarAtomizerUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
-                        </li>
-                    </ul>
-                </div>
-                {{ $mapData := index .MapData 0 }}
-                <div class="psostats-map-row" style="height: 40vh">
-                    <h4 class="psostats-map-title">{{ $mapData.MapName }}</h4>
-                    <div id="map{{0}}{{$mapData.MapNum}}_{{$mapData.MapVariation}}" class="map"></div>
+                            <li class="list-group-item">
+                                <span class="techs-cast-item"><img height=30px width=34px alt="Monomate" src="/static/icons/Monomate_icon.png"/><span style="margin-left: 8px">{{if gt $game.MonomateUsed 0 }} {{ $game.MonomateUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                                <span class="techs-cast-item"><img height=30px width=34px alt="Dimate" src="/static/icons/Dimate_icon.png"/><span style="margin-left: 8px">{{if gt $game.DimateUsed 0 }} {{ $game.DimateUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                                <span class="techs-cast-item"><img height=30px width=34px alt="Trimate" src="/static/icons/Trimate_icon.png"/><span style="margin-left: 8px">{{if gt $game.TrimateUsed 0 }} {{ $game.TrimateUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                            </li>
+                            {{ if gt .Game.TPUsed 0 }}<li class="list-group-item">
+                                <span class="techs-cast-item"><img height=30px width=34px alt="Monofluid" src="/static/icons/Monofluid_icon.png"/><span style="margin-left: 8px">{{if gt $game.MonofluidUsed 0 }} {{ $game.MonofluidUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                                <span class="techs-cast-item"><img height=30px width=34px alt="Difluid" src="/static/icons/Difluid_icon.png"/><span style="margin-left: 8px">{{if gt $game.DifluidUsed 0 }} {{ $game.DifluidUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                                <span class="techs-cast-item"><img height=30px width=34px alt="Trifluid" src="/static/icons/Trifluid_icon.png"/><span style="margin-left: 8px">{{if gt $game.TrifluidUsed 0 }} {{ $game.TrifluidUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                            </li>{{ end }}
+                            <li class="list-group-item">
+                                <span class="techs-cast-item"><img height=30px width=34px alt="Moon Atomizer" src="/static/icons/MoonAtomizer_icon.png"/><span style="margin-left: 8px">{{if gt $game.MoonAtomizerUsed 0 }} {{ $game.MoonAtomizerUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                                <span class="techs-cast-item"><img height=30px width=34px alt="Sol Atomizer" src="/static/icons/SolAtomizer_icon.png"/><span style="margin-left: 8px">{{if gt $game.SolAtomizerUsed 0 }} {{ $game.SolAtomizerUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                                <span class="techs-cast-item"><img height=30px width=34px alt="Star Atomizer" src="/static/icons/StarAtomizer_icon.png"/><span style="margin-left: 8px">{{if gt $game.StarAtomizerUsed 0 }} {{ $game.StarAtomizerUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                            </li>
+                        </ul>
+                    </div>
+
                 </div>
             </div>
-            <div class="psostats-chart" style="height: 37vh; width: 100vw">
+            {{ $mapData := index .MapData 0 }}
+            <div class="psostats-map-row" style="height: 50vh">
+                <h4 class="psostats-map-title">{{ $mapData.MapName }}</h4>
+                <div id="map{{0}}{{$mapData.MapNum}}_{{$mapData.MapVariation}}" class="map"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="psostats-chart" style="height: 50vh; width: 100vw">
                 <canvas id="game-timeline"></canvas>
             </div>
         </div>
@@ -224,33 +257,6 @@
     </body>
     </html>
     <script>
-        window.Apex = {
-            chart: {
-                foreColor: '#ccc',
-                toolbar: {
-                    show: false
-                },
-                width: "100%",
-                height: 230,
-            },
-            tooltip: {
-                theme: 'dark'
-            },
-            stroke: {
-                curve: 'stepline',
-                width: 2
-            },
-            dataLabels: {
-                enabled: false
-            },
-            xaxis: { tickAmount: 10 },
-            yaxis: {
-                labels: {
-                    minWidth: 40
-                }
-            },
-        };
-
         function playerStateName(state) {
             switch (state) {
                 case "1":return "Standing";
@@ -263,6 +269,7 @@
                 case "10": return "Recoil";
                 case "14": return "Knocked Down";
                 case "15": return "Dead";
+                case "16": return "Cutscene";
                 case "18": return "Reviving";
                 case "20": return "Teleporting";
                 case "23": return "Emoting";
@@ -475,81 +482,6 @@
                 }
             },
         });
-        const getOrCreateLegendList = (chart, id) => {
-            const legendContainer = document.getElementById(id);
-            let listContainer = legendContainer.querySelector('ul');
-
-            if (!listContainer) {
-                listContainer = document.createElement('ul');
-                listContainer.style.display = 'flex';
-                listContainer.style.flexDirection = 'column';
-                listContainer.style.margin = 0;
-                listContainer.style.padding = 0;
-                listContainer.style.fontSize = "12px";
-
-                legendContainer.appendChild(listContainer);
-            }
-
-            return listContainer;
-        };
-        const htmlLegendPlugin = {
-            id: 'htmlLegend',
-            afterUpdate(chart, args, options) {
-                const ul = getOrCreateLegendList(chart, options.containerID);
-
-                // Remove old legend items
-                while (ul.firstChild) {
-                    ul.firstChild.remove();
-                }
-
-                // Reuse the built-in legendItems generator
-                const items = chart.options.plugins.legend.labels.generateLabels(chart);
-
-                items.forEach(item => {
-                    const li = document.createElement('li');
-                    li.style.alignItems = 'center';
-                    li.style.cursor = 'pointer';
-                    li.style.display = 'flex';
-                    li.style.flexDirection = 'row';
-                    li.style.marginLeft = '10px';
-
-                    li.onclick = () => {
-                        const {type} = chart.config;
-                        if (type === 'pie' || type === 'doughnut') {
-                            // Pie and doughnut charts only have a single dataset and visibility is per item
-                            chart.toggleDataVisibility(item.index);
-                        } else {
-                            chart.setDatasetVisibility(item.datasetIndex, !chart.isDatasetVisible(item.datasetIndex));
-                        }
-                        chart.update();
-                    };
-
-                    // Color box
-                    const boxSpan = document.createElement('span');
-                    boxSpan.style.background = item.fillStyle;
-                    boxSpan.style.borderColor = item.strokeStyle;
-                    boxSpan.style.borderWidth = item.lineWidth + 'px';
-                    boxSpan.style.display = 'inline-block';
-                    boxSpan.style.height = '20px';
-                    boxSpan.style.marginRight = '10px';
-                    boxSpan.style.width = '20px';
-
-                    // Text
-                    const textContainer = document.createElement('p');
-                    textContainer.style.color = item.fontColor;
-                    textContainer.style.margin = 0;
-                    textContainer.style.padding = 0;
-                    textContainer.style.textDecoration = item.hidden ? 'line-through' : '';
-
-                    const text = document.createTextNode(item.text);
-                    textContainer.appendChild(text);
-
-                    li.appendChild(boxSpan);
-                    li.appendChild(textContainer);
-                    ul.appendChild(li);
-                });
-            }
-        };
 
         {{ if gt (len .MapData) 0 }}
         const mapImages = {

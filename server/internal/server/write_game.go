@@ -161,7 +161,7 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 
 func (s *Server) updateAnniv2020Record(questRun model.QuestRun, matchingGame *model.QuestRun) {
 	_, anniversaryQuest := s.anniversaryQuests[questRun.QuestName]
-	if questRun.PbCategory || !anniversaryQuest || questRun.Server != "ephinea" {
+	if questRun.PbCategory || !anniversaryQuest /*|| questRun.Server != "ephinea"*/ {
 		return
 	}
 	numPlayers := len(questRun.AllPlayers)
@@ -186,9 +186,10 @@ func (s *Server) updateAnniv2020Record(questRun model.QuestRun, matchingGame *mo
 
 	pb, err := db.GetQuestSeriesPb("a2022", questRun.UserName, questRun.QuestName, s.dynamoClient)
 	questDuration, _ := time.ParseDuration(questRun.QuestDuration)
-	if questDuration < pb.Time {
+	if pb == nil || questDuration < pb.Time {
 		_ = db.WriteQuestSeriesPb("a2022", &questRun, s.dynamoClient)
 	}
+	db.WriteAnniversaryStats(questRun, s.dynamoClient)
 }
 
 func isNewRecord(

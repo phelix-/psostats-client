@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/aws/aws-sdk-go/service/dynamodb/expression"
 	"github.com/phelix-/psostats/v2/pkg/model"
+	"github.com/phelix-/psostats/v2/pkg/psoclasses"
 	"io"
 	"log"
 	"sort"
@@ -21,6 +22,8 @@ import (
 const (
 	GamesByIdTable           = "games_by_id"
 	QuestRecordsTable        = "quest_records"
+	AnnivStats               = "anniv_stats"
+	AnnivRecordHistory       = "anniv_record_history"
 	Anniv2021RecordsTable    = "records_anniv_2021"
 	RecentGamesByPlayerTable = "recent_games_by_player_2"
 	RecentGamesByMonth       = "recent_games_by_month_2"
@@ -319,9 +322,29 @@ func CompressGame(questRun *model.QuestRun) ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
-func writeRecord(tableName string, questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) error {
+func writeRecord(tableName string, questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) (model.Game, error) {
 	gameSummary := summaryFromQuestRun(*questRun)
 	marshalledSummary, err := dynamodbattribute.MarshalMap(gameSummary)
+	delete(marshalledSummary, "GameGzip")
+	delete(marshalledSummary, "P1Gzip")
+	delete(marshalledSummary, "P2Gzip")
+	delete(marshalledSummary, "P3Gzip")
+	delete(marshalledSummary, "P4Gzip")
+	delete(marshalledSummary, "FormattedDate")
+	delete(marshalledSummary, "FormattedTime")
+	if err != nil {
+		return gameSummary, err
+	}
+	gamesByQuestInput := &dynamodb.PutItemInput{
+		Item:      marshalledSummary,
+		TableName: aws.String(tableName),
+	}
+	_, err = dynamoClient.PutItem(gamesByQuestInput)
+	return gameSummary, err
+}
+
+func writeRecordHistory(tableName string, summary model.Game, dynamoClient *dynamodb.DynamoDB) error {
+	marshalledSummary, err := dynamodbattribute.MarshalMap(summary)
 	delete(marshalledSummary, "GameGzip")
 	delete(marshalledSummary, "P1Gzip")
 	delete(marshalledSummary, "P2Gzip")
@@ -341,11 +364,14 @@ func writeRecord(tableName string, questRun *model.QuestRun, dynamoClient *dynam
 }
 
 func WriteGameByQuestRecord(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) error {
-	return writeRecord(QuestRecordsTable, questRun, dynamoClient)
+	_, err := writeRecord(QuestRecordsTable, questRun, dynamoClient)
+	return err
 }
 
 func WriteAnniv2021Record(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) error {
-	return writeRecord(Anniv2021RecordsTable, questRun, dynamoClient)
+	summary, err := writeRecord(Anniv2021RecordsTable, questRun, dynamoClient)
+	writeRecordHistory(AnnivRecordHistory, summary, dynamoClient)
+	return err
 }
 
 func getRecord(
@@ -523,6 +549,28 @@ func WriteQuestSeriesPb(series string, questRun *model.QuestRun, db *dynamodb.Dy
 	return err
 }
 
+func GetQuestSeriesPbs(series string, db *dynamodb.DynamoDB) ([]QuestSeriesPb, error) {
+	requestExpression, err := expression.NewBuilder().
+		WithKeyCondition(expression.KeyEqual(expression.Key("Series"), expression.Value(aws.String(series)))).
+		Build()
+	if err != nil {
+		return nil, err
+	}
+	result, err := db.Query(&dynamodb.QueryInput{
+		ExpressionAttributeNames:  requestExpression.Names(),
+		ExpressionAttributeValues: requestExpression.Values(),
+		KeyConditionExpression:    requestExpression.KeyCondition(),
+		TableName:                 aws.String(QuestSeriesPbTable),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	pbs := make([]QuestSeriesPb, 0)
+	err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &pbs)
+	return pbs, err
+}
+
 func GetQuestSeriesPb(series, user, quest string, db *dynamodb.DynamoDB) (*QuestSeriesPb, error) {
 	userAndQuest := fmt.Sprintf("%s+%s", user, quest)
 	requestExpression, err := expression.NewBuilder().
@@ -543,26 +591,83 @@ func GetQuestSeriesPb(series, user, quest string, db *dynamodb.DynamoDB) (*Quest
 		return nil, err
 	}
 
-	pb := QuestSeriesPb{}
-	err = dynamodbattribute.UnmarshalMap(result.Items[0], &pb)
-	return &pb, err
+	if len(result.Items) == 0 {
+		return nil, nil
+	} else {
+		pb := QuestSeriesPb{}
+		err = dynamodbattribute.UnmarshalMap(result.Items[0], &pb)
+		return &pb, err
+	}
 }
 
-func WriteAnniversaryStats(questRun *model.QuestRun, db *dynamodb.DynamoDB) {
+func WriteAnniversaryStats(questRun model.QuestRun, db *dynamodb.DynamoDB) {
 	mesetaCharged := int64(questRun.MesetaCharged[len(questRun.MesetaCharged)-1])
-	addAnniversaryCounter(questRun.QuestName, "MesetaCharged", mesetaCharged)
-	addAnniversaryCounter(questRun.QuestName, fmt.Sprintf("MesetaCharged.%s", questRun.PlayerClass), mesetaCharged)
-	addAnniversaryCounter(questRun.QuestName, "Runs", 1)
-	addAnniversaryCounter(questRun.QuestName, "Moving", int64(questRun.TimeByState[2]+questRun.TimeByState[4]))
-	addAnniversaryCounter(questRun.QuestName, "Standing", int64(questRun.TimeByState[1]))
-	addAnniversaryCounter(questRun.QuestName, "Attacking", int64(questRun.TimeByState[5]+questRun.TimeByState[6]+questRun.TimeByState[7]))
-	addAnniversaryCounter(questRun.QuestName, "Casting", int64(questRun.TimeByState[8]))
-	addAnniversaryCounter(questRun.QuestName, "Deaths", int64(questRun.DeathCount))
-	addAnniversaryCounter(questRun.QuestName, fmt.Sprintf("ClassUse.%s", questRun.PlayerClass), 1)
+	addAnniversaryCounter(questRun.QuestName, "MesetaCharged", mesetaCharged, db)
+	addAnniversaryCounter(questRun.QuestName, fmt.Sprintf("MesetaCharged.%s", questRun.PlayerClass), mesetaCharged, db)
+	addAnniversaryCounter(questRun.QuestName, "Runs", 1, db)
+	addAnniversaryCounter(questRun.QuestName, "Moving", int64(questRun.TimeByState[2]+questRun.TimeByState[4]), db)
+	addAnniversaryCounter(questRun.QuestName, "Standing", int64(questRun.TimeByState[1]), db)
+	addAnniversaryCounter(questRun.QuestName, "Attacking", int64(questRun.TimeByState[5]+questRun.TimeByState[6]+questRun.TimeByState[7]), db)
+	addAnniversaryCounter(questRun.QuestName, "Casting", int64(questRun.TimeByState[8]), db)
+	addAnniversaryCounter(questRun.QuestName, "Deaths", int64(questRun.DeathCount), db)
+	addAnniversaryCounter(questRun.QuestName, fmt.Sprintf("ClassUse.%s", questRun.PlayerClass), 1, db)
+	addAnniversaryCounter(questRun.QuestName, fmt.Sprintf("SID.%d", questRun.AllPlayers[0].SectionId), 1, db)
+	addAnniversaryCounter(questRun.QuestName, fmt.Sprintf("Players.%d", len(questRun.AllPlayers)), 1, db)
+	addAnniversaryCounter(questRun.QuestName, fmt.Sprintf("Shifta.%d", getShifta(questRun)), 1, db)
+	addAnniversaryCounter(questRun.QuestName, questRun.SubmittedTime.Format("Day.060102"), 1, db)
 }
 
-func addAnniversaryCounter(questName, counterName string, value int64) {
+func getShifta(questRun model.QuestRun) int {
+	maxShifta := 0
+	for _, player := range questRun.AllPlayers {
+		if class, err := psoclasses.ForName(player.Class); err == nil {
+			if class.MaxShifta > maxShifta {
+				maxShifta = class.MaxShifta
+			}
+		}
+	}
+	return maxShifta
+}
 
+func addAnniversaryCounter(questName, counterName string, value int64, db *dynamodb.DynamoDB) {
+	stringValue := dynamodb.AttributeValue{N: aws.String(fmt.Sprintf("%d", value))}
+	update := dynamodb.AttributeValueUpdate{
+		Action: aws.String(dynamodb.AttributeActionAdd),
+		Value:  &stringValue,
+	}
+	counterAttr := dynamodb.AttributeValue{S: aws.String(counterName)}
+	questNameAttr := dynamodb.AttributeValue{S: aws.String(questName)}
+
+	updateItemInput := dynamodb.UpdateItemInput{
+		TableName:        aws.String(AnnivStats),
+		Key:              map[string]*dynamodb.AttributeValue{"Key": &questNameAttr, "Counter": &counterAttr},
+		AttributeUpdates: map[string]*dynamodb.AttributeValueUpdate{"count": &update},
+	}
+	_, err := db.UpdateItem(&updateItemInput)
+	if err != nil {
+		log.Printf("Error updating counter '%s '%s' %s", questName, counterName, err)
+	}
+}
+
+type AnniversaryCounter struct {
+	Key     string
+	Counter string
+	Count   int64
+}
+
+func GetAnniversaryCounters(db *dynamodb.DynamoDB) ([]AnniversaryCounter, error) {
+	scanInput := dynamodb.ScanInput{
+		AttributesToGet: aws.StringSlice([]string{"Key", "Counter", "count"}),
+		Limit:           aws.Int64(1000),
+		TableName:       aws.String(AnnivStats),
+	}
+	scan, err := db.Scan(&scanInput)
+	if err != nil {
+		return nil, err
+	}
+	counters := make([]AnniversaryCounter, 0)
+	err = dynamodbattribute.UnmarshalListOfMaps(scan.Items, &counters)
+	return counters, err
 }
 
 func GetPlayerPB(quest, player string, numPlayers int, pbCategory bool, dynamoClient *dynamodb.DynamoDB) (*model.Game, error) {

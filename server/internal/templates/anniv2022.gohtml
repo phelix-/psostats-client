@@ -1,0 +1,173 @@
+{{define "index"}}
+    {{ $root := . }}
+    <html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width"/>
+        <meta property="og:site_name" content="PSOStats"/>
+        <meta property="og:title" content="Ephinea Anniversary 2022"/>
+        <meta property="og:description" content="Statistics and records for Ephinea's 7th anniversary event"/>
+        <title>PSOStats - Anniversary 2022</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+        <link href="/static/main2.css" rel="stylesheet" type="text/css">
+        <script src='https://code.jquery.com/jquery-1.11.3.min.js'></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.8.2/chart.min.js" integrity="sha512-zjlf0U0eJmSo1Le4/zcZI51ks5SjuQXkU0yOdsOBubjSmio9iCUp8XPLkEAADZNBdR9crRy3cniZ65LF2w8sRA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/2.0.0/chartjs-plugin-annotation.min.js" integrity="sha512-sLZhA8NE4bIPKMnsROQpJTBKVOQf8ie2GMFVXVfcg90tJ0aNhAWxhPyN0BRjwvZ35dSQF7kSzXtCU11KvWvNwQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    </head>
+    <style>
+        .episode-header {
+            background-color: #222;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            padding-top: 8px;
+            margin-top: 8px;
+        }
+        .psostats-chart {
+            background-color: #444;
+            margin-bottom: 4px;
+        }
+    </style>
+    <body>
+    <div class="container">
+        {{ template "navbar" }}
+        <div class="row">
+            <div class="col">
+                <h1>Ephinea Anniversary 2022</h1>
+            </div>
+        </div>
+
+        <div class="row episode-header">
+            <div class="col">
+                <h2>Total Games - {{ .OverallCounter.Runs }}</h2>
+            </div>
+        </div>
+
+        <div class="row psostats-chart">
+            <div class="col-12" style="height: 400px">
+                <canvas id="daily-quest-counts" style="height: 400px"></canvas>
+            </div>
+        </div>
+
+        <div class="row psostats-chart">
+            <div class="col-12" style="height: 400px; width: 400px">
+                <canvas id="overall-class-use"></canvas>
+            </div>
+        </div>
+
+        <div class="row episode-header">
+            <div class="col">
+                <h2>Overall Lap</h2>
+            </div>
+        </div>
+
+        <div class="row psostats-chart">
+
+            <div class="col-12">
+                <table class="table table-dark">
+                    <thead>
+                    <tr><th scope="col">Overall</th><th scope="col">Player</th>
+                        <th scope="col">Forest</th>
+                        <th scope="col">Cave</th>
+                        <th scope="col">Mine</th>
+                        <th scope="col">Ruins</th>
+                        <th scope="col">Temple</th>
+                        <th scope="col">Space</th>
+                        <th scope="col">CCA</th>
+                        <th scope="col">Seabed</th>
+                        <th scope="col">Tower</th>
+                        <th scope="col">Crater</th>
+                        <th scope="col">Desert</th></tr>
+                    </thead>
+                    {{ range .TopLaps }}
+                        <tr>
+                            <th scope="row">{{ .Total }}</th>
+                            <td><a href="/players/{{ .User }}">{{ .User }}</a> </td>
+                            {{ $playerLap := . }}
+                            {{ range $index, $time := .Times }}
+                            <td style="background-color: {{ index $playerLap.Colors $index }}">{{if gt (len (index $playerLap.GameIds $index)) 0}} <a href="/gamev3/{{index $playerLap.GameIds $index}}">{{ $time }}</a>{{else}}N/A{{end}}</td>
+                            {{ end }}
+                        </tr>
+                    {{ end }}
+                </table>
+            </div>
+        </div>
+    </div>
+    </body>
+    </html>
+    <script>
+        function getColorForQuest(questName) {
+            switch (questName) {
+                case "Maximum Attack E: Forest": return "#e9f5db";
+                case "Maximum Attack E: Caves": return "#b5c99a";
+                case "Maximum Attack E: Mines": return "#97a97c";
+                case "Maximum Attack E: Ruins": return "#718355";
+                case "Maximum Attack E: Temple": return "#a9d6e5";
+                case "Maximum Attack E: Space": return "#61a5c2";
+                case "Maximum Attack E: CCA": return "#2c7da0";
+                case "Maximum Attack E: Seabed": return "#01497c";
+                case "Maximum Attack E: Tower": return "#012a4a";
+                case "Maximum Attack E: Crater": return "#f8961e";
+                case "Maximum Attack E: Desert": return "#f94144";
+            }
+        }
+        const dailyQuestContext = document.getElementById("daily-quest-counts");
+        const dailyQuestChart = new Chart(dailyQuestContext, {
+            type: "bar",
+            data: {
+                labels: [ {{ range $day, $count := .OverallCounter.RunsByDay }} new Date({{ $day.UnixMilli }}).toLocaleDateString(),{{ end }} ],
+                datasets: [
+                    {{ range $quest := $root.QuestNames }}
+                    {
+                        label: "{{ $quest }}",
+                        data: [ {{ range $day, $count := $root.OverallCounter.RunsByDay }} {{ index (index (index $root.QuestCounters $quest).RunsByDay) $day }},{{ end }} ],
+                        backgroundColor: getColorForQuest("{{ $quest }}"),
+                    },
+                    {{ end }}
+                    ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+            },
+            scales: {
+                x: {
+                    stacked: true,
+                }
+            }
+        });
+        const overallClassContext = document.getElementById("overall-class-use");
+        const overallClassChart = new Chart(overallClassContext, {
+            type: "pie",
+            data: {
+                labels: [ "HUmr", "HUnl", "HUct", "HUcl", "RAmr", "RAml", "RAct", "RAcl", "FOmr", "FOml", "FOnm", "FOnl"],
+                datasets: [{
+                    data: [ {{ index .OverallCounter.ClassUse "HUmar" }},
+                        {{ index .OverallCounter.ClassUse "HUnewearl" }},
+                        {{ index .OverallCounter.ClassUse "HUcast" }},
+                        {{ index .OverallCounter.ClassUse "HUcaseal" }},
+                        {{ index .OverallCounter.ClassUse "RAmar" }},
+                        {{ index .OverallCounter.ClassUse "RAmarl" }},
+                        {{ index .OverallCounter.ClassUse "RAcast" }},
+                        {{ index .OverallCounter.ClassUse "RAcaseal" }},
+                        {{ index .OverallCounter.ClassUse "FOmar" }},
+                        {{ index .OverallCounter.ClassUse "FOmarl" }},
+                        {{ index .OverallCounter.ClassUse "FOnewm" }},
+                        {{ index .OverallCounter.ClassUse "FOnewearl"}}
+                    ],
+                    backgroundColor: ["#ff0028", "#ff7e8a", "#6b1e31", "#803442", "#48ff00", "#7eff80", "#346b1e", "#3e8034", "#0059ff", "#7eb2ff", "#1e4b6b", "#345a80",],
+                }]
+
+            },  options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: false,
+                    }
+                }
+            },
+        });
+    </script>
+{{end}}

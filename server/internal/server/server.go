@@ -26,26 +26,28 @@ import (
 )
 
 type Server struct {
-	app                  *fiber.App
-	dynamoClient         *dynamodb.DynamoDB
-	userDb               userdb.UserDb
-	recentGames          []model.QuestRun
-	recentGamesCount     int
-	recentGamesSize      int
-	recentGamesLock      sync.Mutex
-	recordsLock          sync.Mutex
-	webhookUrl           string
-	indexTemplate        *template.Template
-	infoTemplate         *template.Template
-	downloadTemplate     *template.Template
-	gameTemplate         *template.Template
-	gameV3Template       *template.Template
-	playerTemplate       *template.Template
-	gameNotFoundTemplate *template.Template
-	recordsTemplate      *template.Template
-	anniversaryTemplate  *template.Template
-	comboCalcTemplate    *template.Template
-	anniversaryQuests    map[string]struct{}
+	app                     *fiber.App
+	dynamoClient            *dynamodb.DynamoDB
+	userDb                  userdb.UserDb
+	recentGames             []model.QuestRun
+	recentGamesCount        int
+	recentGamesSize         int
+	recentGamesLock         sync.Mutex
+	recordsLock             sync.Mutex
+	webhookUrl              string
+	indexTemplate           *template.Template
+	infoTemplate            *template.Template
+	downloadTemplate        *template.Template
+	gameTemplate            *template.Template
+	gameV3Template          *template.Template
+	playerTemplate          *template.Template
+	gameNotFoundTemplate    *template.Template
+	recordsTemplate         *template.Template
+	anniversaryTemplate     *template.Template
+	anniversary2022Template *template.Template
+	comboCalcTemplate       *template.Template
+	anniversaryQuests       map[string]struct{}
+	anniversaryNamesInOrder []string
 }
 
 func New(dynamo *dynamodb.DynamoDB) *Server {
@@ -75,6 +77,19 @@ func New(dynamo *dynamodb.DynamoDB) *Server {
 			"Maximum Attack E: Crater": {},
 			"Maximum Attack E: Desert": {},
 		},
+		anniversaryNamesInOrder: []string{
+			"Maximum Attack E: Forest",
+			"Maximum Attack E: Caves",
+			"Maximum Attack E: Mines",
+			"Maximum Attack E: Ruins",
+			"Maximum Attack E: Temple",
+			"Maximum Attack E: Space",
+			"Maximum Attack E: CCA",
+			"Maximum Attack E: Seabed",
+			"Maximum Attack E: Tower",
+			"Maximum Attack E: Crater",
+			"Maximum Attack E: Desert",
+		},
 	}
 }
 
@@ -89,6 +104,7 @@ func (s *Server) Run() {
 	s.app.Get("/download", s.DownloadPage)
 	s.app.Get("/records", s.RecordsV2Page)
 	s.app.Get("/anniv2021", s.Anniv2021RecordsPage)
+	s.app.Get("/anniv2022", s.Anniv2022RecordsPage)
 	s.app.Get("/combo-calculator", s.ComboCalcMultiPage)
 	s.app.Get("/combo-calculator/opm", s.ComboCalcOpmPage)
 	s.app.Get("/players/:player", s.PlayerV2Page)
@@ -107,6 +123,7 @@ func (s *Server) Run() {
 	s.gameNotFoundTemplate = ensureParsed("./server/internal/templates/gameNotFound.gohtml")
 	s.recordsTemplate = ensureParsed("./server/internal/templates/recordsV2.gohtml")
 	s.anniversaryTemplate = ensureParsed("./server/internal/templates/anniv2021.gohtml")
+	s.anniversary2022Template = ensureParsed("./server/internal/templates/anniv2022.gohtml")
 	s.comboCalcTemplate = ensureParsed("./server/internal/templates/comboCalc.gohtml")
 
 	if certLocation, found := os.LookupEnv("CERT"); found {
@@ -485,6 +502,15 @@ func getEquipment(game *model.QuestRun, equipmentType string) []model.Equipment 
 		return equipmentOfType[i].Display < equipmentOfType[j].Display
 	})
 	return equipmentOfType
+}
+
+func formatDurationSeconds(d time.Duration) string {
+	d = d.Round(time.Second)
+	minutes := d / time.Minute
+	d -= minutes * time.Minute
+	seconds := d / time.Second
+	d -= seconds * time.Second
+	return fmt.Sprintf("%d:%02d", minutes, seconds)
 }
 
 func formatDuration(d time.Duration) string {
