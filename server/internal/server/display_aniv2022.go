@@ -252,6 +252,10 @@ func (s *Server) getTopLaps() []AnniversaryTimes {
 			Colors:          make([]string, 11),
 		})
 	}
+
+	sort.Slice(anniversaryTimes, func(i, j int) bool {
+		return anniversaryTimes[i].totalTime < anniversaryTimes[j].totalTime
+	})
 	if len(anniversaryTimes) > 10 {
 		anniversaryTimes = anniversaryTimes[0:10]
 	}
@@ -278,10 +282,6 @@ func (s *Server) getTopLaps() []AnniversaryTimes {
 			}
 		}
 	}
-
-	sort.Slice(anniversaryTimes, func(i, j int) bool {
-		return anniversaryTimes[i].totalTime < anniversaryTimes[j].totalTime
-	})
 	return anniversaryTimes
 }
 
