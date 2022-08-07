@@ -118,6 +118,18 @@ func (s *Server) sortRecordHistory(games []model.Game) map[string][]RecordHistor
 		gamesForQuest = append(gamesForQuest, nextGame)
 		gamesByQuest[game.Quest] = gamesForQuest
 	}
+	for quest, gamesForQuest := range gamesByQuest {
+		nextGame := RecordHistoryPoint{Time: time.Now()}
+		if len(gamesForQuest) > 0 {
+			lastGame := gamesForQuest[len(gamesForQuest)-1]
+			nextGame.P1 = lastGame.P1
+			nextGame.P2 = lastGame.P2
+			nextGame.P3 = lastGame.P3
+			nextGame.P4 = lastGame.P4
+		}
+		gamesForQuest = append(gamesForQuest, nextGame)
+		gamesByQuest[quest] = gamesForQuest
+	}
 	return gamesByQuest
 }
 
@@ -274,12 +286,14 @@ func (s *Server) getTopLaps() []AnniversaryTimes {
 	}
 	for _, times := range anniversaryTimes {
 		for i, questName := range s.anniversaryNamesInOrder {
-			if times.individualTimes[i] == questWorst[questName] {
-				times.Colors[i] = "rgba(255,150,150,0.1)"
-			}
-			if times.individualTimes[i] == questBest[questName] {
-				times.Colors[i] = "rgba(150,255,150,0.1)"
-			}
+			worstTimeForQuest := questWorst[questName]
+			bestTimeForQuest := questBest[questName]
+			questTime := times.individualTimes[i]
+			largestDifference := worstTimeForQuest - bestTimeForQuest
+			totalDifference := 100 * ((largestDifference) - (worstTimeForQuest - questTime)) / largestDifference
+			red := 150 + totalDifference
+			green := 250 - totalDifference
+			times.Colors[i] = fmt.Sprintf("rgba(%d,%d,120,0.1)", red, green)
 		}
 	}
 	return anniversaryTimes

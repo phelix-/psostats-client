@@ -135,7 +135,7 @@
                         <a class="nav-link" href="/records">Records</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/anniv2021">Anniversary</a>
+                        <a class="nav-link" href="/anniv2022">Anniversary</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/info">Info</a>
@@ -316,6 +316,16 @@
                     },
                     {{ end }}
                     {{ end }}
+                    {{ if gt $game.TPUsed 0}}
+                    {
+                        label: 'TP',
+                        data: [ {{ range $game.DataFrames }} {{ .TP }}, {{ end }} ],
+                        borderColor: 'rgb(70,22,255)',
+                        backgroundColor: 'rgb(70,22,255)',
+                        yAxisID: 'yHP',
+                        borderWidth: 1,
+                    },
+                    {{ end }}
                     {
                         label: 'Damage Traps',
                         data: [ {{ range $game.DataFrames }} {{ .DT }}, {{ end }} ],
@@ -461,6 +471,8 @@
                     yMeseta: {
                         type: 'linear',
                         display: false,
+                        min: 0,
+                        suggestedMax: 10000,
                     },
                     yPB: {
                         type: 'linear',
