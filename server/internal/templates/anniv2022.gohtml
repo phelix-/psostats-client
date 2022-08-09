@@ -200,6 +200,11 @@
 
         {{ range $questIndex,$questName := $root.QuestNames }}
         {{$shortName := (index $root.QuestShortNames $questIndex)}}
+        const {{$shortName}}data = [[{{ range $i,$rec := (index $root.RecordHistory $questName)}} {{ if .P1 }} "{{range $index,$name := $rec.P1.PlayerNames}}{{ if . }}{{if $index}}, {{end}}{{.}} ({{index $rec.P1.PlayerClasses $index}}){{end}}{{end}}" {{ else }} "" {{ end }}, {{ end }}],
+            [{{ range $i,$rec := (index $root.RecordHistory $questName)}} {{ if .P2 }} "{{range $index,$name := $rec.P2.PlayerNames}}{{ if . }}{{if $index}}, {{end}}{{.}} ({{index $rec.P2.PlayerClasses $index}}){{end}}{{end}}" {{ else }} "" {{ end }}, {{ end }}],
+            [{{ range $i,$rec := (index $root.RecordHistory $questName)}} {{ if .P3 }} "{{range $index,$name := $rec.P3.PlayerNames}}{{ if . }}{{if $index}}, {{end}}{{.}} ({{index $rec.P3.PlayerClasses $index}}){{end}}{{end}}" {{ else }} "" {{ end }}, {{ end }}],
+            [{{ range $i,$rec := (index $root.RecordHistory $questName)}} {{ if .P4 }} "{{range $index,$name := $rec.P4.PlayerNames}}{{ if . }}{{if $index}}, {{end}}{{.}} ({{index $rec.P4.PlayerClasses $index}}){{end}}{{end}}" {{ else }} "" {{ end }}, {{ end }}],
+        ];
         const {{$shortName}}RecContext = document.getElementById("{{$shortName}}-record-history");
         new Chart({{$shortName}}RecContext, {
             type: "line",
@@ -216,7 +221,32 @@
                     mode: 'index', intersect: false,
                 },
                 responsive: true,
-                plugins: {title: {display: false}},
+                plugins: {title: {display: false},
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+
+                            if (context.parsed.y !== null && context.parsed.y > 0) {
+                                const minutes = Math.floor(context.raw / 60)
+                                const seconds = Math.floor(context.raw % 60)
+                                label += ' ' + minutes + ':'  + String(seconds).padStart(2,'0');
+                            }
+
+                            if (context.dataIndex > 0 && context.dataset.data[context.dataIndex - 1] > 0) {
+                                const previousValue = context.dataset.data[context.dataIndex - 1]
+                                if (previousValue !== context.raw) {
+                                    label += ' (' + (context.raw - previousValue).toFixed(1) + 's)'
+                                }
+                            }
+                            if (label) {
+                                label += ': ' + {{$shortName}}data[context.datasetIndex][context.dataIndex];
+                            }
+
+                            return label;
+                        }
+                    }
+                }},
                 scales: {
                     x: {
                         type: 'time',

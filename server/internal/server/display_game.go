@@ -21,9 +21,13 @@ func (s *Server) GamePageV3(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+
 	game, err := db.GetGame(gameId, gem, s.dynamoClient)
 	if err != nil {
 		return err
+	}
+	if fullGame == nil || game == nil {
+		err = s.gameNotFoundTemplate.ExecuteTemplate(c.Response().BodyWriter(), "gameNotFound", nil)
 	}
 	playerDataFrames := make(map[int][]model.DataFrame)
 	if fullGame.P1Gzip != nil {
