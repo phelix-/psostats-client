@@ -268,7 +268,7 @@ func (s *Server) getTopLaps() []AnniversaryTimes {
 	sort.Slice(anniversaryTimes, func(i, j int) bool {
 		return anniversaryTimes[i].totalTime < anniversaryTimes[j].totalTime
 	})
-	if len(anniversaryTimes) > 10 {
+	if len(anniversaryTimes) > 20 {
 		anniversaryTimes = anniversaryTimes[0:20]
 	}
 	questBest := make(map[string]time.Duration)
