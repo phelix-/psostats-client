@@ -269,7 +269,7 @@ func (s *Server) getTopLaps() []AnniversaryTimes {
 		return anniversaryTimes[i].totalTime < anniversaryTimes[j].totalTime
 	})
 	if len(anniversaryTimes) > 10 {
-		anniversaryTimes = anniversaryTimes[0:10]
+		anniversaryTimes = anniversaryTimes[0:20]
 	}
 	questBest := make(map[string]time.Duration)
 	questWorst := make(map[string]time.Duration)
