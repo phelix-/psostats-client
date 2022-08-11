@@ -290,10 +290,16 @@ func (s *Server) getTopLaps() []AnniversaryTimes {
 			bestTimeForQuest := questBest[questName]
 			questTime := times.individualTimes[i]
 			largestDifference := worstTimeForQuest - bestTimeForQuest
-			totalDifference := 100 * ((largestDifference) - (worstTimeForQuest - questTime)) / largestDifference
-			red := 150 + totalDifference
-			green := 250 - totalDifference
-			times.Colors[i] = fmt.Sprintf("rgba(%d,%d,120,0.1)", red, green)
+			totalDifference := int(100 * ((largestDifference) - (worstTimeForQuest - questTime)) / largestDifference)
+			red := 150 + (2 * totalDifference)
+			green := 250
+			blue := 80 - totalDifference
+			if totalDifference > 50 {
+				red = 250
+				green = 250 - (2 * totalDifference)
+				blue = -20 + totalDifference
+			}
+			times.Colors[i] = fmt.Sprintf("rgba(%d,%d,%d,0.1)", red, green, blue)
 		}
 	}
 	return anniversaryTimes
