@@ -23,6 +23,9 @@ func (s *Server) Anniv2022RecordsPage(c *fiber.Ctx) error {
 	}
 	recordHistory, err := db.GetQuestRecords(db.AnnivRecordHistory, s.dynamoClient)
 	sortedRecordHistory := s.sortRecordHistory(recordHistory)
+	//for class, meseta := range overallCounters.ClassMesetaCharged {
+	//	fmt.Printf("%s - %02f\n", class, float64(meseta)/float64(overallCounters.ClassUse[class]))
+	//}
 	sortedRecs := sortAnnivGames(records)
 	recordModel := struct {
 		QuestNames      []string
@@ -290,7 +293,14 @@ func (s *Server) getTopLaps() []AnniversaryTimes {
 			bestTimeForQuest := questBest[questName]
 			questTime := times.individualTimes[i]
 			largestDifference := worstTimeForQuest - bestTimeForQuest
-			totalDifference := int(100 * ((largestDifference) - (worstTimeForQuest - questTime)) / largestDifference)
+			if largestDifference > time.Minute {
+				largestDifference = time.Minute
+			}
+			//totalDifference := int(100 * ((largestDifference) - (worstTimeForQuest - questTime)) / largestDifference)
+			totalDifference := int(100 * (questTime - bestTimeForQuest) / (2 * time.Minute))
+			if totalDifference > 100 {
+				totalDifference = 100
+			}
 			red := 150 + (2 * totalDifference)
 			green := 250
 			blue := 80 - totalDifference

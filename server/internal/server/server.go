@@ -40,6 +40,7 @@ type Server struct {
 	downloadTemplate        *template.Template
 	gameTemplate            *template.Template
 	gameV3Template          *template.Template
+	gameV4Template          *template.Template
 	playerTemplate          *template.Template
 	gameNotFoundTemplate    *template.Template
 	recordsTemplate         *template.Template
@@ -96,15 +97,23 @@ func New(dynamo *dynamodb.DynamoDB) *Server {
 func (s *Server) Run() {
 	s.app.Static("/favicon.ico", "./static/favicon.ico", fiber.Static{})
 	s.app.Static("/static/", "./static/", fiber.Static{})
+	s.app.Get("/js/game.js", s.GetGameJs)
+	s.app.Get("/js/draughts.js", s.DraughtsJs)
+	s.app.Get("/js/three.module.js", s.ThreeJs)
+	s.app.Get("/js/OrbitControls.js", s.OrbitControlsJs)
+
 	// UI
 	s.app.Get("/", s.Index)
 	s.app.Get("/game/:gameId/:gem?", s.GamePage)
 	s.app.Get("/gamev3/:gameId/:gem?", s.GamePageV3)
+	s.app.Get("/gamev4/:gameId/:gem?", s.GamePageV4)
 	s.app.Get("/info", s.InfoPage)
 	s.app.Get("/download", s.DownloadPage)
 	s.app.Get("/records", s.RecordsV2Page)
 	s.app.Get("/anniv2021", s.Anniv2021RecordsPage)
 	s.app.Get("/anniv2022", s.Anniv2022RecordsPage)
+	//s.app.Get("/threejs", s.ThreejsPage)
+	//s.app.Get("/geometry", s.GetGeometry)
 	s.app.Get("/combo-calculator", s.ComboCalcMultiPage)
 	s.app.Get("/combo-calculator/opm", s.ComboCalcOpmPage)
 	s.app.Get("/players/:player", s.PlayerV2Page)
@@ -119,6 +128,7 @@ func (s *Server) Run() {
 	s.playerTemplate = ensureParsed("./server/internal/templates/playerV2.gohtml")
 	s.gameTemplate = ensureParsed("./server/internal/templates/game.gohtml")
 	s.gameV3Template = ensureParsed("./server/internal/templates/gamev3.gohtml")
+	s.gameV4Template = ensureParsed("./server/internal/templates/gamev4.gohtml")
 	s.downloadTemplate = ensureParsed("./server/internal/templates/download.gohtml")
 	s.gameNotFoundTemplate = ensureParsed("./server/internal/templates/gameNotFound.gohtml")
 	s.recordsTemplate = ensureParsed("./server/internal/templates/recordsV2.gohtml")

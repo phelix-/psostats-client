@@ -1,0 +1,608 @@
+{{define "game"}}
+    {{ $root := . }}
+    {{ $game := .Game}}
+    <html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width"/>
+        <meta property="og:site_name" content="PSOStats"/>
+        <meta property="og:title" content="{{ .Game.QuestName }} - {{ .FormattedQuestTime}}"/>
+        <meta property="og:description" content="Run by {{ range $index,$player := .Game.AllPlayers }}{{ if $index }}, {{ end }}{{ $player.Name }}({{ $player.Class }}){{ end }}"/>
+        <title>PSOStats</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+        <link href="/static/main2.css" rel="stylesheet" type="text/css">
+        <script src='https://code.jquery.com/jquery-1.11.3.min.js'></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.8.2/chart.min.js" integrity="sha512-zjlf0U0eJmSo1Le4/zcZI51ks5SjuQXkU0yOdsOBubjSmio9iCUp8XPLkEAADZNBdR9crRy3cniZ65LF2w8sRA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/2.0.0/chartjs-plugin-annotation.min.js" integrity="sha512-sLZhA8NE4bIPKMnsROQpJTBKVOQf8ie2GMFVXVfcg90tJ0aNhAWxhPyN0BRjwvZ35dSQF7kSzXtCU11KvWvNwQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+              integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+              crossorigin=""/>
+        <script type="importmap">
+        {
+            "imports": {
+                "three": "./js/three.module.js",
+                "OrbitControls":"./js/OrbitControls.js",
+            }
+        }
+        </script>
+        <script>
+            const jsonMeshes = {{ .JsonMeshes }}
+        </script>
+        <script src="/js/draughts.js" type="application/javascript"></script>
+        <script type="module" src="/js/game.js" ></script>
+    </head>
+    <style>
+        .psostats-chart {
+            background-color: #444;
+            margin-bottom: 4px;
+        }
+        .psostats-equipment {
+            padding: 8px 16px;
+        }
+        .current-player {
+            font-weight: bold;
+        }
+        .row {
+            margin-bottom: 16px;
+        }
+        a.list-group-item {
+            color: #abcdff;
+        }
+        .map {
+            min-height: 400px;
+            min-width: 400px;
+            height: calc(100% - 40px);
+        }
+        .leaflet-container {
+            background: #181818;
+        }
+        .player1-icon {
+            border-radius: 8px;
+            background-color: rgba(255, 79, 79, 0.8)
+        }
+        .player2-icon {
+            border-radius: 8px;
+            background-color: rgba(79, 255, 114, 0.8)
+        }
+        .player3-icon {
+            border-radius: 8px;
+            background-color: rgba(255, 252, 79, 0.86)
+        }
+        .player4-icon {
+            border-radius: 8px;
+            background-color: rgba(79, 108, 255, 0.8)
+        }
+        .undefined-icon {
+            border-radius: 8px;
+            background-color: rgba(255, 162, 79, 0.8)
+        }
+        .techs-cast-item {
+            margin: -8px 0;
+            padding-left: 8px;
+            border-right: 1px solid #333;
+            display: inline-block;
+            width: 32%;
+        }
+        .techs-cast-item:first-of-type {
+            padding-left: 0;
+        }
+        .techs-cast-item:last-of-type {
+            border-right: none;
+        }
+        .flex-container {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .psostats-questbasics {
+            display: flex;
+            flex-wrap: wrap;
+            width: 100%;
+            margin-right: 4px;
+            align-items: flex-start;
+        }
+        @media screen and (min-width: 660px) {
+            .psostats-questbasics {
+                width: 330px;
+            }
+        }
+        .psostats-questbasics > * {
+            width: 100%;
+        }
+        .psostats-map-title {
+
+        }
+        .psostats-map-row {
+            flex-grow: 1;
+        }
+        li.psostats-weapon {
+            height: 30px;
+        }
+        .psostats-weapon > .usage-bar {
+            height: 29px;
+            margin-top: -8px;
+            margin-bottom: -8px;
+            display: inline-block;
+        }
+        @supports (-moz-appearance: none) {
+            .psostats-weapon > .usage-bar { margin-top: -27px; }
+        }
+        .psostats-weapon > .usage-bar:first-of-type {
+            margin-left: -16px;
+        }
+    </style>
+    <body>
+    <div class="container-fluid">
+        <div class="flex-container">
+            <div class="flex-container" style="width: 1010px; min-height: 50vh; flex-direction: column;">
+                <ul class="nav">
+                    <li class="nav-item">
+                        <img src="/static/egotrap.png" height="48" width="48" alt="PSOStats"/>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Recent</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/records">Records</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/anniv2022">Anniversary</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/info">Info</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/download">Download</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/combo-calculator">Combo Calculator</a>
+                    </li>
+                </ul>
+                <div class="flex-container">
+                    <div class="flex-container" style="flex-direction: column;">
+                        <div class="flex-container">
+                            <img alt="{{ .SectionId }}" height="48px" width="48px" src="/static/icons/{{ .SectionId }}.png"/>
+                            &nbsp<h1>{{ .Game.QuestName}}&nbsp;<small class="text-muted">Episode {{ .Game.Episode }} - {{ $game.Difficulty}}</small></h1>
+                        </div>
+                        <div class="flex-container">
+                            <h2 class="display-6" style="margin-right: 16px">{{ .FormattedQuestTime }}</h2>
+                            <span class="quest-category" style="line-height: 60px">{{ len $game.AllPlayers }}P
+                                            {{ if $game.PbCategory }}
+                                                <img src="/static/twins_cropped.png" height="24px" width="24px" alt="PB" title="PB" style="margin-bottom: 4px"/><span aria-hidden="true" class="invisible-label">PB</span>
+                                            {{ else }}
+                                                <img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/>
+                                            {{ end }}</span>
+                            <span style="line-height: 60px">{{ .Game.QuestStartDate }} by <a href="/players/{{ .Game.UserName }}">{{ .Game.UserName }}</a></span>
+                        </div>
+                    </div>
+                    <div class="psostats-questbasics">
+                        <ul class="list-group list-group-flush" style="margin-bottom: 4px">
+                            {{ range $index, $player := .Game.AllPlayers }}
+                                {{ if index $root.HasPov $index}}
+                                    <a href="/gamev3/{{ $game.Id }}/{{ $index }}" class="list-group-item{{ if eq $player.GuildCard $game.GuildCard }} current-player{{ end }}">{{ $player.Class }} (Lv.{{ $player.Level }}) {{ $player.Name }}</a>
+                                {{ else }}
+                                    <li class="list-group-item">{{ $player.Class }} (Lv.{{ $player.Level }}) {{ $player.Name }}</li>
+                                {{ end }}
+                            {{ end }}
+                        </ul>
+                        <div class="psostats-chart">
+                            {{ range .TimeByState }}
+                                <li class="list-group-item psostats-weapon">
+                                    <div class="usage-bar" style="background-color: {{.Color}}; width: {{.PercentTime}}%;"></div><div class="usage-bar" style="width: {{.PercentRest}}%;margin-right:-100%;"></div><div style="font-size:12px;display:inline-block;margin-left:8px;margin-top:-24px">{{.Display}} - {{.Time}}s</div></li>
+                            {{ end }}
+                        </div>
+                    </div>
+                    <div class="psostats-questbasics">
+                        <ul class="list-group list-group-flush" style="margin-bottom: 4px">
+                            {{ range .SortedWeapons }}
+                                <li class="list-group-item psostats-weapon">
+                                    <div class="usage-bar" style="background-color: rgba(255,100,100,0.3); width: {{.Attacks}}%;"></div><div class="usage-bar" style="background-color: rgba(120,120,255,0.5); width: {{.Techs}}%;"></div><div class="usage-bar" style="width: {{.Rest}}%;margin-right:-100%;"></div><div style="font-size:12px;display:inline-block;margin-left:8px;margin-top:-24px">{{.Display}}</div></li>
+                            {{ end }}
+                        </ul>
+                        <div class="psostats-chart">
+                            <div class="psostats-equipment">
+                                {{ range .Frames }} <div><img alt="Frame" src="/static/Frame_icon.png"/> {{ .Display }}</div>{{ end}}
+                                {{ range .Units }} <div><img alt="Unit" src="/static/Unit_icon.png" style="margin-left: 16px;"/> {{ .Display }}</div> {{ end}}
+                                {{ range .Barriers }} <div><img alt="Barrier" src="/static/Shield_icon.png"/> {{ .Display }}</div> {{ end}}
+                                {{ range .Mags }} <div><img alt="Mag" src="/static/Mag_icon.png"/> {{ .Display }}</div> {{ end}}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="psostats-questbasics">
+                        <ul class="list-group list-group-flush" style="margin-bottom: 4px">
+                            {{ if gt (index $game.DataFrames 0).FT 0 }}
+                                <li class="list-group-item">
+                                    <span class="techs-cast-item"><img alt="Freeze Traps" height=30px width=34px src="/static/icons/FT_icon.png"/><span style="margin-left: 8px">{{if gt $game.FTUsed 0 }} {{ $game.FTUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                                    <span class="techs-cast-item"><img alt="Damage Traps" height=30px width=34px src="/static/icons/DT_icon.png"/><span style="margin-left: 8px">{{if gt $game.DTUsed 0 }} {{ $game.DTUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                                    <span class="techs-cast-item"><img alt="Confuse Traps" height=30px width=34px src="/static/icons/CT_icon.png"/><span style="margin-left: 8px">{{if gt $game.CTUsed 0 }} {{ $game.CTUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                                </li>
+                            {{ end }}
+                            {{if gt (len $game.TechsCast) 0}}
+                                {{ range $group := .TechsInOrder }}
+                                    <li class="list-group-item">
+                                        {{ range $tech := $group }}
+                                            <span class="techs-cast-item"><img alt="{{ $tech }}" src="/static/icons/{{ $tech }}_icon.png"/><span style="margin-left: 8px">{{if index $game.TechsCast $tech  }} {{ index $game.TechsCast $tech }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                                        {{ end }}
+                                    </li>
+                                {{ end }}
+                            {{ end }}
+
+                            <li class="list-group-item">
+                                <span class="techs-cast-item"><img height=30px width=34px alt="Monomate" src="/static/icons/Monomate_icon.png"/><span style="margin-left: 8px">{{if gt $game.MonomateUsed 0 }} {{ $game.MonomateUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                                <span class="techs-cast-item"><img height=30px width=34px alt="Dimate" src="/static/icons/Dimate_icon.png"/><span style="margin-left: 8px">{{if gt $game.DimateUsed 0 }} {{ $game.DimateUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                                <span class="techs-cast-item"><img height=30px width=34px alt="Trimate" src="/static/icons/Trimate_icon.png"/><span style="margin-left: 8px">{{if gt $game.TrimateUsed 0 }} {{ $game.TrimateUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                            </li>
+                            {{ if gt .Game.TPUsed 0 }}<li class="list-group-item">
+                                <span class="techs-cast-item"><img height=30px width=34px alt="Monofluid" src="/static/icons/Monofluid_icon.png"/><span style="margin-left: 8px">{{if gt $game.MonofluidUsed 0 }} {{ $game.MonofluidUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                                <span class="techs-cast-item"><img height=30px width=34px alt="Difluid" src="/static/icons/Difluid_icon.png"/><span style="margin-left: 8px">{{if gt $game.DifluidUsed 0 }} {{ $game.DifluidUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                                <span class="techs-cast-item"><img height=30px width=34px alt="Trifluid" src="/static/icons/Trifluid_icon.png"/><span style="margin-left: 8px">{{if gt $game.TrifluidUsed 0 }} {{ $game.TrifluidUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                            </li>{{ end }}
+                            <li class="list-group-item">
+                                <span class="techs-cast-item"><img height=30px width=34px alt="Moon Atomizer" src="/static/icons/MoonAtomizer_icon.png"/><span style="margin-left: 8px">{{if gt $game.MoonAtomizerUsed 0 }} {{ $game.MoonAtomizerUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                                <span class="techs-cast-item"><img height=30px width=34px alt="Sol Atomizer" src="/static/icons/SolAtomizer_icon.png"/><span style="margin-left: 8px">{{if gt $game.SolAtomizerUsed 0 }} {{ $game.SolAtomizerUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                                <span class="techs-cast-item"><img height=30px width=34px alt="Star Atomizer" src="/static/icons/StarAtomizer_icon.png"/><span style="margin-left: 8px">{{if gt $game.StarAtomizerUsed 0 }} {{ $game.StarAtomizerUsed }} {{ else }} <span style="color: rgba(255,255,255,0.3)">0</span>{{ end }}</span></span>
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+            <div class="psostats-map-row" style="height: 50vh">
+                <h4 class="psostats-map-title">{{ .FloorName }}</h4>
+                <canvas id="map-canvas" style="width: 100%; height: 100%"></canvas>
+                <button id="pause-button" style="margin-top: -200px; margin-left: -200px;">Play/Pause</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="psostats-chart" style="height: 50vh; width: 100vw">
+                <canvas id="game-timeline"></canvas>
+            </div>
+        </div>
+        <div class="row">
+            {{ range $i, $mapData := .MapData }}
+            {{ if gt $i 0}}
+                <div class="col-xl-6 col-12">
+                    <h4 class="psostats-equipment">{{ .MapName }}</h4>
+                    <div id="map{{$i}}{{.MapNum}}_{{.MapVariation}}" class="map"></div>
+                </div>
+            {{ end }}
+        {{ end }}
+        </div>
+
+        </div>
+    </body>
+    </html>
+    <script>
+        function playerStateName(state) {
+            switch (state) {
+                case "1":return "Standing";
+                case "2": return "Walking";
+                case "4": return "Running";
+                case "5": return "Attacking";
+                case "6": return "Attacking";
+                case "7": return "Attacking";
+                case "8": return "Casting";
+                case "10": return "Recoil";
+                case "14": return "Knocked Down";
+                case "15": return "Dead";
+                case "16": return "Cutscene";
+                case "18": return "Reviving";
+                case "20": return "Teleporting";
+                case "23": return "Emoting";
+            }
+            return "State " + state;
+        }
+        const weapons = {
+            {{ range $id, $weapon := $game.Weapons}} "{{$id}}": "{{$weapon.Display}}",
+            {{ end }}
+        }
+        const equippedWeapons = [{{ range $index, $frame := $game.DataFrames }} "{{ $frame.Weapon }}", {{ end }}];
+        const playerState = [{{ range $index, $frame := $game.DataFrames }} "{{ $frame.State}}", {{ end }}]
+
+
+        const afterTitle = (toolTipItems) => {
+            return weapons[equippedWeapons[toolTipItems[0].parsed.x]] + "\n" + playerStateName(playerState[toolTipItems[0].parsed.x]);
+        }
+
+        const annotations = window['chartjs-plugin-annotation'];
+        Chart.register(annotations)
+        const gameTimelineContext = document.getElementById("game-timeline");
+        Chart.defaults.elements.point.radius = 0;
+        const gameTimelineChart = new Chart(gameTimelineContext, {
+            type: 'line',
+            data: {
+                labels: [ {{ range $index, $frame := $game.DataFrames }} {{ $index }}, {{ end }} ],
+                datasets: [
+                    {{ range $index, $player := .Game.AllPlayers }}
+                    {{ if index $root.HasPov $index}}
+                    {
+                        label: '{{ $player.Name }} HP',
+                        data: [ {{ range (index $root.PlayerDataFrames $index) }} {{ .HP }}, {{ end }} ],
+                        borderColor: 'rgba(255,99,132,1)',
+                        backgroundColor: 'rgba(255, 99, 132, 1)',
+                        yAxisID: 'yHP',
+                        borderWidth: 1,
+                        {{ if eq $player.GuildCard $game.GuildCard }} {{ else }} borderDash: [2,4],{{ end }}
+                        {{ if eq $player.GuildCard $game.GuildCard }} {{ else }} hidden: true,{{ end }}
+                    },
+                    {{ end }}
+                    {{ end }}
+                    {{ if gt $game.TPUsed 0}}
+                    {
+                        label: 'TP',
+                        data: [ {{ range $game.DataFrames }} {{ .TP }}, {{ end }} ],
+                        borderColor: 'rgb(70,22,255)',
+                        backgroundColor: 'rgb(70,22,255)',
+                        yAxisID: 'yHP',
+                        borderWidth: 1,
+                    },
+                    {{ end }}
+                    {
+                        label: 'Damage Traps',
+                        data: [ {{ range $game.DataFrames }} {{ .DT }}, {{ end }} ],
+                        borderColor: 'rgba(255,99,132,0.5)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderDash: [5,5],
+                        yAxisID: 'yTraps',
+                    },
+                    {
+                        label: 'Freeze Traps',
+                        data: [ {{ range $game.DataFrames }} {{ .FT }}, {{ end }} ],
+                        borderColor: 'rgba(99,219,255,0.5)',
+                        backgroundColor: 'rgba(99,219,255,0.5)',
+                        borderDash: [5,5],
+                        yAxisID: 'yTraps',
+                    },
+                    {
+                        label: 'Meseta Charged',
+                        data: [ {{ range $game.DataFrames }} {{ .MesetaCharged }}, {{ end }} ],
+                        borderColor: 'rgba(255, 206, 86, 0.5)',
+                        backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                        yAxisID: 'yMeseta',
+                    },
+                    {
+                        label: 'Shifta',
+                        data: [ {{ range $game.DataFrames }} {{ .ShiftaLvl }}, {{ end }} ],
+                        borderColor: 'rgba(255,0,0,0.5)',
+                        backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                        yAxisID: 'yShifta',
+                        borderWidth: 1,
+                        fill: true,
+                    },
+                    {
+                        label: 'Deband',
+                        data: [ {{ range $game.DataFrames }} {{ .DebandLvl }}, {{ end }} ],
+                        borderColor: 'rgba(0,0,255, 0.5)',
+                        backgroundColor: 'rgba(0, 0, 255, 0.1)',
+                        fill: true,
+                        yAxisID: 'yShifta',
+                        borderWidth: 1,
+                        hidden: true,
+                    },
+                    {{ range $index, $player := .Game.AllPlayers }}
+                    {{ if index $root.HasPov $index}}
+                    {
+                        label: '{{ $player.Name }} PB',
+                        data: [ {{ range (index $root.PlayerDataFrames $index) }} {{ .PB }}, {{ end }} ],
+                        borderColor: 'rgba(62,128,52, .5)',
+                        backgroundColor: 'rgba(62,128,52, .5)',
+                        yAxisID: 'yPB',
+                        // borderWidth: 1,
+                        {{ if eq $player.GuildCard $game.GuildCard }} {{ else }} borderDash: [2,4],{{ end }}
+                        {{ if eq $player.GuildCard $game.GuildCard }} {{ else }} hidden: true,{{ end }}
+                    },
+                    {{ end }}
+                    {{ end }}
+                    {{ range $index, $player := .Game.AllPlayers }}
+                    {{ if index $root.HasPov $index}}
+                    {
+                        label: '{{ $player.Name }} Damage',
+                        data: [ {{ range (index $root.PlayerDataFrames $index) }} {{ .DamageDealt }}, {{ end }} ],
+                        borderColor: 'rgba(255,145,0,0.5)',
+                        backgroundColor: 'rgba(255,145,0,0.5)',
+                        yAxisID: 'yDamage',
+                        // borderWidth: 1,
+                        {{ if eq $player.GuildCard $game.GuildCard }} {{ else }} borderDash: [2,4],{{ end }}
+                        {{ if eq $player.GuildCard $game.GuildCard }} {{ else }} hidden: true,{{ end }}
+                    },
+                    {{ end }}
+                    {{ end }}
+                    {{ range $index, $player := .Game.AllPlayers }}
+                    {{ if index $root.HasPov $index}}
+                    {
+                        label: '{{ $player.Name }} Kills',
+                        data: [ {{ range (index $root.PlayerDataFrames $index) }} {{ .Kills }}, {{ end }} ],
+                        borderColor: 'rgba(0,0,0,0.5)',
+                        backgroundColor: 'rgba(0,0,0,0.5)',
+                        yAxisID: 'yKills',
+                        // borderWidth: 1,
+                        {{ if eq $player.GuildCard $game.GuildCard }} {{ else }} borderDash: [2,4],{{ end }}
+                        {{ if eq $player.GuildCard $game.GuildCard }} {{ else }} hidden: true,{{ end }}
+                    },
+                    {{ end }}
+                    {{ end }}
+                    {
+                        label: 'Monsters Alive',
+                        data: [ {{ range $game.DataFrames }} {{ .MonstersAlive }}, {{ end }} ],
+                        borderColor: 'rgba(255,255,255, 0.5)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                        yAxisID: 'yMonstersAlive',
+                        borderWidth: 1,
+                        fill: true,
+                    },
+                ]
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            afterTitle: afterTitle,
+                        }
+                    },
+                    legend: {
+                        position: 'right',
+                    },
+                    title: {
+                        display: false,
+                    },
+                    annotation: {
+                        annotations: {
+                            {{ range .Game.Events }}{{ if ne .Description "Died"}}
+                            "{{.Description}}": {xMin: {{ .Second }}, xMax: {{ .Second }}, borderColor: "rgba(255,255,255,.5)", borderDash: [2,4], borderWidth: 1, label: { content: '{{ .Description }}', borderWidth: 0, color: 'rgba(255,255,255,0.5)', display: true,}},
+                            {{ end }}{{ end }}
+
+                        }
+                    }
+                },
+                scales: {
+                    yHP: {
+                        type: 'linear',
+                        display: false,
+                        ticks: {
+                            display: false,
+                            autoSkip: true,
+                            maxTicksLimit: 20,
+                            beginAtZero: true,
+                        }
+                    },
+                    yTraps: {
+                        min: 0, max: 21,
+                        type: 'linear', display: false,
+                    },
+                    yShifta: {
+                        suggestedMin: 0, suggestedMax: 31,
+                        type: 'linear', display: false,
+                    },
+                    yMeseta: {
+                        type: 'linear',
+                        display: false,
+                        min: 0,
+                        suggestedMax: 10000,
+                    },
+                    yPB: {
+                        type: 'linear',
+                        display: false,
+                        min: 0,
+                        max: 110,
+                    },
+                    yDamage: {
+                        type: 'linear',
+                        display: false,
+                        min: 0,
+                    },
+                    yKills: {
+                        type: 'linear',
+                        display: false,
+                        min: 0,
+                    },
+                    yMonsters: {
+                        type: 'linear',
+                        display: false,
+                        min: 0,
+                    },
+                    yMonstersAlive: {
+                        type: 'linear',
+                        display: false,
+                        min: 0,
+                    }
+                }
+            },
+        });
+
+        {{ if gt (len .MapData) 100 }}
+        const mapImages = {
+            map0_0: L.imageOverlay('/static/maps/ruins2_1.jpg', [[-512, -20], [122, 1090]]),
+            map1_0: L.imageOverlay('/static/maps/forest1_0.jpg', [[-160, -200], [160, 200]]),
+            map2_0: L.imageOverlay('/static/maps/forest2.jpg', [[-158,-180], [166,165]]),
+            map3_0: L.imageOverlay('/static/maps/ruins2_1.jpg', [[-512, -20], [122, 1090]]),
+            map4_0: L.imageOverlay('/static/maps/cave2_0.jpg', [[-20, -175], [775, 550]]),
+            map4_1: L.imageOverlay('/static/maps/cave2_1.jpg', [[-80, -175], [700, 337.5]]),
+            map4_2: L.imageOverlay('/static/maps/cave2_2.jpg', [[-150, -50], [450, 800]]),
+            map4_3: L.imageOverlay('/static/maps/cave2_3.jpg', [[-60, -325], [425, 225]]),
+            map4_4: L.imageOverlay('/static/maps/cave2_4.jpg', [[-175, -275], [275, 250]]),
+            map5_4: L.imageOverlay('/static/maps/cave3_4.jpg', [[-200, -238], [100, 236]]),
+            map6_0: L.imageOverlay('/static/maps/mine1_0.jpg', [[-475, -25], [200, 850]]),
+            map6_1: L.imageOverlay('/static/maps/mine1_1.jpg', [[-450, -75], [50, 750]]),
+            map6_2: L.imageOverlay('/static/maps/mine1_2.jpg', [[-425, -25], [50, 800]]),
+            map6_3: L.imageOverlay('/static/maps/mine1_3.jpg', [[-200, -225], [200, 225]]),
+            map6_4: L.imageOverlay('/static/maps/mine1_4.jpg', [[-125, -175], [300, 175]]),
+            map6_5: L.imageOverlay('/static/maps/mine1_5.jpg', [[-150, -375], [150, 425]]),
+            map7_4: L.imageOverlay('/static/maps/mine2_4.jpg', [[-250, -112.5], [150, 375]]),
+            map8_0: L.imageOverlay('/static/maps/ruins1_0.jpg', [[-350, -160], [350, 500]]),
+            map9_0: L.imageOverlay('/static/maps/ruins2_0.jpg', [[-250, -25], [350, 1125]]),
+            map9_1: L.imageOverlay('/static/maps/ruins2_1.jpg', [[-512, -20], [122, 1090]]),
+            map10_3: L.imageOverlay('/static/maps/map10_3.png', [[-300, -300], [250, 250]]),
+            map10_4: L.imageOverlay('/static/maps/ruins3_4.jpg', [[-205, -237.5], [325, 425]]),
+            map11_0: L.imageOverlay('/static/maps/dragon_0.jpg', [[-87, -102], [96, 94]]),
+            map12_0: L.imageOverlay('/static/maps/drl_0.jpg', [[-24, -24], [25, 24]]),
+            map13_0: L.imageOverlay('/static/maps/volopt.jpg', [[-32.5, -37.5], [32.5, 37.5]]),
+            map14_0: L.imageOverlay('/static/maps/falz_0.jpg', [[-62.5, -62.5], [62.5, 62.5]]),
+            map19_1: L.imageOverlay('/static/maps/temple1_1.jpg', [[-250, -275], [350, 300]]),
+            map19_2: L.imageOverlay('/static/maps/temple1_2.jpg', [[-250, -300], [200, 200]]),
+            map20_1: L.imageOverlay('/static/maps/temple2_1.jpg', [[-240, -275], [265, 287.5]]),
+            map20_2: L.imageOverlay('/static/maps/temple2_2.jpg', [[-177.5, -255], [175, 275]]),
+            map21_0: L.imageOverlay('/static/maps/space1_0.jpg', [[-155, -390], [300, 400]]),
+            map21_1: L.imageOverlay('/static/maps/map21_1.png', [[-275, -300], [225, 300]]),
+            map21_2: L.imageOverlay('/static/maps/space1_2.jpg', [[-350, -450], [350, 50]]),
+            map22_0: L.imageOverlay('/static/maps/space2_0.jpg', [[-325, -350], [225, 375]]),
+            map22_1: L.imageOverlay('/static/maps/space2_1.jpg', [[-200, -350], [225, 350]]),
+            map23_0: L.imageOverlay('/static/maps/cca_0.jpg', [[-237.5, -662.5], [162.5, 62.5]]),
+            map24_0: L.imageOverlay('/static/maps/jungle0_0.jpg', [[-150, -225], [275, 200]]),
+            map27_0: L.imageOverlay('/static/maps/seaside_0.jpg', [[-200, -550], [180, 50]]),
+            map28_0: L.imageOverlay('/static/maps/seabed1_0.jpg', [[-475, -275], [162.5, 475]]),
+            map28_1: L.imageOverlay('/static/maps/seabed1_1.jpg', [[-350, -350], [250, 262.5]]),
+            map29_2: L.imageOverlay('/static/maps/seabed2_2.jpg', [[-350, -400], [350, 275]]),
+            map30_0: L.imageOverlay('/static/maps/gryffon_0.jpg', [[-100, -100], [100, 100]]),
+            map31_0: L.imageOverlay('/static/maps/olga_0.jpg', [[-30, -30], [30, 30]]),
+            map32_0: L.imageOverlay('/static/maps/temple3_0.jpg', [[-25, -25], [25, 80]]),
+            map33_0: L.imageOverlay('/static/maps/space3_0.jpg', [[-100, -100], [105, 110]]),
+            map35_0: L.imageOverlay('/static/maps/tower_0.jpg', [[-100, -100], [105, 110]]),
+            map36_0: L.imageOverlay('/static/maps/crater_east_0.jpg', [[-225, -300], [1675, 925]]),
+            map37_0: L.imageOverlay('/static/maps/map37_0.png', [[-300, -160], [160, 1500]]),
+            map38_0: L.imageOverlay('/static/maps/crater_south_0.jpg', [[-342.5, -342.5], [342.5, 342.5]]),
+            map39_0: L.imageOverlay('/static/maps/crater_north_0.jpg', [[-342.5, -342.5], [342.5, 342.5]]),
+            map40_0: L.imageOverlay('/static/maps/crater_int_0.jpg', [[-342.5, -342.5], [342.5, 342.5]]),
+            map41_0: L.imageOverlay('/static/maps/desert1_0.jpg', [[-675, -950], [110, 110]]),
+            map42_0: L.imageOverlay('/static/maps/desert2_0.jpg', [[-275, -275], [275, 275]]),
+            map43_0: L.imageOverlay('/static/maps/map43_0.png', [[-400, -100], [425, 950]]),
+            map44_0: L.imageOverlay('/static/maps/meteor_impact_0.jpg', [[-150, -250], [250, 200]]),
+        }
+
+        const playbackOptions = {
+            tickLen: 60,
+            speed: 0.5,
+            maxInterpolationTime: 2,
+            playControl: true,
+            dateControl: true,
+            sliderControl: true,
+            labels: true,
+            popups: true,
+            fadeMarkersWhenStale: true,
+            staleTime: 1,
+            marker: function(featureData) {
+                let icon = L.divIcon({className: 'undefined-icon'});
+                if (featureData.properties.title.startsWith("Player 1")) {
+                    icon = L.divIcon({className: 'player1-icon'});
+                } else if (featureData.properties.title.startsWith("Player 2")) {
+                    icon = L.divIcon({className: 'player2-icon'});
+                } else if (featureData.properties.title.startsWith("Player 3")) {
+                    icon = L.divIcon({className: 'player3-icon'});
+                } else if (featureData.properties.title.startsWith("Player 4")) {
+                    icon = L.divIcon({className: 'player4-icon'});
+                }
+                return {
+                    icon: icon,
+                    getPopup: function (feature) {
+                        return feature.properties.title;
+                    }
+                }
+            }
+        };
+        {{ end }}
+
+    </script>
+{{end}}
