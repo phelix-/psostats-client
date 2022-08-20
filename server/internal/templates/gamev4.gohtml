@@ -25,7 +25,8 @@
         }
         </script>
         <script>
-            const jsonMeshes = {{ .JsonMeshes }}
+            const jsonMeshes = {{ .JsonMeshes }};
+            const monsters = {{ .Monsters }};
         </script>
         <script src="/js/draughts.js" type="application/javascript"></script>
         <script type="module" src="/js/game.js" ></script>
@@ -177,7 +178,7 @@
                         <ul class="list-group list-group-flush" style="margin-bottom: 4px">
                             {{ range $index, $player := .Game.AllPlayers }}
                                 {{ if index $root.HasPov $index}}
-                                    <a href="/gamev3/{{ $game.Id }}/{{ $index }}" class="list-group-item{{ if eq $player.GuildCard $game.GuildCard }} current-player{{ end }}">{{ $player.Class }} (Lv.{{ $player.Level }}) {{ $player.Name }}</a>
+                                    <a href="/gamev4/{{ $game.Id }}/{{ $index }}" class="list-group-item{{ if eq $player.GuildCard $game.GuildCard }} current-player{{ end }}">{{ $player.Class }} (Lv.{{ $player.Level }}) {{ $player.Name }}</a>
                                 {{ else }}
                                     <li class="list-group-item">{{ $player.Class }} (Lv.{{ $player.Level }}) {{ $player.Name }}</li>
                                 {{ end }}

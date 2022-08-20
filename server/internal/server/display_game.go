@@ -333,10 +333,6 @@ func (s *Server) GamePageV4(c *fiber.Ctx) error {
 				playerIndex = i
 			}
 		}
-		timeMoving := game.TimeByState[2] + game.TimeByState[4]
-		timeStanding := game.TimeByState[1]
-		timeAttacking := game.TimeByState[5] + game.TimeByState[6] + game.TimeByState[7]
-		timeCasting := game.TimeByState[8]
 		totalActions := 0
 		for _, weapon := range game.Weapons {
 			actions := weapon.Attacks + weapon.Techs
@@ -389,43 +385,32 @@ func (s *Server) GamePageV4(c *fiber.Ctx) error {
 		sort.Slice(weaponDisplay, func(i, j int) bool {
 			return weaponDisplay[i].Rest < weaponDisplay[j].Rest
 		})
+		monsters, err := json.Marshal(&game.Monsters)
+		if err != nil {
+			return err
+		}
 
 		model := struct {
-			Game                 model.QuestRun
-			SectionId            string
-			HasPov               map[int]bool
-			FormattedQuestTime   string
-			InvincibleRanges     map[int]int
-			HpRanges             map[int]uint16
-			TpRanges             map[int]uint16
-			PbRanges             map[int]int
-			MonstersAliveRanges  map[int]int
-			MonstersKilledRanges map[int]int
-			MesetaChargedRanges  map[int]int
-			FreezeTrapRanges     map[int]uint16
-			ShiftaRanges         map[int]int16
-			DebandRanges         map[int]int16
-			HpPoolRanges         map[int]int
-			Weapons              []model.Equipment
-			Barriers             []model.Equipment
-			Frames               []model.Equipment
-			Units                []model.Equipment
-			Mags                 []model.Equipment
-			VideoUrl             string
-			TimeMoving           string
-			TimeStanding         string
-			TimeAttacking        string
-			TimeCasting          uint64
-			FormattedTimeCasting string
-			MapData              []MapData
-			PlayerIndex          int
-			TechsInOrder         [][]string
-			MostActions          int
-			TimeByState          []TimeAndStateDisplay
-			PlayerDataFrames     map[int][]model.DataFrame
-			SortedWeapons        []WeaponDisplay
-			JsonMeshes           string
-			FloorName            string
+			Game               model.QuestRun
+			SectionId          string
+			HasPov             map[int]bool
+			FormattedQuestTime string
+			InvincibleRanges   map[int]int
+			Weapons            []model.Equipment
+			Barriers           []model.Equipment
+			Frames             []model.Equipment
+			Units              []model.Equipment
+			Mags               []model.Equipment
+			MapData            []MapData
+			PlayerIndex        int
+			TechsInOrder       [][]string
+			MostActions        int
+			TimeByState        []TimeAndStateDisplay
+			PlayerDataFrames   map[int][]model.DataFrame
+			SortedWeapons      []WeaponDisplay
+			JsonMeshes         string
+			FloorName          string
+			Monsters           string
 		}{
 			Game:      *game,
 			SectionId: getSectionIdForQuest(game),
@@ -435,30 +420,15 @@ func (s *Server) GamePageV4(c *fiber.Ctx) error {
 				2: fullGame.P3Gzip != nil,
 				3: fullGame.P4Gzip != nil,
 			},
-			FormattedQuestTime:   formatDuration(duration),
-			InvincibleRanges:     invincibleRanges,
-			HpRanges:             convertU16ToXY(game.HP),
-			TpRanges:             convertU16ToXY(game.TP),
-			PbRanges:             convertF32ToXY(game.PB),
-			MonstersAliveRanges:  convertIntToXY(game.MonsterCount),
-			MonstersKilledRanges: convertIntToXY(game.MonstersKilledCount),
-			MesetaChargedRanges:  convertIntToXY(game.MesetaCharged),
-			FreezeTrapRanges:     convertU16ToXY(game.FreezeTraps),
-			ShiftaRanges:         convertToXY(game.ShiftaLvl),
-			DebandRanges:         convertToXY(game.DebandLvl),
-			HpPoolRanges:         convertIntToXY(game.MonsterHpPool),
-			Weapons:              getEquipment(game, model.EquipmentTypeWeapon),
-			Barriers:             getEquipment(game, model.EquipmentTypeBarrier),
-			Frames:               getEquipment(game, model.EquipmentTypeFrame),
-			Units:                getEquipment(game, model.EquipmentTypeUnit),
-			Mags:                 getEquipment(game, model.EquipmentTypeMag),
-			TimeMoving:           formatDuration(time.Duration(timeMoving) * (time.Second / 30)),
-			TimeStanding:         formatDuration(time.Duration(timeStanding) * (time.Second / 30)),
-			TimeAttacking:        formatDuration(time.Duration(timeAttacking) * (time.Second / 30)),
-			TimeCasting:          timeCasting,
-			FormattedTimeCasting: formatDuration(time.Duration(timeCasting) * (time.Second / 30)),
-			MapData:              formatMap(game, game.DataFrames),
-			PlayerIndex:          playerIndex,
+			FormattedQuestTime: formatDuration(duration),
+			InvincibleRanges:   invincibleRanges,
+			Weapons:            getEquipment(game, model.EquipmentTypeWeapon),
+			Barriers:           getEquipment(game, model.EquipmentTypeBarrier),
+			Frames:             getEquipment(game, model.EquipmentTypeFrame),
+			Units:              getEquipment(game, model.EquipmentTypeUnit),
+			Mags:               getEquipment(game, model.EquipmentTypeMag),
+			MapData:            formatMap(game, game.DataFrames),
+			PlayerIndex:        playerIndex,
 			TechsInOrder: [][]string{
 				{"Foie", "Zonde", "Barta"},
 				{"Gifoie", "Gizonde", "Gibarta"},
@@ -473,6 +443,7 @@ func (s *Server) GamePageV4(c *fiber.Ctx) error {
 			SortedWeapons:    weaponDisplay,
 			JsonMeshes:       jsonMeshes,
 			FloorName:        floorName,
+			Monsters:         string(monsters),
 		}
 		funcMap := template.FuncMap{
 			"add": func(a, b int) int { return a + b },

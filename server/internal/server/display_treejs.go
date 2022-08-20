@@ -6,7 +6,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/phelix-/psostats/v2/pkg/model"
 	"io/ioutil"
-	"log"
 )
 
 //func (s *Server) GetGeometry(c *fiber.Ctx) error {
@@ -162,12 +161,9 @@ func GetFloorMeshes(mapNum uint16, mapVariation uint16) *FloorMeshes {
 		floorName = "city02"
 	}
 
-	jsonBytes, err := ioutil.ReadFile(fmt.Sprintf("js/map_%v_%02dc.json", floorName, mapVariation))
-	if err != nil {
-		log.Fatalf("%v", err)
-	}
 	floorMeshes := FloorMeshes{}
-	err = json.Unmarshal(jsonBytes, &floorMeshes)
+	jsonBytes, _ := ioutil.ReadFile(fmt.Sprintf("js/map_%v_%02dc.json", floorName, mapVariation))
+	_ = json.Unmarshal(jsonBytes, &floorMeshes)
 
 	return &floorMeshes
 }
