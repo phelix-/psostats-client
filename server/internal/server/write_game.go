@@ -282,7 +282,7 @@ func (s *Server) QuestRecordWebhook(questRun model.QuestRun, previousRecord *mod
 		jsonBytes, err := json.Marshal(Webhook{Embeds: []Embed{
 			{
 				Title: "New Record: " + questRun.QuestName,
-				Description: fmt.Sprintf("%v%v https://psostats.com/game/%v%v",
+				Description: fmt.Sprintf("%v%v https://psostats.com/gamev4/%v%v",
 					formattedScore, formattedDuration, questRun.Id, previousRecordText),
 				Fields: []Field{
 					{Name: "Players", Value: playersString, Inline: true},
