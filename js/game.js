@@ -111,7 +111,7 @@ function init() {
     playbackPositionSlider.oninput = (e) => {
         paused = true;
         frame = e.target.value;
-        playbackTimer.innerText = (frame / 60).toFixed(0) + ":" + String(frame % 60).padStart(2, '0');
+        playbackTimer.innerText = Math.floor(frame / 60) + ":" + String(frame % 60).padStart(2, '0');
     }
 
     scene = new THREE.Scene();
@@ -149,7 +149,7 @@ function animate() {
             frame++;
             frame = frame % dataFrames.length;
             playbackPositionSlider.value = frame;
-            playbackTimer.innerText = (frame / 60).toFixed(0) + ":" + String(frame % 60).padStart(2, '0');
+            playbackTimer.innerText = Math.floor(frame / 60) + ":" + String(frame % 60).padStart(2, '0');
             // gameTimelineChart.options.plugins.annotation.annotations.cursor.xMin = frame;
             // gameTimelineChart.options.plugins.annotation.annotations.cursor.xMax = frame;
             // gameTimelineChart.update();
