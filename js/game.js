@@ -1,9 +1,10 @@
 import * as THREE from '/js/three.module.js';
 import { OrbitControls } from '/js/OrbitControls.js';
-import {Vector3} from "/js/three.module.js";
 
 var scene, camera, renderer, controls, draughts, board;
-var frame = 0;
+let frame = 0;
+let frameFraction = 0;
+const playbackSpeed = 30;
 var dataFrames;
 var players = {};
 let visibleMonsters = {};
@@ -13,6 +14,7 @@ const canvas = document.getElementById("map-canvas")
 let paused = true;
 let cameraUnset = true;
 const pauseButton = document.getElementById("pause-button")
+const playbackPositionSlider = document.getElementById("playback-position")
 const monsterMeshes = {
     "El Rappy": {"geometry": new THREE.SphereGeometry(3,8,8), "material": new THREE.MeshBasicMaterial( {color: "#e8eca6", wireframe: true}), "heightOffset": 3},
     "Bartle": {"geometry": new THREE.SphereGeometry(5,8,8), "material": new THREE.MeshBasicMaterial( {color: "#755138", wireframe: true}), "heightOffset": 3},
@@ -21,7 +23,7 @@ const monsterMeshes = {
     "Gulgus": {"geometry": new THREE.SphereGeometry(5,8,8), "material": new THREE.MeshBasicMaterial( {color: "#3f5f72", wireframe: true}), "heightOffset": 3},
     "Gulgus-gue": {"geometry": new THREE.SphereGeometry(5,8,8), "material": new THREE.MeshBasicMaterial( {color: "#853530", wireframe: true}), "heightOffset": 3},
     "Mothvert": {"geometry": new THREE.CylinderGeometry(4,4,2), "material": new THREE.MeshBasicMaterial( {color: "#ff0000"}), "heightOffset": 3},
-    "Mothvist": { "geometry": new THREE.SphereGeometry(12,8,8), "material": new THREE.MeshBasicMaterial( {color: "#9d007d", wireframe: true}), "heightOffset": 3},
+    "Mothvist": { "geometry": new THREE.SphereGeometry(12,8,8), "material": new THREE.MeshBasicMaterial( {color: "#003f9d", wireframe: true}), "heightOffset": 3},
     "Hildelt": { "geometry": new THREE.SphereGeometry(6,8,8), "material": new THREE.MeshBasicMaterial( {color: "#818181", wireframe: true}), "heightOffset": 3},
 
     "Vulmer": {"geometry": new THREE.SphereGeometry(3,8,8), "material": new THREE.MeshBasicMaterial( {color: "#43a401", wireframe: true}), "heightOffset": 3},
@@ -52,6 +54,40 @@ const monsterMeshes = {
     "Indi Belra": { "geometry": new THREE.CylinderGeometry(5,5,8), "material": new THREE.MeshBasicMaterial( {color: "#00ffe0", wireframe: true}), "heightOffset": 3},
     "Dark Bringer": { "geometry": new THREE.SphereGeometry(6,8,8), "material": new THREE.MeshBasicMaterial( {color: "#d59d1c", wireframe: true}), "heightOffset": 3},
 
+    "Merillia": { "geometry": new THREE.SphereGeometry(3,8,8), "material": new THREE.MeshBasicMaterial( {color: "#a41f01", wireframe: true}), "heightOffset": 3},
+    "Meriltas": { "geometry": new THREE.SphereGeometry(3,8,8), "material": new THREE.MeshBasicMaterial( {color: "#6ea401", wireframe: true}), "heightOffset": 3},
+    "Ul Gibbon": { "geometry": new THREE.SphereGeometry(5,8,8), "material": new THREE.MeshBasicMaterial( {color: "#566015", wireframe: true}), "heightOffset": 3},
+    "Zol Gibbon": { "geometry": new THREE.SphereGeometry(5,8,8), "material": new THREE.MeshBasicMaterial( {color: "#540d0d", wireframe: true}), "heightOffset": 3},
+    "Gee": { "geometry": new THREE.CylinderGeometry(4,4,2), "material": new THREE.MeshBasicMaterial( {color: "#ff4f00"}), "heightOffset": 3},
+    "Gibbles": { "geometry": new THREE.CylinderGeometry(12,12,24), "material": new THREE.MeshBasicMaterial( {color: "#e3d806", wireframe: true}), "heightOffset": 3},
+    "Gi Gue": { "geometry": new THREE.CylinderGeometry(12,12,24), "material": new THREE.MeshBasicMaterial( {color: "#e34e0f", wireframe: true}), "heightOffset": 3},
+    "Mericarol": { "geometry": new THREE.SphereGeometry(20,8,8), "material": new THREE.MeshBasicMaterial( {color: "#ff4400", wireframe: true}), "heightOffset": 3},
+    "Merikle": { "geometry": new THREE.SphereGeometry(20,8,8), "material": new THREE.MeshBasicMaterial( {color: "#00ceff", wireframe: true}), "heightOffset": 3},
+    "Mericus": { "geometry": new THREE.SphereGeometry(20,8,8), "material": new THREE.MeshBasicMaterial( {color: "#e6ff00", wireframe: true}), "heightOffset": 3},
+    "Sinow Spigell": { "geometry": new THREE.SphereGeometry(3,8,8), "material": new THREE.MeshBasicMaterial( {color: "#987171", wireframe: true}), "heightOffset": 3},
+    "Sinow Berill": { "geometry": new THREE.SphereGeometry(3,8,8), "material": new THREE.MeshBasicMaterial( {color: "#159a42", wireframe: true}), "heightOffset": 3},
+
+    "Dolmolm": { "geometry": new THREE.SphereGeometry(3,8,8), "material": new THREE.MeshBasicMaterial( {color: "#7601a4", wireframe: true}), "heightOffset": 3},
+    "Dolmdarl": { "geometry": new THREE.SphereGeometry(3,8,8), "material": new THREE.MeshBasicMaterial( {color: "#7601a4", wireframe: true}), "heightOffset": 3},
+    "Recobox": { "geometry": new THREE.BoxGeometry(5,5,5), "material": new THREE.MeshBasicMaterial( {color: "#6c6c6c"}), "heightOffset": 3},
+    "Recon": { "geometry": new THREE.SphereGeometry(3,8,8), "material": new THREE.MeshBasicMaterial( {color: "#777777"}), "heightOffset": 3},
+    "Morfos": { "geometry": new THREE.SphereGeometry(6,8,8), "material": new THREE.MeshBasicMaterial( {color: "#ffffff", wireframe: true}), "heightOffset": 3},
+    "Sinow Zoa": { "geometry": new THREE.SphereGeometry(6,8,8), "material": new THREE.MeshBasicMaterial( {color: "#ffffff", wireframe: true}), "heightOffset": 3},
+    "Sinow Zele": { "geometry": new THREE.SphereGeometry(6,8,8), "material": new THREE.MeshBasicMaterial( {color: "#ffffff", wireframe: true}), "heightOffset": 3},
+    "Delbiter": { "geometry": new THREE.SphereGeometry(6,8,8), "material": new THREE.MeshBasicMaterial( {color: "#ffffff", wireframe: true}), "heightOffset": 3},
+    "Deldepth": { "geometry": new THREE.CylinderGeometry(6,6,1), "material": new THREE.MeshBasicMaterial( {color: "#ffffff"}), "heightOffset": 3},
+
+    "Ill Gill": { "geometry": new THREE.SphereGeometry(6,8, 8), "material": new THREE.MeshBasicMaterial( {color: "#d07eff"}), "heightOffset": 3},
+    "Del Lily": { "geometry": new THREE.CylinderGeometry(4,4,20), "material": new THREE.MeshBasicMaterial( {color: "#45147a"}), "heightOffset": 3},
+    "Epsilon": { "geometry": new THREE.SphereGeometry(12,8,8), "material": new THREE.MeshBasicMaterial( {color: "#862f00"}), "heightOffset": 3},
+    "Epsigard": { "geometry": new THREE.SphereGeometry(4,8, 8), "material": new THREE.MeshBasicMaterial( {color: "#862f00"}), "heightOffset": 3},
+
+    "Boota": { "geometry": new THREE.SphereGeometry(3,8,8), "material": new THREE.MeshBasicMaterial( {color: "#ffffff", wireframe: true}), "heightOffset": 3},
+    "Ze Boota": { "geometry": new THREE.SphereGeometry(3,8,8), "material": new THREE.MeshBasicMaterial( {color: "#ffffff", wireframe: true}), "heightOffset": 3},
+    "Ba Boota": { "geometry": new THREE.SphereGeometry(3,8,8), "material": new THREE.MeshBasicMaterial( {color: "#ffffff", wireframe: true}), "heightOffset": 3},
+    "Astark": { "geometry": new THREE.SphereGeometry(6,8,8), "material": new THREE.MeshBasicMaterial( {color: "#00c70a", wireframe: true}), "heightOffset": 3},
+    "Dorphon": { "geometry": new THREE.SphereGeometry(12,8,8), "material": new THREE.MeshBasicMaterial( {color: "#ffffff", wireframe: true}), "heightOffset": 3},
+
     "Sand Rappy": {"geometry": new THREE.SphereGeometry(3,8,8), "material": new THREE.MeshBasicMaterial( {color: "#ff8000", wireframe: true}), "heightOffset": 3},
     "Goran": { "geometry": new THREE.SphereGeometry(3,8,8), "material": new THREE.MeshBasicMaterial( {color: "#7601a4", wireframe: true}), "heightOffset": 3},
     "Pyro Goran": { "geometry": new THREE.SphereGeometry(5,8,8), "material": new THREE.MeshBasicMaterial( {color: "#01a417", wireframe: true}), "heightOffset": 3},
@@ -61,54 +97,19 @@ const monsterMeshes = {
     "Merissa A": { "geometry": new THREE.CylinderGeometry(6,6,1), "material": new THREE.MeshBasicMaterial( {color: "#ff7e95"}), "heightOffset": 3},
     "Zu": { "geometry": new THREE.SphereGeometry(6,8,8), "material": new THREE.MeshBasicMaterial( {color: "#fa53b3", wireframe: true}), "heightOffset": 3},
     "Girtablulu": { "geometry": new THREE.SphereGeometry(20,8,8), "material": new THREE.MeshBasicMaterial( {color: "#ab5bff", wireframe: true}), "heightOffset": 3},
-
 };
-
-const rooms = {
-    101: [1175.000000,0.000000,-2545.000000],
-    102: [1460.000000,0.000000,-2770.000000],
-    110: [1245.000000,0.000000,-2915.000000],
-    111: [350.000000,0.000000,-1850.000000],
-    112: [645.000000,0.000000,-2465.000000],
-    201: [1460.000000,0.000000,-2915.000000],
-    202: [430.000000,0.000000,-2465.000000],
-    203: [270.000000,0.000000,-2465.000000],
-    1: [-300.000000,0.000000,-50.000000],
-    2: [600.000000,0.000000,-950.000000],
-    3: [-200.000000,0.000000,-2400.000000],
-    4: [2060.000000,0.000000,-1995.000000],
-    5: [395.000000,0.000000,-2665.000000],
-    6: [55.000000,0.000000,-2465.000000],
-    7: [-500.000000,0.000000,-950.000000],
-    8: [-250.000000,0.000000,-1150.000000],
-    30: [1410.000000,0.000000,-2545.000000],
-    35: [945.000000,0.000000,-2865.000000],
-    40: [945.000000,0.000000,-2465.000000],
-    45: [350.000000,0.000000,-2150.000000],
-    20: [0.000000,0.000000,-300.000000],
-    21: [350.000000,0.000000,-650.000000],
-    22: [-500.000000,0.000000,-650.000000],
-    23: [1460.000000,0.000000,-1995.000000],
-    10: [0.000000,0.000000,-650.000000],
-    11: [350.000000,0.000000,-950.000000],
-    12: [395.000000,0.000000,-2915.000000],
-    13: [-200.000000,0.000000,-2150.000000],
-    14: [1810.000000,0.000000,-1995.000000],
-    15: [-300.000000,0.000000,-300.000000],
-    16: [0.000000,0.000000,-1150.000000],
-    120: [-250.000000,0.000000,-650.000000],
-    121: [645.000000,0.000000,-2915.000000],
-    122: [350.000000,0.000000,-1200.000000],
-    123: [1460.000000,0.000000,-2245.000000],
-    124: [50.000000,0.000000,-2150.000000],
-    125: [0.000000,0.000000,-900.000000],
-    60: [350.000000,0.000000,-1525.000000],
-}
 
 function init() {
     draughts = new Draughts();
     pauseButton.onclick = function() {
         paused = !paused;
+    }
+    playbackPositionSlider.setAttribute("min", "0")
+    playbackPositionSlider.setAttribute("max", "" + (jsonMeshes.dataFrames.length - 1))
+    playbackPositionSlider.value = 0
+    playbackPositionSlider.oninput = (e) => {
+        paused = true;
+        frame = e.target.value;
     }
 
     scene = new THREE.Scene();
@@ -116,10 +117,8 @@ function init() {
 
     renderer = new THREE.WebGLRenderer({canvas: canvas});
     renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-    // document.body.appendChild(renderer.domElement);
     controls = new OrbitControls(camera, renderer.domElement);
 
-    // controls.enablePan = false;
     controls.maxPolarAngle = Math.PI / 2;
 
     controls.enableDamping = true;
@@ -144,8 +143,14 @@ function init() {
 function animate() {
     controls.update();
     if (dataFrames && dataFrames.length > 0) {
-        let slowedFrame = (frame / 30).toFixed(0)
-        let currentDataFrame = dataFrames[slowedFrame % dataFrames.length]
+        if (!paused && frameFraction % playbackSpeed === 0) {
+            frame++;
+            playbackPositionSlider.value = frame;
+            // gameTimelineChart.options.plugins.annotation.annotations.cursor.xMin = frame;
+            // gameTimelineChart.options.plugins.annotation.annotations.cursor.xMax = frame;
+            // gameTimelineChart.update();
+        }
+        let currentDataFrame = dataFrames[frame % dataFrames.length]
         let playerIndex = 0;
         for (let playerId in currentDataFrame.PlayerByGcLocation) {
             let player = players[playerId]
@@ -158,30 +163,17 @@ function animate() {
             player.position.y = currentDataFrame.PlayerByGcLocation[playerId].Y + 5;
             player.position.z = currentDataFrame.PlayerByGcLocation[playerId].Z;
             if (playerIndex === 0) {
-                let room = currentDataFrame.PlayerByGcLocation[playerId].Room
-                // if (rooms[room]) {
-                //     controls.target.set(rooms[room][0], rooms[room][1], rooms[room][2])
-                // } else {
-                    if (cameraUnset ||
-                        Math.abs(camera.position.x - player.position.x) > 1000 ||
-                        Math.abs(camera.position.y - player.position.y) > 1000 ||
-                        Math.abs(camera.position.x - player.position.x) > 1000
-                    ) {
-                        camera.position.x = player.position.x;
-                        camera.position.y = player.position.y + 300;
-                        camera.position.z = player.position.z - 300;
-                        controls.target.set(player.position.x,player.position.y,player.position.z);
-                        cameraUnset = false;
-                    }
-
-                    // camera.position.set(player.position.x, player.position.y + 300, player.position.z - 300)
-                    // controls.target.set(player.position.x,player.position.y,player.position.z);
-                // }
-
-                // this.camera.position.lerp(this.cameraTargetPosition, 0.4);
-                // camera.position.z = player.position.z;
-                // camera.position.x = player.position.x - 500;
-                // camera.lookAt(player.position);
+                if (cameraUnset ||
+                    Math.abs(camera.position.x - player.position.x) > 1000 ||
+                    Math.abs(camera.position.y - player.position.y) > 1000 ||
+                    Math.abs(camera.position.x - player.position.x) > 1000
+                ) {
+                    camera.position.x = player.position.x;
+                    camera.position.y = player.position.y + 300;
+                    camera.position.z = player.position.z - 300;
+                    controls.target.set(player.position.x,player.position.y,player.position.z);
+                    cameraUnset = false;
+                }
             }
             playerIndex++;
         }
@@ -216,7 +208,7 @@ function animate() {
         }
     }
     if (!paused) {
-        frame++;
+        frameFraction++;
     }
 
     renderer.render(scene, camera);
