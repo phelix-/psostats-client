@@ -41,7 +41,7 @@
                     {{ if gt (len .Name) 0 }}
                         <div>
                         {{ if $player.HasPov}}
-                            <a href="/gamev3/{{ $game.Id }}/{{ $index }}"><span style="width:85px; display: inline-block">{{ index .Class }}</span>{{ .Name }}</a>
+                            <a href="/gamev4/{{ $game.Id }}/{{ $index }}"><span style="width:85px; display: inline-block">{{ index .Class }}</span>{{ .Name }}</a>
                         {{ else }}
                             <span style="width:85px; display: inline-block">{{ index .Class }}</span>{{ .Name }}
                         {{ end }}
