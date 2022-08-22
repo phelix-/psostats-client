@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
-	"github.com/phelix-/psostats/v2/pkg/common"
 	"github.com/phelix-/psostats/v2/pkg/model"
 	"github.com/phelix-/psostats/v2/server/internal/db"
 	"sort"
@@ -290,18 +289,26 @@ func (s *Server) GamePageV4(c *fiber.Ctx) error {
 		}
 
 		jsonMeshes := "{}"
-		floorName := ""
+		meshesByFloor := make(map[uint16]FloorMeshes)
 		if len(game.DataFrames) > 0 {
-			floorNum := game.DataFrames[0].Map
-			floorName = common.GetFloorName(floorNum)
-			floorMeshes := GetFloorMeshes(floorNum, game.DataFrames[0].MapVariation)
-			floorMeshes.DataFrames = game.DataFrames
-			jsonBytes, err := json.Marshal(floorMeshes)
-			if err != nil {
-				return err
+			for _, dataFrame := range game.DataFrames {
+				floorNum := dataFrame.Map
+				if _, found := meshesByFloor[floorNum]; !found {
+					floorMeshes := GetFloorMeshes(floorNum, dataFrame.MapVariation)
+					meshesByFloor[floorNum] = *floorMeshes
+				}
 			}
-			jsonMeshes = string(jsonBytes)
 		}
+		jsonBytes, err := json.Marshal(meshesByFloor)
+		if err != nil {
+			return err
+		}
+		jsonFloorMeshes := string(jsonBytes)
+		jsonBytes, err = json.Marshal(game.DataFrames)
+		if err != nil {
+			return err
+		}
+		dataFrames := string(jsonBytes)
 
 		invincibleRanges := make(map[int]int)
 		invincibleStart := -1
@@ -409,8 +416,9 @@ func (s *Server) GamePageV4(c *fiber.Ctx) error {
 			PlayerDataFrames   map[int][]model.DataFrame
 			SortedWeapons      []WeaponDisplay
 			JsonMeshes         string
-			FloorName          string
 			Monsters           string
+			DataFrames         string
+			MeshesByFloor      string
 		}{
 			Game:      *game,
 			SectionId: getSectionIdForQuest(game),
@@ -442,8 +450,9 @@ func (s *Server) GamePageV4(c *fiber.Ctx) error {
 			TimeByState:      timeByState,
 			SortedWeapons:    weaponDisplay,
 			JsonMeshes:       jsonMeshes,
-			FloorName:        floorName,
 			Monsters:         string(monsters),
+			DataFrames:       dataFrames,
+			MeshesByFloor:    jsonFloorMeshes,
 		}
 		funcMap := template.FuncMap{
 			"add": func(a, b int) int { return a + b },

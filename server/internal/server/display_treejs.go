@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
-	"github.com/phelix-/psostats/v2/pkg/model"
 	"io/ioutil"
 )
 
@@ -169,9 +168,8 @@ func GetFloorMeshes(mapNum uint16, mapVariation uint16) *FloorMeshes {
 }
 
 type FloorMeshes struct {
-	Meshes     [][]Coordinate    `json:"meshes"`
-	Normals    [][]Coordinate    `json:"normals"`
-	DataFrames []model.DataFrame `json:"dataFrames"`
+	Meshes  [][]Coordinate `json:"meshes"`
+	Normals [][]Coordinate `json:"normals"`
 }
 
 type Coordinate struct {

@@ -25,7 +25,8 @@
         }
         </script>
         <script>
-            const jsonMeshes = {{ .JsonMeshes }};
+            const meshesByFloor = {{ .MeshesByFloor }};
+            const dataFrames = {{ .DataFrames }}
             const monsters = {{ .Monsters }};
         </script>
         <script src="/js/draughts.js" type="application/javascript"></script>
@@ -247,9 +248,9 @@
                 </div>
             </div>
             <div class="psostats-map-row" style="height: 50vh">
-                <h4 class="psostats-map-title">{{ .FloorName }}</h4>
-                <canvas id="map-canvas" style="width: 100%; height: 100%"></canvas>
-                <div style="position: absolute; top: 45px; z-index: 100;">
+                <canvas id="map-canvas" style="position: absolute; top: 0; bottom: 0; left: 0; right: 0;"></canvas>
+                <div style="position: absolute; top: 0; z-index: 100;">
+                    <h4 class="psostats-map-title" id="playback-floor-name"></h4>
                     <h3 id="playback-timer" style="display: inline-block;">0:00</h3>
                     <button id="pause-button" style="z-index: 500;">Play/Pause</button>
                     <input id="playback-position" type="range" width="100%" min="0" value="0">
@@ -261,17 +262,6 @@
                 <canvas id="game-timeline"></canvas>
             </div>
         </div>
-        <div class="row">
-            {{ range $i, $mapData := .MapData }}
-            {{ if gt $i 0}}
-                <div class="col-xl-6 col-12">
-                    <h4 class="psostats-equipment">{{ .MapName }}</h4>
-                    <div id="map{{$i}}{{.MapNum}}_{{.MapVariation}}" class="map"></div>
-                </div>
-            {{ end }}
-        {{ end }}
-        </div>
-
         </div>
     </body>
     </html>
