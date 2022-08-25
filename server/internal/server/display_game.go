@@ -480,6 +480,8 @@ func getNameForState(state uint16) TimeAndStateDisplay {
 		return TimeAndStateDisplay{Display: "Attacking", Color: "rgba(255, 122, 122, 0.5)"}
 	case 8:
 		return TimeAndStateDisplay{Display: "Casting", Color: "rgba(122, 122, 255, 0.5)"}
+	case 9:
+		return TimeAndStateDisplay{Display: "Photon Blast", Color: "var(--colors-photon-blast)"}
 	case 10:
 		return TimeAndStateDisplay{Display: "Recoil", Color: "rgba(255,255,255,1)"}
 	case 14:
@@ -490,6 +492,8 @@ func getNameForState(state uint16) TimeAndStateDisplay {
 		return TimeAndStateDisplay{Display: "Cutscene", Color: "rgba(255,255,0,.5)"}
 	case 18:
 		return TimeAndStateDisplay{Display: "Reviving", Color: "rgba(255,255,255,1)"}
+	case 19:
+		return TimeAndStateDisplay{Display: "Photon Blast", Color: "var(--colors-photon-blast)"}
 	case 20:
 		return TimeAndStateDisplay{Display: "Teleporting", Color: "rgba(255,255,255,1)"}
 	case 23:

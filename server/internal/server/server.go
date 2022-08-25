@@ -115,6 +115,7 @@ func (s *Server) Run() {
 	//s.app.Get("/threejs", s.ThreejsPage)
 	//s.app.Get("/geometry", s.GetGeometry)
 	s.app.Get("/combo-calculator", s.ComboCalcMultiPage)
+	s.app.Get("/tech-calculator", s.TechCalcPage)
 	s.app.Get("/combo-calculator/opm", s.ComboCalcOpmPage)
 	s.app.Get("/players/:player", s.PlayerV2Page)
 	// API

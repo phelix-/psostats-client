@@ -17,7 +17,7 @@ const pauseButton = document.getElementById("pause-button");
 const playbackPositionSlider = document.getElementById("playback-position");
 const playbackTimer = document.getElementById("playback-timer");
 const floorName = document.getElementById("playback-floor-name")
-const darksquare = new THREE.MeshBasicMaterial( { color: 0x101010 });
+const darksquare = new THREE.MeshBasicMaterial( { color: "#303030" });
 const floorNames = {
     "0":"Pioneer II",
     "1":"Forest 1",
@@ -176,10 +176,10 @@ function init() {
     }
 
     scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 5000);
+    camera = new THREE.PerspectiveCamera(75, canvas.parentNode.clientWidth / canvas.parentNode.clientHeight, 0.1, 5000);
 
     renderer = new THREE.WebGLRenderer({canvas: canvas});
-    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+    renderer.setSize(canvas.parentNode.clientWidth, canvas.parentNode.clientHeight);
     controls = new OrbitControls(camera, renderer.domElement);
 
     controls.maxPolarAngle = Math.PI / 2;
@@ -289,10 +289,10 @@ function animate() {
 
 function onWindowResize() {
 
-    camera.aspect = canvas.clientWidth / canvas.clientHeight;
+    camera.aspect = canvas.parentNode.clientWidth / canvas.parentNode.clientHeight;
     camera.updateProjectionMatrix();
 
-    renderer.setSize( canvas.clientWidth, canvas.clientHeight );
+    renderer.setSize( canvas.parentNode.clientWidth, canvas.parentNode.clientHeight );
 
 }
 

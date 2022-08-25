@@ -33,6 +33,21 @@
         <script type="module" src="/js/game.js" ></script>
     </head>
     <style>
+        :root {
+            --colors-attacking: #7d4e4e;
+            --colors-casting: #5f5fa2;
+            --colors-photon-blast: #fd7e14;
+            --colors-shifta: #f21a2d;
+            --colors-deband: #0060f1;
+            --colors-megid: #be08ed;
+            --colors-grants: #f0e1a1;
+            --colors-foie: #ec6d2a;
+            --colors-zonde: #d3d300;
+            --colors-barta: #2cc3f2;
+            --colors-ryuker: #8e4dec;
+            --colors-consumable: #00fd5f;
+            --colors-redria: #e70000;
+        }
         .psostats-chart {
             background-color: #444;
             margin-bottom: 4px;
@@ -110,7 +125,8 @@
             width: 100%;
         }
         .psostats-map-title {
-
+            padding-left: 4px;
+            padding-top: 4px;
         }
         .psostats-map-row {
             flex-grow: 1;
@@ -247,11 +263,11 @@
 
                 </div>
             </div>
-            <div class="psostats-map-row" style="height: 50vh; min-width: 300px">
-                <canvas id="map-canvas" style="position: absolute; height: 50vh;"></canvas>
-                <div style="position: absolute; top: 0; z-index: 100;">
+            <div class="psostats-map-row" style="min-height: 50vh; min-width: 300px">
+                <canvas id="map-canvas" style="position: absolute;"></canvas>
+                <div style="position: absolute; z-index: 100;">
                     <h4 class="psostats-map-title" id="playback-floor-name"></h4>
-                    <h3 id="playback-timer" style="display: inline-block;">0:00</h3>
+                    <h3 id="playback-timer" style="padding-left: 4px; display: inline-block;">0:00</h3>
                     <button id="pause-button" style="z-index: 500;">Play/Pause</button>
                     <input id="playback-position" type="range" width="100%" min="0" value="0">
                 </div>
@@ -275,11 +291,13 @@
                 case "6": return "Attacking";
                 case "7": return "Attacking";
                 case "8": return "Casting";
+                case "9": return "Photon Blast";
                 case "10": return "Recoil";
                 case "14": return "Knocked Down";
                 case "15": return "Dead";
                 case "16": return "Cutscene";
                 case "18": return "Reviving";
+                case "19": return "Photon Blast";
                 case "20": return "Teleporting";
                 case "23": return "Emoting";
             }
@@ -439,7 +457,7 @@
                         }
                     },
                     legend: {
-                        position: 'right',
+                        position: 'top',
                     },
                     title: {
                         display: false,
