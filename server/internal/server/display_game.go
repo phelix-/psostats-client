@@ -419,6 +419,7 @@ func (s *Server) GamePageV4(c *fiber.Ctx) error {
 			Monsters           string
 			DataFrames         string
 			MeshesByFloor      string
+			Waves              []Wave
 		}{
 			Game:      *game,
 			SectionId: getSectionIdForQuest(game),
@@ -453,6 +454,7 @@ func (s *Server) GamePageV4(c *fiber.Ctx) error {
 			Monsters:         string(monsters),
 			DataFrames:       dataFrames,
 			MeshesByFloor:    jsonFloorMeshes,
+			Waves:            getWaves(game),
 		}
 		funcMap := template.FuncMap{
 			"add": func(a, b int) int { return a + b },
@@ -462,6 +464,62 @@ func (s *Server) GamePageV4(c *fiber.Ctx) error {
 	}
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
+}
+
+type WaveMonster struct {
+	Name       string
+	Id         uint16
+	UnitxtId   uint32
+	SpawnTime  time.Time
+	KilledTime time.Time
+	TimeAlive  string
+}
+
+type Wave struct {
+	Name              string
+	Monsters          []WaveMonster
+	FirstSpawn        time.Time
+	Duration          time.Duration
+	FormattedDuration string
+}
+
+func getWaves(game *model.QuestRun) []Wave {
+	monsters := make([]model.Monster, 0)
+	for _, monster := range game.Monsters {
+		monsters = append(monsters, monster)
+	}
+	sort.Slice(monsters, func(i, j int) bool {
+		return monsters[i].SpawnTime.Before(monsters[j].SpawnTime)
+	})
+	wave := Wave{}
+	waves := make([]Wave, 0)
+	for _, monster := range monsters {
+		if monster.UnitxtId == 3 {
+			continue
+		}
+		if monster.SpawnTime.After(wave.FirstSpawn.Add(time.Second)) {
+			if !wave.FirstSpawn.Before(time.UnixMilli(0)) {
+				wave.Duration = monster.SpawnTime.Sub(wave.FirstSpawn)
+				wave.FormattedDuration = formatDurationSecMilli(wave.Duration)
+				waves = append(waves, wave)
+				wave = Wave{}
+			}
+			wave.FirstSpawn = monster.SpawnTime
+			wave.Name = formatDurationSeconds(wave.FirstSpawn.Sub(game.QuestStartTime))
+		}
+		wave.Monsters = append(wave.Monsters, WaveMonster{
+			Name:       monster.Name,
+			Id:         monster.Id,
+			UnitxtId:   monster.UnitxtId,
+			SpawnTime:  monster.SpawnTime,
+			KilledTime: monster.KilledTime,
+			TimeAlive:  formatDurationSecMilli(monster.KilledTime.Sub(monster.SpawnTime)),
+		})
+	}
+	wave.Duration = game.QuestEndTime.Sub(wave.FirstSpawn)
+	wave.FormattedDuration = formatDurationSecMilli(wave.Duration)
+	waves = append(waves, wave)
+	return waves
 }
 
 func getNameForState(state uint16) TimeAndStateDisplay {

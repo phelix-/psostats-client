@@ -534,6 +534,14 @@ func formatDuration(d time.Duration) string {
 	return fmt.Sprintf("%d:%02d.%03d", minutes, seconds, milliseconds)
 }
 
+func formatDurationSecMilli(d time.Duration) string {
+	d = d.Round(time.Millisecond)
+	seconds := d / time.Second
+	d -= seconds * time.Second
+	milliseconds := d / time.Millisecond
+	return fmt.Sprintf("%d.%03d", seconds, milliseconds)
+}
+
 func convertIntToXY(values []int) map[int]int {
 	converted := make(map[int]int)
 	previousValue := 0

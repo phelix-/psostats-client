@@ -64,33 +64,21 @@
         a.list-group-item {
             color: #abcdff;
         }
-        .map {
-            min-height: 400px;
-            min-width: 400px;
-            height: calc(100% - 40px);
+        .waves-list {
+            padding-top: 0.25rem;
+            padding-bottom: 0.25rem;
+            cursor: pointer;
         }
-        .leaflet-container {
-            background: #181818;
+        .waves-list > .list-group {
+            display: none;
         }
-        .player1-icon {
-            border-radius: 8px;
-            background-color: rgba(255, 79, 79, 0.8)
+        .waves-list.children-visible > .list-group {
+            display: initial;
         }
-        .player2-icon {
-            border-radius: 8px;
-            background-color: rgba(79, 255, 114, 0.8)
-        }
-        .player3-icon {
-            border-radius: 8px;
-            background-color: rgba(255, 252, 79, 0.86)
-        }
-        .player4-icon {
-            border-radius: 8px;
-            background-color: rgba(79, 108, 255, 0.8)
-        }
-        .undefined-icon {
-            border-radius: 8px;
-            background-color: rgba(255, 162, 79, 0.8)
+        .waves-list  .list-group-item {
+            padding-top: 0;
+            padding-bottom: 0;
+            border: 0;
         }
         .techs-cast-item {
             margin: -8px 0;
@@ -278,10 +266,36 @@
                 <canvas id="game-timeline"></canvas>
             </div>
         </div>
+        <div class="row">
+            <div class="col-lg-3 col-md-6 col-12">
+                <div class="psostats-chart">
+                    {{ range $i, $wave := .Waves }}
+                        <li class="list-group-item waves-list" onclick="showChildList(this)">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">{{$wave.Name}}</h5>
+                                <small>{{$wave.FormattedDuration}}</small>
+                            </div>
+                            <ul class="list-group">
+                                {{ range $wave.Monsters }}
+                                    <li class="list-group-item"><small>{{ .Name }} - {{ .TimeAlive}}</small></li>
+                                {{ end }}
+                            </ul>
+                        </li>
+                    {{ end }}
+                </div>
+            </div>
+        </div>
         </div>
     </body>
     </html>
     <script>
+        function showChildList(element) {
+            if (element.classList.contains("children-visible")) {
+                element.classList.remove("children-visible")
+            } else {
+                element.classList.add("children-visible")
+            }
+        }
         function playerStateName(state) {
             switch (state) {
                 case "1":return "Standing";
@@ -471,6 +485,15 @@
                     }
                 },
                 scales: {
+                    x: {
+                        ticks: {
+                            callback: function(value, index, ticks) {
+                                const minutes = Math.floor(value / 60)
+                                const seconds = value % 60;
+                                return minutes + ":" + String(seconds).padStart(2, "0");
+                            }
+                        }
+                    },
                     yHP: {
                         type: 'linear',
                         display: false,
@@ -524,97 +547,5 @@
                 }
             },
         });
-
-        {{ if gt (len .MapData) 100 }}
-        const mapImages = {
-            map0_0: L.imageOverlay('/static/maps/ruins2_1.jpg', [[-512, -20], [122, 1090]]),
-            map1_0: L.imageOverlay('/static/maps/forest1_0.jpg', [[-160, -200], [160, 200]]),
-            map2_0: L.imageOverlay('/static/maps/forest2.jpg', [[-158,-180], [166,165]]),
-            map3_0: L.imageOverlay('/static/maps/ruins2_1.jpg', [[-512, -20], [122, 1090]]),
-            map4_0: L.imageOverlay('/static/maps/cave2_0.jpg', [[-20, -175], [775, 550]]),
-            map4_1: L.imageOverlay('/static/maps/cave2_1.jpg', [[-80, -175], [700, 337.5]]),
-            map4_2: L.imageOverlay('/static/maps/cave2_2.jpg', [[-150, -50], [450, 800]]),
-            map4_3: L.imageOverlay('/static/maps/cave2_3.jpg', [[-60, -325], [425, 225]]),
-            map4_4: L.imageOverlay('/static/maps/cave2_4.jpg', [[-175, -275], [275, 250]]),
-            map5_4: L.imageOverlay('/static/maps/cave3_4.jpg', [[-200, -238], [100, 236]]),
-            map6_0: L.imageOverlay('/static/maps/mine1_0.jpg', [[-475, -25], [200, 850]]),
-            map6_1: L.imageOverlay('/static/maps/mine1_1.jpg', [[-450, -75], [50, 750]]),
-            map6_2: L.imageOverlay('/static/maps/mine1_2.jpg', [[-425, -25], [50, 800]]),
-            map6_3: L.imageOverlay('/static/maps/mine1_3.jpg', [[-200, -225], [200, 225]]),
-            map6_4: L.imageOverlay('/static/maps/mine1_4.jpg', [[-125, -175], [300, 175]]),
-            map6_5: L.imageOverlay('/static/maps/mine1_5.jpg', [[-150, -375], [150, 425]]),
-            map7_4: L.imageOverlay('/static/maps/mine2_4.jpg', [[-250, -112.5], [150, 375]]),
-            map8_0: L.imageOverlay('/static/maps/ruins1_0.jpg', [[-350, -160], [350, 500]]),
-            map9_0: L.imageOverlay('/static/maps/ruins2_0.jpg', [[-250, -25], [350, 1125]]),
-            map9_1: L.imageOverlay('/static/maps/ruins2_1.jpg', [[-512, -20], [122, 1090]]),
-            map10_3: L.imageOverlay('/static/maps/map10_3.png', [[-300, -300], [250, 250]]),
-            map10_4: L.imageOverlay('/static/maps/ruins3_4.jpg', [[-205, -237.5], [325, 425]]),
-            map11_0: L.imageOverlay('/static/maps/dragon_0.jpg', [[-87, -102], [96, 94]]),
-            map12_0: L.imageOverlay('/static/maps/drl_0.jpg', [[-24, -24], [25, 24]]),
-            map13_0: L.imageOverlay('/static/maps/volopt.jpg', [[-32.5, -37.5], [32.5, 37.5]]),
-            map14_0: L.imageOverlay('/static/maps/falz_0.jpg', [[-62.5, -62.5], [62.5, 62.5]]),
-            map19_1: L.imageOverlay('/static/maps/temple1_1.jpg', [[-250, -275], [350, 300]]),
-            map19_2: L.imageOverlay('/static/maps/temple1_2.jpg', [[-250, -300], [200, 200]]),
-            map20_1: L.imageOverlay('/static/maps/temple2_1.jpg', [[-240, -275], [265, 287.5]]),
-            map20_2: L.imageOverlay('/static/maps/temple2_2.jpg', [[-177.5, -255], [175, 275]]),
-            map21_0: L.imageOverlay('/static/maps/space1_0.jpg', [[-155, -390], [300, 400]]),
-            map21_1: L.imageOverlay('/static/maps/map21_1.png', [[-275, -300], [225, 300]]),
-            map21_2: L.imageOverlay('/static/maps/space1_2.jpg', [[-350, -450], [350, 50]]),
-            map22_0: L.imageOverlay('/static/maps/space2_0.jpg', [[-325, -350], [225, 375]]),
-            map22_1: L.imageOverlay('/static/maps/space2_1.jpg', [[-200, -350], [225, 350]]),
-            map23_0: L.imageOverlay('/static/maps/cca_0.jpg', [[-237.5, -662.5], [162.5, 62.5]]),
-            map24_0: L.imageOverlay('/static/maps/jungle0_0.jpg', [[-150, -225], [275, 200]]),
-            map27_0: L.imageOverlay('/static/maps/seaside_0.jpg', [[-200, -550], [180, 50]]),
-            map28_0: L.imageOverlay('/static/maps/seabed1_0.jpg', [[-475, -275], [162.5, 475]]),
-            map28_1: L.imageOverlay('/static/maps/seabed1_1.jpg', [[-350, -350], [250, 262.5]]),
-            map29_2: L.imageOverlay('/static/maps/seabed2_2.jpg', [[-350, -400], [350, 275]]),
-            map30_0: L.imageOverlay('/static/maps/gryffon_0.jpg', [[-100, -100], [100, 100]]),
-            map31_0: L.imageOverlay('/static/maps/olga_0.jpg', [[-30, -30], [30, 30]]),
-            map32_0: L.imageOverlay('/static/maps/temple3_0.jpg', [[-25, -25], [25, 80]]),
-            map33_0: L.imageOverlay('/static/maps/space3_0.jpg', [[-100, -100], [105, 110]]),
-            map35_0: L.imageOverlay('/static/maps/tower_0.jpg', [[-100, -100], [105, 110]]),
-            map36_0: L.imageOverlay('/static/maps/crater_east_0.jpg', [[-225, -300], [1675, 925]]),
-            map37_0: L.imageOverlay('/static/maps/map37_0.png', [[-300, -160], [160, 1500]]),
-            map38_0: L.imageOverlay('/static/maps/crater_south_0.jpg', [[-342.5, -342.5], [342.5, 342.5]]),
-            map39_0: L.imageOverlay('/static/maps/crater_north_0.jpg', [[-342.5, -342.5], [342.5, 342.5]]),
-            map40_0: L.imageOverlay('/static/maps/crater_int_0.jpg', [[-342.5, -342.5], [342.5, 342.5]]),
-            map41_0: L.imageOverlay('/static/maps/desert1_0.jpg', [[-675, -950], [110, 110]]),
-            map42_0: L.imageOverlay('/static/maps/desert2_0.jpg', [[-275, -275], [275, 275]]),
-            map43_0: L.imageOverlay('/static/maps/map43_0.png', [[-400, -100], [425, 950]]),
-            map44_0: L.imageOverlay('/static/maps/meteor_impact_0.jpg', [[-150, -250], [250, 200]]),
-        }
-
-        const playbackOptions = {
-            tickLen: 60,
-            speed: 0.5,
-            maxInterpolationTime: 2,
-            playControl: true,
-            dateControl: true,
-            sliderControl: true,
-            labels: true,
-            popups: true,
-            fadeMarkersWhenStale: true,
-            staleTime: 1,
-            marker: function(featureData) {
-                let icon = L.divIcon({className: 'undefined-icon'});
-                if (featureData.properties.title.startsWith("Player 1")) {
-                    icon = L.divIcon({className: 'player1-icon'});
-                } else if (featureData.properties.title.startsWith("Player 2")) {
-                    icon = L.divIcon({className: 'player2-icon'});
-                } else if (featureData.properties.title.startsWith("Player 3")) {
-                    icon = L.divIcon({className: 'player3-icon'});
-                } else if (featureData.properties.title.startsWith("Player 4")) {
-                    icon = L.divIcon({className: 'player4-icon'});
-                }
-                return {
-                    icon: icon,
-                    getPopup: function (feature) {
-                        return feature.properties.title;
-                    }
-                }
-            }
-        };
-        {{ end }}
-
     </script>
 {{end}}
