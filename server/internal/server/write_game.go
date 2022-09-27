@@ -185,10 +185,17 @@ func (s *Server) updateAnniv2020Record(questRun model.QuestRun, matchingGame *mo
 	}
 
 	pb, err := db.GetQuestSeriesPb("a2022", questRun.UserName, questRun.QuestName, s.dynamoClient)
-	questDuration, _ := time.ParseDuration(questRun.QuestDuration)
-	if questDuration < pb.Time {
-		_ = db.WriteQuestSeriesPb("a2022", &questRun, s.dynamoClient)
+	if err != nil {
+		log.Printf("GetQuestSeriesPb %s", err)
 	}
+	questDuration, _ := time.ParseDuration(questRun.QuestDuration)
+	if pb == nil || questDuration < pb.Time {
+		err = db.WriteQuestSeriesPb("a2022", &questRun, s.dynamoClient)
+		if err != nil {
+			log.Printf("WriteQuestSeriesPb %s", err)
+		}
+	}
+	db.WriteAnniversaryStats(questRun, s.dynamoClient)
 }
 
 func isNewRecord(
@@ -275,7 +282,7 @@ func (s *Server) QuestRecordWebhook(questRun model.QuestRun, previousRecord *mod
 		jsonBytes, err := json.Marshal(Webhook{Embeds: []Embed{
 			{
 				Title: "New Record: " + questRun.QuestName,
-				Description: fmt.Sprintf("%v%v https://psostats.com/game/%v%v",
+				Description: fmt.Sprintf("%v%v https://psostats.com/gamev4/%v%v",
 					formattedScore, formattedDuration, questRun.Id, previousRecordText),
 				Fields: []Field{
 					{Name: "Players", Value: playersString, Inline: true},

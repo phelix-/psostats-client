@@ -116,12 +116,12 @@ func ReadInventory(handle w32.HANDLE, playerIndex uint8) (Inventory, error) {
 						case 2:
 							barrier := readBarrier(handle, int(itemAddr), itemId, itemGroup, indexInGroup)
 							currentEquipment.Type = model.EquipmentTypeBarrier
-							currentEquipment.Display = barrier.String()
+							currentEquipment.Display = barrier.StringNoSlots()
 							equipment = append(equipment, currentEquipment)
 						case 3:
 							unit := readUnit(handle, int(itemAddr), indexInGroup, itemId)
 							currentEquipment.Type = model.EquipmentTypeUnit
-							currentEquipment.Display = unit.StringNoSlots()
+							currentEquipment.Display = unit.Name
 							equipment = append(equipment, currentEquipment)
 						}
 					case 2:

@@ -1,9 +1,12 @@
 package server
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/phelix-/psostats/v2/pkg/model"
 	"github.com/phelix-/psostats/v2/server/internal/db"
+	"sort"
 	"strconv"
 	"text/template"
 	"time"
@@ -19,9 +22,15 @@ func (s *Server) GamePageV3(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+
 	game, err := db.GetGame(gameId, gem, s.dynamoClient)
 	if err != nil {
 		return err
+	}
+	if fullGame == nil || game == nil {
+		err = s.gameNotFoundTemplate.ExecuteTemplate(c.Response().BodyWriter(), "gameNotFound", nil)
+		c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
+		return nil
 	}
 	playerDataFrames := make(map[int][]model.DataFrame)
 	if fullGame.P1Gzip != nil {
@@ -94,6 +103,51 @@ func (s *Server) GamePageV3(c *fiber.Ctx) error {
 				totalActions = actions
 			}
 		}
+		mostTime := 0
+		timeByStateMap := make(map[string]TimeAndStateDisplay)
+		for _, frame := range game.DataFrames {
+			nameForState := getNameForState(frame.State)
+			currentValue := timeByStateMap[nameForState.Display]
+			nameForState.Time = 1 + currentValue.Time
+			timeByStateMap[nameForState.Display] = nameForState
+		}
+		for _, state := range timeByStateMap {
+			if state.Time > mostTime {
+				mostTime = state.Time
+			}
+		}
+		timeByState := make([]TimeAndStateDisplay, 0)
+		for _, state := range timeByStateMap {
+			percentTime := state.Time * 100 / mostTime
+			timeByState = append(timeByState, TimeAndStateDisplay{
+				Time:        state.Time,
+				PercentTime: percentTime,
+				PercentRest: 100 - percentTime,
+				Display:     state.Display,
+				Color:       state.Color,
+			})
+		}
+		sort.Slice(timeByState, func(i, j int) bool {
+			return timeByState[i].Time > timeByState[j].Time
+		})
+
+		weaponDisplay := make([]WeaponDisplay, 0)
+		for _, weapon := range game.Weapons {
+			if weapon.Attacks > 0 || weapon.Techs > 0 {
+				attacks := weapon.Attacks * 100 / totalActions
+				techs := weapon.Techs * 100 / totalActions
+				rest := 100 - attacks - techs
+				weaponDisplay = append(weaponDisplay, WeaponDisplay{
+					Display: weapon.Display,
+					Attacks: attacks,
+					Techs:   techs,
+					Rest:    rest,
+				})
+			}
+		}
+		sort.Slice(weaponDisplay, func(i, j int) bool {
+			return weaponDisplay[i].Rest < weaponDisplay[j].Rest
+		})
 
 		model := struct {
 			Game                 model.QuestRun
@@ -126,10 +180,12 @@ func (s *Server) GamePageV3(c *fiber.Ctx) error {
 			PlayerIndex          int
 			TechsInOrder         [][]string
 			MostActions          int
+			TimeByState          []TimeAndStateDisplay
 			PlayerDataFrames     map[int][]model.DataFrame
+			SortedWeapons        []WeaponDisplay
 		}{
 			Game:      *game,
-			SectionId: getSectionId(game),
+			SectionId: getSectionIdForQuest(game),
 			HasPov: map[int]bool{
 				0: fullGame.P1Gzip != nil,
 				1: fullGame.P2Gzip != nil,
@@ -170,21 +226,348 @@ func (s *Server) GamePageV3(c *fiber.Ctx) error {
 				{"Jellen", "Zalure"}},
 			MostActions:      totalActions,
 			PlayerDataFrames: playerDataFrames,
+			TimeByState:      timeByState,
+			SortedWeapons:    weaponDisplay,
 		}
 		funcMap := template.FuncMap{
 			"add": func(a, b int) int { return a + b },
 		}
-		s.gameV3Template = ensureParsed("./server/internal/templates/gamev3.gohtml")
 		err = s.gameV3Template.Funcs(funcMap).ExecuteTemplate(c.Response().BodyWriter(), "game", model)
 	}
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
 }
 
-func getSectionId(questRun *model.QuestRun) string {
+func (s *Server) GamePageV4(c *fiber.Ctx) error {
+	gameId := c.Params("gameId")
+	gem, err := strconv.Atoi(c.Params("gem"))
+	if err != nil {
+		gem = -1
+	}
+	fullGame, err := db.GetFullGame(gameId, s.dynamoClient)
+	if err != nil {
+		return err
+	}
+
+	game, err := db.GetGame(gameId, gem, s.dynamoClient)
+	if err != nil {
+		return err
+	}
+	if fullGame == nil || game == nil {
+		err = s.gameNotFoundTemplate.ExecuteTemplate(c.Response().BodyWriter(), "gameNotFound", nil)
+		c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
+		return err
+	}
+	playerDataFrames := make(map[int][]model.DataFrame)
+	if fullGame.P1Gzip != nil {
+		if dataFrames, err := db.GetDataFrames(gameId, 1, s.dynamoClient); err == nil {
+			playerDataFrames[0] = dataFrames
+		}
+	}
+	if fullGame.P2Gzip != nil {
+		if dataFrames, err := db.GetDataFrames(gameId, 2, s.dynamoClient); err == nil {
+			playerDataFrames[1] = dataFrames
+		}
+	}
+	if fullGame.P3Gzip != nil {
+		if dataFrames, err := db.GetDataFrames(gameId, 3, s.dynamoClient); err == nil {
+			playerDataFrames[2] = dataFrames
+		}
+	}
+	if fullGame.P4Gzip != nil {
+		if dataFrames, err := db.GetDataFrames(gameId, 4, s.dynamoClient); err == nil {
+			playerDataFrames[3] = dataFrames
+		}
+	}
+
+	if game == nil {
+		err = s.gameNotFoundTemplate.ExecuteTemplate(c.Response().BodyWriter(), "gameNotFound", nil)
+	} else {
+		duration, err := time.ParseDuration(game.QuestDuration)
+		if err != nil {
+			return err
+		}
+
+		jsonMeshes := "{}"
+		meshesByFloor := make(map[uint16]FloorMeshes)
+		if len(game.DataFrames) > 0 {
+			for _, dataFrame := range game.DataFrames {
+				floorNum := dataFrame.Map
+				if _, found := meshesByFloor[floorNum]; !found {
+					floorMeshes := GetFloorMeshes(floorNum, dataFrame.MapVariation)
+					meshesByFloor[floorNum] = *floorMeshes
+				}
+			}
+		}
+		jsonBytes, err := json.Marshal(meshesByFloor)
+		if err != nil {
+			return err
+		}
+		jsonFloorMeshes := string(jsonBytes)
+		jsonBytes, err = json.Marshal(game.DataFrames)
+		if err != nil {
+			return err
+		}
+		dataFrames := string(jsonBytes)
+
+		invincibleRanges := make(map[int]int)
+		invincibleStart := -1
+		for i, invincible := range game.Invincible {
+			if invincible {
+				if invincibleStart < 0 {
+					invincibleStart = i
+				}
+			} else {
+				if invincibleStart > 0 {
+					if i-invincibleStart >= 10 {
+						invincibleRanges[invincibleStart] = i
+					}
+					invincibleStart = -1
+				}
+			}
+		}
+		for _, split := range game.Splits {
+			if split.StartSecond > 1 {
+				game.Events = append(game.Events, model.Event{
+					Second:      split.StartSecond,
+					Description: split.Name,
+				})
+			}
+		}
+		playerIndex := -1
+		for i, player := range game.AllPlayers {
+			if game.GuildCard == player.GuildCard {
+				playerIndex = i
+			}
+		}
+		totalActions := 0
+		for _, weapon := range game.Weapons {
+			actions := weapon.Attacks + weapon.Techs
+			if actions > totalActions {
+				totalActions = actions
+			}
+		}
+		mostTime := 0
+		timeByStateMap := make(map[string]TimeAndStateDisplay)
+		for _, frame := range game.DataFrames {
+			nameForState := getNameForState(frame.State)
+			currentValue := timeByStateMap[nameForState.Display]
+			nameForState.Time = 1 + currentValue.Time
+			timeByStateMap[nameForState.Display] = nameForState
+		}
+		for _, state := range timeByStateMap {
+			if state.Time > mostTime {
+				mostTime = state.Time
+			}
+		}
+		timeByState := make([]TimeAndStateDisplay, 0)
+		for _, state := range timeByStateMap {
+			percentTime := state.Time * 100 / mostTime
+			timeByState = append(timeByState, TimeAndStateDisplay{
+				Time:        state.Time,
+				PercentTime: percentTime,
+				PercentRest: 100 - percentTime,
+				Display:     state.Display,
+				Color:       state.Color,
+			})
+		}
+		sort.Slice(timeByState, func(i, j int) bool {
+			return timeByState[i].Time > timeByState[j].Time
+		})
+
+		weaponDisplay := make([]WeaponDisplay, 0)
+		for _, weapon := range game.Weapons {
+			if weapon.Attacks > 0 || weapon.Techs > 0 {
+				attacks := weapon.Attacks * 100 / totalActions
+				techs := weapon.Techs * 100 / totalActions
+				rest := 100 - attacks - techs
+				weaponDisplay = append(weaponDisplay, WeaponDisplay{
+					Display: weapon.Display,
+					Attacks: attacks,
+					Techs:   techs,
+					Rest:    rest,
+				})
+			}
+		}
+		sort.Slice(weaponDisplay, func(i, j int) bool {
+			return weaponDisplay[i].Rest < weaponDisplay[j].Rest
+		})
+		monsters, err := json.Marshal(&game.Monsters)
+		if err != nil {
+			return err
+		}
+
+		model := struct {
+			Game               model.QuestRun
+			SectionId          string
+			HasPov             map[int]bool
+			FormattedQuestTime string
+			InvincibleRanges   map[int]int
+			Weapons            []model.Equipment
+			Barriers           []model.Equipment
+			Frames             []model.Equipment
+			Units              []model.Equipment
+			Mags               []model.Equipment
+			MapData            []MapData
+			PlayerIndex        int
+			TechsInOrder       [][]string
+			MostActions        int
+			TimeByState        []TimeAndStateDisplay
+			PlayerDataFrames   map[int][]model.DataFrame
+			SortedWeapons      []WeaponDisplay
+			JsonMeshes         string
+			Monsters           string
+			DataFrames         string
+			MeshesByFloor      string
+			Waves              []Wave
+		}{
+			Game:      *game,
+			SectionId: getSectionIdForQuest(game),
+			HasPov: map[int]bool{
+				0: fullGame.P1Gzip != nil,
+				1: fullGame.P2Gzip != nil,
+				2: fullGame.P3Gzip != nil,
+				3: fullGame.P4Gzip != nil,
+			},
+			FormattedQuestTime: formatDuration(duration),
+			InvincibleRanges:   invincibleRanges,
+			Weapons:            getEquipment(game, model.EquipmentTypeWeapon),
+			Barriers:           getEquipment(game, model.EquipmentTypeBarrier),
+			Frames:             getEquipment(game, model.EquipmentTypeFrame),
+			Units:              getEquipment(game, model.EquipmentTypeUnit),
+			Mags:               getEquipment(game, model.EquipmentTypeMag),
+			MapData:            formatMap(game, game.DataFrames),
+			PlayerIndex:        playerIndex,
+			TechsInOrder: [][]string{
+				{"Foie", "Zonde", "Barta"},
+				{"Gifoie", "Gizonde", "Gibarta"},
+				{"Rafoie", "Razonde", "Rabarta"},
+				{"Grants", "Megid"},
+				{"Resta", "Anti", "Reverser"},
+				{"Shifta", "Deband", "Ryuker"},
+				{"Jellen", "Zalure"}},
+			MostActions:      totalActions,
+			PlayerDataFrames: playerDataFrames,
+			TimeByState:      timeByState,
+			SortedWeapons:    weaponDisplay,
+			JsonMeshes:       jsonMeshes,
+			Monsters:         string(monsters),
+			DataFrames:       dataFrames,
+			MeshesByFloor:    jsonFloorMeshes,
+			Waves:            getWaves(game),
+		}
+		funcMap := template.FuncMap{
+			"add": func(a, b int) int { return a + b },
+		}
+		//s.gameV4Template = ensureParsed("./server/internal/templates/gamev4.gohtml")
+		err = s.gameV4Template.Funcs(funcMap).ExecuteTemplate(c.Response().BodyWriter(), "game", model)
+	}
+	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
+	return err
+}
+
+type WaveMonster struct {
+	Name       string
+	Id         uint16
+	UnitxtId   uint32
+	SpawnTime  time.Time
+	KilledTime time.Time
+	TimeAlive  string
+}
+
+type Wave struct {
+	Name              string
+	Monsters          []WaveMonster
+	FirstSpawn        time.Time
+	Duration          time.Duration
+	FormattedDuration string
+}
+
+func getWaves(game *model.QuestRun) []Wave {
+	monsters := make([]model.Monster, 0)
+	for _, monster := range game.Monsters {
+		monsters = append(monsters, monster)
+	}
+	sort.Slice(monsters, func(i, j int) bool {
+		return monsters[i].SpawnTime.Before(monsters[j].SpawnTime)
+	})
+	wave := Wave{}
+	waves := make([]Wave, 0)
+	for _, monster := range monsters {
+		if monster.UnitxtId == 3 {
+			continue
+		}
+		if monster.SpawnTime.After(wave.FirstSpawn.Add(time.Second)) {
+			if !wave.FirstSpawn.Before(time.UnixMilli(0)) {
+				wave.Duration = monster.SpawnTime.Sub(wave.FirstSpawn)
+				wave.FormattedDuration = formatDurationSecMilli(wave.Duration)
+				waves = append(waves, wave)
+				wave = Wave{}
+			}
+			wave.FirstSpawn = monster.SpawnTime
+			wave.Name = formatDurationSeconds(wave.FirstSpawn.Sub(game.QuestStartTime))
+		}
+		wave.Monsters = append(wave.Monsters, WaveMonster{
+			Name:       monster.Name,
+			Id:         monster.Id,
+			UnitxtId:   monster.UnitxtId,
+			SpawnTime:  monster.SpawnTime,
+			KilledTime: monster.KilledTime,
+			TimeAlive:  formatDurationSecMilli(monster.KilledTime.Sub(monster.SpawnTime)),
+		})
+	}
+	wave.Duration = game.QuestEndTime.Sub(wave.FirstSpawn)
+	wave.FormattedDuration = formatDurationSecMilli(wave.Duration)
+	waves = append(waves, wave)
+	return waves
+}
+
+func getNameForState(state uint16) TimeAndStateDisplay {
+	switch state {
+	case 1:
+		return TimeAndStateDisplay{Display: "Standing", Color: "rgba(255,255,255,.3)"}
+	case 2:
+		return TimeAndStateDisplay{Display: "Walking", Color: "rgba(122,255,122,0.3)"}
+	case 4:
+		return TimeAndStateDisplay{Display: "Running", Color: "rgba(122, 255, 122, 0.5)"}
+	case 5:
+		return TimeAndStateDisplay{Display: "Attacking", Color: "rgba(255, 122, 122, 0.5)"}
+	case 6:
+		return TimeAndStateDisplay{Display: "Attacking", Color: "rgba(255, 122, 122, 0.5)"}
+	case 7:
+		return TimeAndStateDisplay{Display: "Attacking", Color: "rgba(255, 122, 122, 0.5)"}
+	case 8:
+		return TimeAndStateDisplay{Display: "Casting", Color: "rgba(122, 122, 255, 0.5)"}
+	case 9:
+		return TimeAndStateDisplay{Display: "Photon Blast", Color: "var(--colors-photon-blast)"}
+	case 10:
+		return TimeAndStateDisplay{Display: "Recoil", Color: "rgba(255,255,255,1)"}
+	case 14:
+		return TimeAndStateDisplay{Display: "Knocked Down", Color: "rgba(255,255,255,1)"}
+	case 15:
+		return TimeAndStateDisplay{Display: "Dead", Color: "rgba(0,0,0,0.3)"}
+	case 16:
+		return TimeAndStateDisplay{Display: "Cutscene", Color: "rgba(255,255,0,.5)"}
+	case 18:
+		return TimeAndStateDisplay{Display: "Reviving", Color: "rgba(255,255,255,1)"}
+	case 19:
+		return TimeAndStateDisplay{Display: "Photon Blast", Color: "var(--colors-photon-blast)"}
+	case 20:
+		return TimeAndStateDisplay{Display: "Teleporting", Color: "rgba(255,255,255,1)"}
+	case 23:
+		return TimeAndStateDisplay{Display: "Emoting", Color: "rgba(255,255,255,1)"}
+	}
+	return TimeAndStateDisplay{Display: fmt.Sprintf("State %d", state), Color: "white"}
+}
+
+func getSectionIdForQuest(questRun *model.QuestRun) string {
 	sectionId := questRun.AllPlayers[0].SectionId
+	return getSectionId(int(sectionId))
+}
+
+func getSectionId(index int) string {
 	sectionIdString := ""
-	switch sectionId {
+	switch index {
 	case 0:
 		sectionIdString = "Viridia"
 	case 1:
@@ -207,4 +590,19 @@ func getSectionId(questRun *model.QuestRun) string {
 		sectionIdString = "Whitill"
 	}
 	return sectionIdString
+}
+
+type TimeAndStateDisplay struct {
+	Time        int
+	PercentTime int
+	PercentRest int
+	Display     string
+	Color       string
+}
+
+type WeaponDisplay struct {
+	Display string
+	Attacks int
+	Techs   int
+	Rest    int
 }

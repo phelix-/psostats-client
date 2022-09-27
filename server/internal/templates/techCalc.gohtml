@@ -1,0 +1,2453 @@
+{{ define "tech-calc" }}
+    <html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width">
+        <meta property="og:site_name" content="PSOStats"/>
+        <meta property="og:title" content="Tech Calculator"/>
+        <title>Tech Calculator - PSOStats</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+        <script src="https://unpkg.com/vue-multiselect@2.1.0"></script>
+        <link rel="stylesheet" href="https://unpkg.com/vue-multiselect@2.1.0/dist/vue-multiselect.min.css">
+        <link href="/static/main2.css" rel="stylesheet" type="text/css">
+    </head>
+    <style>
+        .psostats-content {
+            background-color: #444;
+            padding: 8px;
+        }
+        .form-select {
+            color: #ddd;
+            background-color: #333;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e")
+        }
+        .btn-group {
+            width: 100%;
+            background-color: #333;
+            color: #ddd;
+        }
+
+        .form-check-label {
+            color: #ccc;
+        }
+        .sortable {
+            cursor: pointer;
+        }
+        .form-control {
+            color: #ddd;
+            background-color: #333;
+            border-top-color: #aaa;
+            border-bottom-color: #aaa;
+            border-left-color: #aaa;
+            border-right-color: #aaa;
+        }
+        .form-control:focus {
+            background-color: #444;
+            color: #ddd;
+        }
+        .input-group-text {
+            color: #ddd;
+            background-color: #282828;
+            border-color: #aaa;
+        }
+        .table-dark {
+            background-color: #333;
+            margin-bottom: 0;
+        }
+        .table-dark td, .table-dark th, .table-dark thead th {
+            border-width: 1px;
+            border-color: #5A5A5A;
+        }
+        .custom-select {
+            border-color: #aaa;
+        }
+        .multiselect__tags, .multiselect__input, .multiselect__input::placeholder, .multiselect__single {
+            background: #333;
+            color: #ddd;
+        }
+        .multiselect__tags {
+            border-color: #aaa;
+            border-width: 1px;
+        }
+        .multiselect__tag, .multiselect__tag-icon {
+            background-color: #aaa;
+            color: #000;
+        }
+        .multiselect__tag-icon:after {
+            color: #000;
+        }
+        .multiselect__tag-icon:focus, .multiselect__tag-icon:hover {
+            background-color: #666;
+        }
+        .form-control:disabled {
+            background-color: #666666;
+        }
+    </style>
+    <body>
+
+    <div class="container">
+        {{ template "navbar" }}
+        <div class="row">
+            <div class="col">
+                <h1>Tech Calculator</h1>
+            </div>
+        </div>
+        <div class="row psostats-content">
+            <div class="col-12 col-sm-6 col-lg-3 mb-1">
+                <select class="form-control" id="class-select" aria-label="Class Select">
+                    <optgroup label="Hunter">
+                        <option value="HUmar">HUmar</option>
+                        <option value="HUnewearl">HUnewearl</option>
+                    </optgroup>
+                    <optgroup label="Ranger">
+                        <option value="RAmar">RAmar</option>
+                        <option value="RAmarl">RAmarl</option>
+                    </optgroup>
+                    <optgroup label="Force">
+                        <option value="FOmar">FOmar</option>
+                        <option value="FOmarl">FOmarl</option>
+                        <option value="FOnewm" selected>FOnewm</option>
+                        <option value="FOnewearl">FOnewearl</option>
+                    </optgroup>
+                </select>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-3 mb-1">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">Weapon</div>
+                    </div>
+                    <select id="weapon-select" class="form-control" aria-label="Weapon Select">
+                        <option value="None" selected>Bare Handed</option>
+                        <option value="Psycho Wand">Psycho Wand</option>
+                        <option value="Magical Piece">Magical Piece</option>
+                        <option value="Club of Laconium">Club of Laconium</option>
+                        <option value="Mace of Adaman">Mace of Adaman</option>
+                        <option value="Club of Zumiuran">Club of Zumiuran</option>
+                        <option value="Siren Glass Hammer">Siren Glass Hammer</option>
+                        <option value="Mercurius Rod">Mercurius Rod</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-3 mb-1">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">Frame</div>
+                    </div>
+
+                    <select id="frame-select" class="form-control" aria-label="Frame Select">
+                        <option value="NONE">None</option>
+                        <option value="IGNITION" selected>Ignition Cloak</option>
+                        <option value="TEMPEST">Tempest Cloak</option>
+                        <option value="CONGEAL">Congeal Cloak</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-3 mb-1">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">Barrier</div>
+                    </div>
+                    <select id="barrier-select" class="form-control" aria-label="Barrier Select">
+                        <option value="None">None</option>
+                        <option value="Foie Merge">Foie Merge</option>
+                        <option value="Gifoie Merge" selected>Gifoie Merge</option>
+                        <option value="Rafoie Merge">Rafoie Merge</option>
+                        <option value="Zonde Merge">Zonde Merge</option>
+                        <option value="Gizonde Merge">Gizonde Merge</option>
+                        <option value="Razonde Merge">Razonde Merge</option>
+                        <option value="Barta Merge">Barta Merge</option>
+                        <option value="Gibarta Merge">Gibarta Merge</option>
+                        <option value="Rabarta Merge">Rabarta Merge</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3 mb-1">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">Technique</div>
+                    </div>
+                    <select id="tech-select" class="form-control" aria-label="Technique Select">
+                        <option value="None">None</option>
+                        <option value="Foie">Foie</option>
+                        <option value="Gifoie" selected>Gifoie</option>
+                        <option value="Rafoie">Rafoie</option>
+                        <option value="Zonde">Zonde</option>
+                        <option value="Gizonde">Gizonde</option>
+                        <option value="Razonde">Razonde</option>
+                        <option value="Barta">Barta</option>
+                        <option value="Gibarta">Gibarta</option>
+                        <option value="Rabarta">Rabarta</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3 mb-1">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">MST</div>
+                    </div>
+                    <input type="text" class="form-control" id="mstInput" value="1500" >
+                </div>
+            </div>
+        </div>
+        <div class="row psostats-content">
+            <div class="col-12 mb-1">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="autoCombo">
+                    <label class="form-check-label" for="autoCombo">Auto Cast</label>
+                </div>
+            </div>
+            <div class="col-12 mb-3" id="total-frames"></div>
+        </div>
+
+        <div class="row psostats-content">
+            <div class="col-12">
+                <h3>Enemies</h3>
+            </div>
+            <div class="col-12 mb-3">
+                <div id="enemy-select-vue">
+                    <multiselect
+                            v-model="defaultEnemies"
+                            :options="enemiesByLocation"
+                            :multiple="true"
+                            group-values="enemies"
+                            group-label="name"
+                            :group-select="true"
+                            track-by="name"
+                            label="name"
+                            @input="enemiesSelected"
+                            selected-label=""
+                            select-label=""
+                            deselect-label=""
+                            :close-on-select="false"
+                            :clear-on-select="false"
+                            placeholder="Select Enemies"
+                    ></multiselect>
+                </div>
+            </div>
+        </div>
+        <div class="row" style="overflow-x: auto;">
+            <table class="table table-dark table-bordered table-responsive-md" id="combo-calc-table">
+                <thead>
+                <tr>
+                    <th scope="col" class="sortable" id="monsters-header" colspan="2"><div style="width: 175px">Monster</div></th>
+                    <th scope="col" class="sortable" id="damage-header" >Damage</th>
+                    <th scope="col" class="sortable" id="accuracy-header" >Accuracy</th>
+                    <th scope="col" ><div style="width: 88px; ">Attack 1</div></th>
+                    <th scope="col" ><div style="width: 88px; ">Attack 2</div></th>
+                    <th scope="col" ><div style="width: 88px; ">Attack 3</div></th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function() {
+            updateTotalFrames();
+        });
+        let selectedEnemies = [];
+        const classStats = {
+            HUmar: {animation: "male",              mst: 732,   techMultiplier: (tech) => 0},
+            HUnewearl: {animation: "female",        mst: 1177,   techMultiplier: (tech) => 0},
+            RAmar: {animation: "male",              mst: 665,   techMultiplier: (tech) => 0},
+            RAmarl: {animation: "female",           mst: 1031,   techMultiplier: (tech) => 0},
+            FOmar: {animation: "male",              mst: 1340,   techMultiplier: (tech) => tech.startsWith("Gi") || tech === "Grants" ? 0.3 : 0},
+            FOmarl: {animation: "female",           mst: 1284,    techMultiplier: (tech) => tech === "Grants" ? 0.3 : 0},
+            FOnewm: {animation: "male",             mst: 1500,    techMultiplier: (tech) => tech.startsWith("Gi") || tech.startsWith("Ra") ? 0.3 : 0},
+            FOnewearl: {animation: "female",        mst: 1750,    techMultiplier: (tech) => tech === "Foie" || tech === "Barta" || tech === "Zonde" ? 0.3 : 0}
+        };
+        const weaponMultipliers = {
+            "None": (tech) => 0,
+            "Psycho Wand": (tech) => tech.startsWith("Ra") ? 0.3 : 0,
+            "Magical Piece": (tech) => tech.startsWith("Gi") ? 0.3 : 0,
+            "Club of Laconium": (tech) => tech === "Foie" ? 0.4 : 0,
+            "Mace of Adaman": (tech) => tech === "Barta" ? 0.4 : 0,
+            "Club of Zumiuran": (tech) => tech === "Zonde" ? 0.4 : 0,
+            "Siren Glass Hammer": (tech) => tech === "Gibarta" ? 0.5 : 0,
+            "Mercurius Rod": (tech) => tech === "Grants" ? 0.3 : 0,
+        }
+        const frameMultipliers = {
+            "NONE": (tech) => 0,
+            "IGNITION": (tech) => tech.toLowerCase().endsWith("foie") ? 0.1 : 0,
+            "TEMPEST": (tech) => tech.toLowerCase().endsWith("zonde") ? 0.1 : 0,
+            "CONGEAL": (tech) => tech.toLowerCase().endsWith("barta") ? 0.1 : 0,
+        }
+        const barrierMultipliers = {
+            "None": (tech) => 0,
+            "Foie Merge": (tech) => tech === "Foie" ? 0.3 : 0,
+            "Gifoie Merge": (tech) => tech === "Gifoie" ? 0.3 : 0,
+            "Rafoie Merge": (tech) => tech === "Rafoie" ? 0.3 : 0,
+            "Zonde Merge": (tech) => tech === "Zonde" ? 0.3 : 0,
+            "Gizonde Merge": (tech) => tech === "Gizonde" ? 0.3 : 0,
+            "Razonde Merge": (tech) => tech === "Razonde" ? 0.3 : 0,
+            "Barta Merge": (tech) => tech === "Barta" ? 0.3 : 0,
+            "Gibarta Merge": (tech) => tech === "Gibarta" ? 0.3 : 0,
+            "Rabarta Merge": (tech) => tech === "Rabarta" ? 0.3 : 0,
+        }
+        const enemies = [
+            {
+                "name": "Mothvert",
+                "ATP": 1000,
+                "MST": 0,
+                "EVP": 477,
+                "HP": 1500,
+                "DFP": 600,
+                "ATA": 233,
+                "LCK": 35,
+                "ESP": 35,
+                "Range1": 3.0,
+                "Range2": 18.0,
+                "HP2": 0,
+                "XP": 145,
+                "TP": 2,
+                "EFR": 60,
+                "EIC": 75,
+                "ETH": 45,
+                "ELT": 60,
+                "EDK": 70
+            },
+            {
+                "name": "Mothvist",
+                "ATP": 0,
+                "MST": 0,
+                "EVP": 390,
+                "HP": 2897,
+                "DFP": 600,
+                "ATA": 210,
+                "LCK": 0,
+                "ESP": 35,
+                "Range1": 30.0,
+                "Range2": 100.0,
+                "HP2": 0,
+                "XP": 270,
+                "TP": 4,
+                "EFR": 60,
+                "EIC": 75,
+                "ETH": 45,
+                "ELT": 60,
+                "EDK": 75
+            },
+            {
+                "name": "Gulgus",
+                "ATP": 1100,
+                "MST": 0,
+                "EVP": 593,
+                "HP": 2300,
+                "DFP": 650,
+                "ATA": 208,
+                "LCK": 40,
+                "ESP": 40,
+                "Range1": 20.0,
+                "Range2": 15.0,
+                "HP2": 0,
+                "XP": 275,
+                "TP": 5,
+                "EFR": 50,
+                "EIC": 92,
+                "ETH": 65,
+                "ELT": 78,
+                "EDK": 85
+            },
+            {
+                "name": "Gulgus-Gue",
+                "ATP": 1350,
+                "MST": 0,
+                "EVP": 651,
+                "HP": 2346,
+                "DFP": 663,
+                "ATA": 211,
+                "LCK": 50,
+                "ESP": 40,
+                "Range1": 20.0,
+                "Range2": 15.0,
+                "HP2": 0,
+                "XP": 280,
+                "TP": 5,
+                "EFR": 70,
+                "EIC": 95,
+                "ETH": 55,
+                "ELT": 80,
+                "EDK": 90
+            },
+            {
+                "name": "Ob Lily",
+                "ATP": 1750,
+                "MST": 0,
+                "EVP": 680,
+                "HP": 2058,
+                "DFP": 676,
+                "ATA": 258,
+                "LCK": 30,
+                "ESP": 40,
+                "Range1": 20.0,
+                "Range2": 100.0,
+                "HP2": 0,
+                "XP": 295,
+                "TP": 3,
+                "EFR": 70,
+                "EIC": 45,
+                "ETH": 100,
+                "ELT": 70,
+                "EDK": 80
+            },
+            {
+                "name": "Mil Lily",
+                "ATP": 3500,
+                "MST": 1500,
+                "EVP": 680,
+                "HP": 3858,
+                "DFP": 688,
+                "ATA": 340,
+                "LCK": 50,
+                "ESP": 40,
+                "Range1": 20.0,
+                "Range2": 100.0,
+                "HP2": 0,
+                "XP": 900,
+                "TP": 3,
+                "EFR": 100,
+                "EIC": 100,
+                "ETH": 70,
+                "ELT": 100,
+                "EDK": 105
+            },
+            {
+                "name": "Sinow Blue",
+                "ATP": 2320,
+                "MST": 0,
+                "EVP": 758,
+                "HP": 3338,
+                "DFP": 726,
+                "ATA": 280,
+                "LCK": 33,
+                "ESP": 55,
+                "Range1": 25.0,
+                "Range2": 19.0,
+                "HP2": 0,
+                "XP": 350,
+                "TP": 50,
+                "EFR": 55,
+                "EIC": 90,
+                "ETH": 100,
+                "ELT": 90,
+                "EDK": 88
+            },
+            {
+                "name": "Canabin",
+                "ATP": 1650,
+                "MST": 0,
+                "EVP": 645,
+                "HP": 2522,
+                "DFP": 676,
+                "ATA": 273,
+                "LCK": 20,
+                "ESP": 30,
+                "Range1": 5.0,
+                "Range2": 15.0,
+                "HP2": 0,
+                "XP": 320,
+                "TP": 25,
+                "EFR": 50,
+                "EIC": 100,
+                "ETH": 85,
+                "ELT": 80,
+                "EDK": 80
+            },
+            {
+                "name": "Canabin (Ring)",
+                "ATP": 1650,
+                "MST": 0,
+                "EVP": 706,
+                "HP": 2522,
+                "DFP": 676,
+                "ATA": 273,
+                "LCK": 20,
+                "ESP": 30,
+                "Range1": 5.0,
+                "Range2": 15.0,
+                "HP2": 0,
+                "XP": 32,
+                "TP": 20,
+                "EFR": 50,
+                "EIC": 100,
+                "ETH": 85,
+                "ELT": 80,
+                "EDK": 80
+            },
+            {
+                "name": "Canune",
+                "ATP": 1700,
+                "MST": 0,
+                "EVP": 706,
+                "HP": 2513,
+                "DFP": 676,
+                "ATA": 280,
+                "LCK": 20,
+                "ESP": 35,
+                "Range1": 5.0,
+                "Range2": 15.0,
+                "HP2": 0,
+                "XP": 325,
+                "TP": 25,
+                "EFR": 100,
+                "EIC": 55,
+                "ETH": 90,
+                "ELT": 75,
+                "EDK": 90
+            },
+            {
+                "name": "Gran Sorcerer",
+                "ATP": 1689,
+                "MST": 2100,
+                "EVP": 671,
+                "HP": 2597,
+                "DFP": 713,
+                "ATA": 370,
+                "LCK": 0,
+                "ESP": 65,
+                "Range1": 30.0,
+                "Range2": 15.0,
+                "HP2": 0,
+                "XP": 363,
+                "TP": 3,
+                "EFR": 80,
+                "EIC": 100,
+                "ETH": 100,
+                "ELT": 68,
+                "EDK": 108
+            },
+            {
+                "name": "Gee R",
+                "ATP": 1527,
+                "MST": 0,
+                "EVP": 622,
+                "HP": 1646,
+                "DFP": 650,
+                "ATA": 340,
+                "LCK": 0,
+                "ESP": 200,
+                "Range1": 5.0,
+                "Range2": 100.0,
+                "HP2": 0,
+                "XP": 100,
+                "TP": 0,
+                "EFR": 30,
+                "EIC": 80,
+                "ETH": 100,
+                "ELT": 100,
+                "EDK": 1000
+            },
+            {
+                "name": "Gee L",
+                "ATP": 1527,
+                "MST": 0,
+                "EVP": 622,
+                "HP": 1646,
+                "DFP": 650,
+                "ATA": 340,
+                "LCK": 0,
+                "ESP": 200,
+                "Range1": 5.0,
+                "Range2": 100.0,
+                "HP2": 0,
+                "XP": 100,
+                "TP": 0,
+                "EFR": 100,
+                "EIC": 100,
+                "ETH": 30,
+                "ELT": 80,
+                "EDK": 1000
+            },
+            {
+                "name": "Dark Bringer",
+                "ATP": 3200,
+                "MST": 0,
+                "EVP": 767,
+                "HP": 4550,
+                "DFP": 839,
+                "ATA": 368,
+                "LCK": 40,
+                "ESP": 70,
+                "Range1": 30.0,
+                "Range2": 25.0,
+                "HP2": 0,
+                "XP": 385,
+                "TP": 50,
+                "EFR": 90,
+                "EIC": 90,
+                "ETH": 90,
+                "ELT": 100,
+                "EDK": 123
+            },
+            {
+                "name": "Indi Belra",
+                "ATP": 3270,
+                "MST": 0,
+                "EVP": 584,
+                "HP": 3900,
+                "DFP": 1054,
+                "ATA": 315,
+                "LCK": 50,
+                "ESP": 65,
+                "Range1": 40.0,
+                "Range2": 20.0,
+                "HP2": 0,
+                "XP": 372,
+                "TP": 50,
+                "EFR": 100,
+                "EIC": 88,
+                "ETH": 65,
+                "ELT": 77,
+                "EDK": 123
+            },
+            {
+                "name": "Dal Ra Lie",
+                "ATP": 2500,
+                "MST": 10,
+                "EVP": 680,
+                "HP": 21000,
+                "DFP": 802,
+                "ATA": 375,
+                "LCK": 25,
+                "ESP": 1000,
+                "Range1": 20.0,
+                "Range2": 100.0,
+                "HP2": 0,
+                "XP": 18800,
+                "TP": 10,
+                "EFR": 100,
+                "EIC": 70,
+                "ETH": 55,
+                "ELT": 70,
+                "EDK": 1000
+            },
+            {
+                "name": "Dal Ra Lie (Shell)",
+                "ATP": 2500,
+                "MST": 10,
+                "EVP": 651,
+                "HP": 7000,
+                "DFP": 776,
+                "ATA": 340,
+                "LCK": 0,
+                "ESP": 1000,
+                "Range1": 10.0,
+                "Range2": 100.0,
+                "HP2": 0,
+                "XP": 60,
+                "TP": 10,
+                "EFR": 69,
+                "EIC": 100,
+                "ETH": 98,
+                "ELT": 90,
+                "EDK": 1000
+            },
+            {
+                "name": "Dal Ra Lie (Mine)",
+                "ATP": 2400,
+                "MST": 10,
+                "EVP": 405,
+                "HP": 1200,
+                "DFP": 726,
+                "ATA": 345,
+                "LCK": 25,
+                "ESP": 1000,
+                "Range1": 10.0,
+                "Range2": 20.0,
+                "HP2": 0,
+                "XP": 16,
+                "TP": 10,
+                "EFR": 100,
+                "EIC": 85,
+                "ETH": 65,
+                "ELT": 45,
+                "EDK": 1000
+            },
+            {
+                "name": "Sil Dragon",
+                "ATP": 2000,
+                "MST": 0,
+                "EVP": 390,
+                "HP": 16500,
+                "DFP": 500,
+                "ATA": 286,
+                "LCK": 25,
+                "ESP": 1000,
+                "Range1": 10.0,
+                "Range2": 100.0,
+                "HP2": 0,
+                "XP": 15900,
+                "TP": 200,
+                "EFR": 50,
+                "EIC": 100,
+                "ETH": 82,
+                "ELT": 70,
+                "EDK": 1000
+            },
+            {
+                "name": "Sinow Red",
+                "ATP": 2100,
+                "MST": 0,
+                "EVP": 784,
+                "HP": 2850,
+                "DFP": 852,
+                "ATA": 280,
+                "LCK": 38,
+                "ESP": 60,
+                "Range1": 25.0,
+                "Range2": 19.0,
+                "HP2": 0,
+                "XP": 344,
+                "TP": 50,
+                "EFR": 80,
+                "EIC": 60,
+                "ETH": 100,
+                "ELT": 100,
+                "EDK": 88
+            },
+            {
+                "name": "El Rappy",
+                "ATP": 1250,
+                "MST": 0,
+                "EVP": 637,
+                "HP": 1964,
+                "DFP": 625,
+                "ATA": 200,
+                "LCK": 30,
+                "ESP": 35,
+                "Range1": 10.0,
+                "Range2": 15.0,
+                "HP2": 0,
+                "XP": 256,
+                "TP": 10,
+                "EFR": 55,
+                "EIC": 40,
+                "ETH": 85,
+                "ELT": 70,
+                "EDK": 75
+            },
+            {
+                "name": "Pal Rappy",
+                "ATP": 2100,
+                "MST": 0,
+                "EVP": 419,
+                "HP": 2546,
+                "DFP": 625,
+                "ATA": 240,
+                "LCK": 50,
+                "ESP": 35,
+                "Range1": 10.0,
+                "Range2": 15.0,
+                "HP2": 0,
+                "XP": 700,
+                "TP": 30,
+                "EFR": 45,
+                "EIC": 85,
+                "ETH": 60,
+                "ELT": 70,
+                "EDK": 90
+            },
+            {
+                "name": "Nano Dragon",
+                "ATP": 2100,
+                "MST": 0,
+                "EVP": 521,
+                "HP": 2813,
+                "DFP": 789,
+                "ATA": 250,
+                "LCK": 30,
+                "ESP": 60,
+                "Range1": 30.0,
+                "Range2": 16.0,
+                "HP2": 0,
+                "XP": 320,
+                "TP": 30,
+                "EFR": 100,
+                "EIC": 53,
+                "ETH": 75,
+                "ELT": 69,
+                "EDK": 93
+            },
+            {
+                "name": "Dubchic",
+                "ATP": 1939,
+                "MST": 0,
+                "EVP": 651,
+                "HP": 3111,
+                "DFP": 726,
+                "ATA": 278,
+                "LCK": 30,
+                "ESP": 40,
+                "Range1": 20.0,
+                "Range2": 15.0,
+                "HP2": 0,
+                "XP": 59,
+                "TP": 30,
+                "EFR": 45,
+                "EIC": 88,
+                "ETH": 100,
+                "ELT": 70,
+                "EDK": 70
+            },
+            {
+                "name": "Gillchic",
+                "ATP": 1989,
+                "MST": 0,
+                "EVP": 651,
+                "HP": 2996,
+                "DFP": 718,
+                "ATA": 268,
+                "LCK": 35,
+                "ESP": 40,
+                "Range1": 20.0,
+                "Range2": 17.0,
+                "HP2": 0,
+                "XP": 321,
+                "TP": 30,
+                "EFR": 55,
+                "EIC": 88,
+                "ETH": 100,
+                "ELT": 60,
+                "EDK": 80
+            },
+            {
+                "name": "Baranz",
+                "ATP": 2500,
+                "MST": 0,
+                "EVP": 564,
+                "HP": 3788,
+                "DFP": 865,
+                "ATA": 258,
+                "LCK": 40,
+                "ESP": 60,
+                "Range1": 30.0,
+                "Range2": 25.0,
+                "HP2": 0,
+                "XP": 355,
+                "TP": 50,
+                "EFR": 90,
+                "EIC": 90,
+                "ETH": 69,
+                "ELT": 90,
+                "EDK": 108
+            },
+            {
+                "name": "Dark Gunner",
+                "ATP": 3000,
+                "MST": 0,
+                "EVP": 753,
+                "HP": 2700,
+                "DFP": 802,
+                "ATA": 340,
+                "LCK": 30,
+                "ESP": 45,
+                "Range1": 10.0,
+                "Range2": 15.0,
+                "HP2": 0,
+                "XP": 334,
+                "TP": 40,
+                "EFR": 75,
+                "EIC": 75,
+                "ETH": 75,
+                "ELT": 75,
+                "EDK": 100
+            },
+            {
+                "name": "Bulclaw",
+                "ATP": 3000,
+                "MST": 0,
+                "EVP": 753,
+                "HP": 2700,
+                "DFP": 802,
+                "ATA": 365,
+                "LCK": 50,
+                "ESP": 55,
+                "Range1": 30.0,
+                "Range2": 15.0,
+                "HP2": 0,
+                "XP": 334,
+                "TP": 40,
+                "EFR": 70,
+                "EIC": 70,
+                "ETH": 100,
+                "ELT": 50,
+                "EDK": 110
+            },
+            {
+                "name": "Claw",
+                "ATP": 2850,
+                "MST": 0,
+                "EVP": 680,
+                "HP": 2246,
+                "DFP": 751,
+                "ATA": 330,
+                "LCK": 30,
+                "ESP": 40,
+                "Range1": 5.0,
+                "Range2": 15.0,
+                "HP2": 0,
+                "XP": 273,
+                "TP": 40,
+                "EFR": 78,
+                "EIC": 100,
+                "ETH": 50,
+                "ELT": 79,
+                "EDK": 85
+            },
+            {
+                "name": "Vol Opt ver. 2 (Form 1)",
+                "ATP": 0,
+                "MST": 2000,
+                "EVP": 506,
+                "HP": 18000,
+                "DFP": 802,
+                "ATA": 0,
+                "LCK": 0,
+                "ESP": 1000,
+                "Range1": 20.0,
+                "Range2": 0.0,
+                "HP2": 0,
+                "XP": 0,
+                "TP": 0,
+                "EFR": 59,
+                "EIC": 90,
+                "ETH": 90,
+                "ELT": 65,
+                "EDK": 1000
+            },
+            {
+                "name": "Vol Opt ver. 2 (Pillar)",
+                "ATP": 2275,
+                "MST": 2000,
+                "EVP": 530,
+                "HP": 3900,
+                "DFP": 1000,
+                "ATA": 0,
+                "LCK": 0,
+                "ESP": 1000,
+                "Range1": 0.0,
+                "Range2": 0.0,
+                "HP2": 0,
+                "XP": 0,
+                "TP": 0,
+                "EFR": 90,
+                "EIC": 90,
+                "ETH": 50,
+                "ELT": 65,
+                "EDK": 1000
+            },
+            {
+                "name": "Vol Opt ver. 2 (Monitor)",
+                "ATP": 0,
+                "MST": 2000,
+                "EVP": 54,
+                "HP": 4000,
+                "DFP": 776,
+                "ATA": 0,
+                "LCK": 0,
+                "ESP": 1000,
+                "Range1": 0.0,
+                "Range2": 0.0,
+                "HP2": 0,
+                "XP": 0,
+                "TP": 0,
+                "EFR": 75,
+                "EIC": 50,
+                "ETH": 90,
+                "ELT": 75,
+                "EDK": 1000
+            },
+            {
+                "name": "Vol Opt ver. 2 (Spire)",
+                "ATP": 0,
+                "MST": 2000,
+                "EVP": 593,
+                "HP": 1525,
+                "DFP": 701,
+                "ATA": 0,
+                "LCK": 0,
+                "ESP": 1000,
+                "Range1": 0.0,
+                "Range2": 0.0,
+                "HP2": 0,
+                "XP": 0,
+                "TP": 0,
+                "EFR": 60,
+                "EIC": 70,
+                "ETH": 80,
+                "ELT": 63,
+                "EDK": 1000
+            },
+            {
+                "name": "Vol Opt ver. 2 (Form 2)",
+                "ATP": 0,
+                "MST": 1000,
+                "EVP": 724,
+                "HP": 27000,
+                "DFP": 902,
+                "ATA": 0,
+                "LCK": 5,
+                "ESP": 1000,
+                "Range1": 40.0,
+                "Range2": 100.0,
+                "HP2": 0,
+                "XP": 23500,
+                "TP": 0,
+                "EFR": 75,
+                "EIC": 69,
+                "ETH": 100,
+                "ELT": 90,
+                "EDK": 1000
+            },
+            {
+                "name": "Vol Opt ver. 2 (Prison)",
+                "ATP": 0,
+                "MST": 550,
+                "EVP": 0,
+                "HP": 2500,
+                "DFP": 1000,
+                "ATA": 0,
+                "LCK": 0,
+                "ESP": 1000,
+                "Range1": 0.0,
+                "Range2": 0.0,
+                "HP2": 0,
+                "XP": 0,
+                "TP": 0,
+                "EFR": 80,
+                "EIC": 80,
+                "ETH": 80,
+                "ELT": 80,
+                "EDK": 80
+            },
+            {
+                "name": "Pofuilly Slime",
+                "ATP": 1374,
+                "MST": 0,
+                "EVP": 637,
+                "HP": 929,
+                "DFP": 676,
+                "ATA": 249,
+                "LCK": 30,
+                "ESP": 40,
+                "Range1": 20.0,
+                "Range2": 15.0,
+                "HP2": 0,
+                "XP": 290,
+                "TP": 10,
+                "EFR": 45,
+                "EIC": 100,
+                "ETH": 45,
+                "ELT": 45,
+                "EDK": 85
+            },
+            {
+                "name": "Pan Arms",
+                "ATP": 1994,
+                "MST": 0,
+                "EVP": 622,
+                "HP": 3600,
+                "DFP": 1860,
+                "ATA": 219,
+                "LCK": 30,
+                "ESP": 40,
+                "Range1": 30.0,
+                "Range2": 15.0,
+                "HP2": 0,
+                "XP": 195,
+                "TP": 22,
+                "EFR": 58,
+                "EIC": 55,
+                "ETH": 57,
+                "ELT": 65,
+                "EDK": 90
+            },
+            {
+                "name": "Hidoom",
+                "ATP": 1930,
+                "MST": 0,
+                "EVP": 680,
+                "HP": 2625,
+                "DFP": 638,
+                "ATA": 268,
+                "LCK": 30,
+                "ESP": 45,
+                "Range1": 25.0,
+                "Range2": 15.0,
+                "HP2": 0,
+                "XP": 180,
+                "TP": 10,
+                "EFR": 100,
+                "EIC": 50,
+                "ETH": 100,
+                "ELT": 100,
+                "EDK": 90
+            },
+            {
+                "name": "Migium",
+                "ATP": 1930,
+                "MST": 0,
+                "EVP": 651,
+                "HP": 2625,
+                "DFP": 638,
+                "ATA": 268,
+                "LCK": 30,
+                "ESP": 40,
+                "Range1": 25.0,
+                "Range2": 15.0,
+                "HP2": 0,
+                "XP": 180,
+                "TP": 10,
+                "EFR": 50,
+                "EIC": 100,
+                "ETH": 100,
+                "ELT": 100,
+                "EDK": 90
+            },
+            {
+                "name": "Pouilly Slime",
+                "ATP": 2219,
+                "MST": 0,
+                "EVP": 680,
+                "HP": 2334,
+                "DFP": 650,
+                "ATA": 280,
+                "LCK": 30,
+                "ESP": 40,
+                "Range1": 20.0,
+                "Range2": 15.0,
+                "HP2": 0,
+                "XP": 880,
+                "TP": 10,
+                "EFR": 80,
+                "EIC": 80,
+                "ETH": 70,
+                "ELT": 80,
+                "EDK": 105
+            },
+            {
+                "name": "Darvant",
+                "ATP": 1390,
+                "MST": 0,
+                "EVP": 535,
+                "HP": 300,
+                "DFP": 600,
+                "ATA": 305,
+                "LCK": 0,
+                "ESP": 1000,
+                "Range1": 25.0,
+                "Range2": 18.0,
+                "HP2": 0,
+                "XP": 25,
+                "TP": 0,
+                "EFR": 70,
+                "EIC": 55,
+                "ETH": 100,
+                "ELT": 0,
+                "EDK": 1000
+            },
+            {
+                "name": "Dark Falz (Form 1)",
+                "ATP": 2400,
+                "MST": 2400,
+                "EVP": 825,
+                "HP": 20000,
+                "DFP": 902,
+                "ATA": 470,
+                "LCK": 20,
+                "ESP": 1000,
+                "Range1": 1000.0,
+                "Range2": 100.0,
+                "HP2": 0,
+                "XP": 0,
+                "TP": 0,
+                "EFR": 81,
+                "EIC": 100,
+                "ETH": 60,
+                "ELT": 89,
+                "EDK": 1000
+            },
+            {
+                "name": "Dark Falz (Form 2)",
+                "ATP": 2980,
+                "MST": 2700,
+                "EVP": 825,
+                "HP": 16500,
+                "DFP": 902,
+                "ATA": 470,
+                "LCK": 20,
+                "ESP": 1000,
+                "Range1": 1000.0,
+                "Range2": 100.0,
+                "HP2": 0,
+                "XP": 0,
+                "TP": 0,
+                "EFR": 100,
+                "EIC": 66,
+                "ETH": 85,
+                "ELT": 79,
+                "EDK": 1000
+            },
+            {
+                "name": "Dark Falz (Form 3)",
+                "ATP": 2560,
+                "MST": 3000,
+                "EVP": 750,
+                "HP": 21000,
+                "DFP": 960,
+                "ATA": 470,
+                "LCK": 20,
+                "ESP": 1000,
+                "Range1": 1000.0,
+                "Range2": 100.0,
+                "HP2": 0,
+                "XP": 50000,
+                "TP": 0,
+                "EFR": 70,
+                "EIC": 100,
+                "ETH": 83,
+                "ELT": 90,
+                "EDK": 1000
+            },
+            {
+                "name": "Darvant (Falz)",
+                "ATP": 1550,
+                "MST": 0,
+                "EVP": 651,
+                "HP": 600,
+                "DFP": 625,
+                "ATA": 305,
+                "LCK": 20,
+                "ESP": 1000,
+                "Range1": 25.0,
+                "Range2": 10.0,
+                "HP2": 0,
+                "XP": 20,
+                "TP": 0,
+                "EFR": 70,
+                "EIC": 49,
+                "ETH": 100,
+                "ELT": 0,
+                "EDK": 1000
+            },
+            {
+                "name": "Dubwitch",
+                "ATP": 0,
+                "MST": 0,
+                "EVP": 0,
+                "HP": 0,
+                "DFP": 0,
+                "ATA": 0,
+                "LCK": 0,
+                "ESP": 0,
+                "Range1": 0.0,
+                "Range2": 0.0,
+                "HP2": 0,
+                "XP": 0,
+                "TP": 0,
+                "EFR": 0,
+                "EIC": 0,
+                "ETH": 0,
+                "ELT": 0,
+                "EDK": 0
+            },
+            {
+                "name": "Hildelt",
+                "ATP": 1850,
+                "MST": 0,
+                "EVP": 477,
+                "HP": 2850,
+                "DFP": 676,
+                "ATA": 240,
+                "LCK": 45,
+                "ESP": 60,
+                "Range1": 30.0,
+                "Range2": 19.000041961669922,
+                "HP2": 0,
+                "XP": 300,
+                "TP": 55,
+                "EFR": 90,
+                "EIC": 90,
+                "ETH": 70,
+                "ELT": 57,
+                "EDK": 98
+            },
+            {
+                "name": "Hildetorr",
+                "ATP": 3600,
+                "MST": 0,
+                "EVP": 738,
+                "HP": 6750,
+                "DFP": 600,
+                "ATA": 290,
+                "LCK": 60,
+                "ESP": 60,
+                "Range1": 25.0,
+                "Range2": 15.000027656555176,
+                "HP2": 0,
+                "XP": 690,
+                "TP": 3,
+                "EFR": 90,
+                "EIC": 90,
+                "ETH": 90,
+                "ELT": 69,
+                "EDK": 100
+            },
+            {
+                "name": "Bartle",
+                "ATP": 1250,
+                "MST": 0,
+                "EVP": 593,
+                "HP": 2334,
+                "DFP": 600,
+                "ATA": 205,
+                "LCK": 25,
+                "ESP": 17,
+                "Range1": 25.0,
+                "Range2": 16.0,
+                "HP2": 0,
+                "XP": 271,
+                "TP": 4,
+                "EFR": 40,
+                "EIC": 100,
+                "ETH": 70,
+                "ELT": 65,
+                "EDK": 70
+            },
+            {
+                "name": "Barble",
+                "ATP": 1350,
+                "MST": 0,
+                "EVP": 608,
+                "HP": 2550,
+                "DFP": 613,
+                "ATA": 209,
+                "LCK": 25,
+                "ESP": 20,
+                "Range1": 25.0,
+                "Range2": 16.0,
+                "HP2": 0,
+                "XP": 276,
+                "TP": 30,
+                "EFR": 100,
+                "EIC": 65,
+                "ETH": 45,
+                "ELT": 65,
+                "EDK": 70
+            },
+            {
+                "name": "Tollaw",
+                "ATP": 1450,
+                "MST": 0,
+                "EVP": 630,
+                "HP": 2301,
+                "DFP": 750,
+                "ATA": 313,
+                "LCK": 35,
+                "ESP": 25,
+                "Range1": 30.0,
+                "Range2": 17.0,
+                "HP2": 0,
+                "XP": 281,
+                "TP": 150,
+                "EFR": 70,
+                "EIC": 50,
+                "ETH": 100,
+                "ELT": 65,
+                "EDK": 70
+            },
+            {
+                "name": "Crimson Assassin",
+                "ATP": 1800,
+                "MST": 0,
+                "EVP": 680,
+                "HP": 2522,
+                "DFP": 701,
+                "ATA": 260,
+                "LCK": 40,
+                "ESP": 60,
+                "Range1": 25.0,
+                "Range2": 15.0,
+                "HP2": 0,
+                "XP": 333,
+                "TP": 60,
+                "EFR": 45,
+                "EIC": 100,
+                "ETH": 75,
+                "ELT": 65,
+                "EDK": 100
+            },
+            {
+                "name": "Vulmer",
+                "ATP": 1550,
+                "MST": 0,
+                "EVP": 651,
+                "HP": 2394,
+                "DFP": 726,
+                "ATA": 236,
+                "LCK": 30,
+                "ESP": 20,
+                "Range1": 25.0,
+                "Range2": 16.0,
+                "HP2": 0,
+                "XP": 295,
+                "TP": 72,
+                "EFR": 45,
+                "EIC": 100,
+                "ETH": 75,
+                "ELT": 70,
+                "EDK": 80
+            },
+            {
+                "name": "Govulmer",
+                "ATP": 1660,
+                "MST": 0,
+                "EVP": 666,
+                "HP": 2499,
+                "DFP": 726,
+                "ATA": 239,
+                "LCK": 30,
+                "ESP": 25,
+                "Range1": 25.0,
+                "Range2": 17.0,
+                "HP2": 0,
+                "XP": 303,
+                "TP": 90,
+                "EFR": 75,
+                "EIC": 50,
+                "ETH": 100,
+                "ELT": 70,
+                "EDK": 75
+            },
+            {
+                "name": "Melqueek",
+                "ATP": 1770,
+                "MST": 0,
+                "EVP": 680,
+                "HP": 2533,
+                "DFP": 726,
+                "ATA": 345,
+                "LCK": 40,
+                "ESP": 25,
+                "Range1": 25.0,
+                "Range2": 18.0,
+                "HP2": 0,
+                "XP": 318,
+                "TP": 180,
+                "EFR": 100,
+                "EIC": 75,
+                "ETH": 55,
+                "ELT": 70,
+                "EDK": 75
+            },
+            {
+                "name": "Delsaber",
+                "ATP": 3333,
+                "MST": 0,
+                "EVP": 970,
+                "HP": 3450,
+                "DFP": 802,
+                "ATA": 350,
+                "LCK": 30,
+                "ESP": 45,
+                "Range1": 25.0,
+                "Range2": 18.0,
+                "HP2": 0,
+                "XP": 375,
+                "TP": 150,
+                "EFR": 100,
+                "EIC": 63,
+                "ETH": 100,
+                "ELT": 72,
+                "EDK": 107
+            },
+            {
+                "name": "Arlan",
+                "ATP": 2700,
+                "MST": 0,
+                "EVP": 712,
+                "HP": 3000,
+                "DFP": 802,
+                "ATA": 285,
+                "LCK": 35,
+                "ESP": 25,
+                "Range1": 25.0,
+                "Range2": 18.0,
+                "HP2": 0,
+                "XP": 339,
+                "TP": 180,
+                "EFR": 50,
+                "EIC": 100,
+                "ETH": 78,
+                "ELT": 65,
+                "EDK": 85
+            },
+            {
+                "name": "Merlan",
+                "ATP": 2800,
+                "MST": 0,
+                "EVP": 735,
+                "HP": 3150,
+                "DFP": 814,
+                "ATA": 300,
+                "LCK": 35,
+                "ESP": 30,
+                "Range1": 25.0,
+                "Range2": 18.0,
+                "HP2": 0,
+                "XP": 345,
+                "TP": 200,
+                "EFR": 80,
+                "EIC": 55,
+                "ETH": 100,
+                "ELT": 65,
+                "EDK": 88
+            },
+            {
+                "name": "Del-D",
+                "ATP": 2900,
+                "MST": 0,
+                "EVP": 758,
+                "HP": 3750,
+                "DFP": 827,
+                "ATA": 415,
+                "LCK": 45,
+                "ESP": 35,
+                "Range1": 28.0,
+                "Range2": 19.0,
+                "HP2": 0,
+                "XP": 356,
+                "TP": 180,
+                "EFR": 100,
+                "EIC": 83,
+                "ETH": 60,
+                "ELT": 75,
+                "EDK": 91
+            },
+            {
+                "name": "Boota",
+                "ATP": 1986,
+                "MST": 0,
+                "EVP": 653,
+                "HP": 2940,
+                "DFP": 691,
+                "ATA": 310,
+                "LCK": 58,
+                "ESP": 35,
+                "Range1": 25.0,
+                "Range2": 16.0,
+                "HP2": 0,
+                "XP": 398,
+                "TP": 0,
+                "EFR": 40,
+                "EIC": 98,
+                "ETH": 80,
+                "ELT": 50,
+                "EDK": 80
+            },
+            {
+                "name": "Ze Boota",
+                "ATP": 2085,
+                "MST": 0,
+                "EVP": 693,
+                "HP": 3028,
+                "DFP": 760,
+                "ATA": 324,
+                "LCK": 58,
+                "ESP": 35,
+                "Range1": 25.0,
+                "Range2": 16.0,
+                "HP2": 0,
+                "XP": 418,
+                "TP": 0,
+                "EFR": 80,
+                "EIC": 40,
+                "ETH": 98,
+                "ELT": 50,
+                "EDK": 80
+            },
+            {
+                "name": "Ba Boota",
+                "ATP": 2189,
+                "MST": 0,
+                "EVP": 721,
+                "HP": 3109,
+                "DFP": 836,
+                "ATA": 338,
+                "LCK": 60,
+                "ESP": 35,
+                "Range1": 30.0,
+                "Range2": 17.0,
+                "HP2": 0,
+                "XP": 437,
+                "TP": 0,
+                "EFR": 98,
+                "EIC": 85,
+                "ETH": 40,
+                "ELT": 50,
+                "EDK": 90
+            },
+            {
+                "name": "Sand Rappy (Crater)",
+                "ATP": 2035,
+                "MST": 0,
+                "EVP": 633,
+                "HP": 2896,
+                "DFP": 657,
+                "ATA": 314,
+                "LCK": 95,
+                "ESP": 45,
+                "Range1": 30.0,
+                "Range2": 17.0,
+                "HP2": 0,
+                "XP": 388,
+                "TP": 0,
+                "EFR": 40,
+                "EIC": 60,
+                "ETH": 90,
+                "ELT": 50,
+                "EDK": 60
+            },
+            {
+                "name": "Del Rappy (Crater)",
+                "ATP": 2366,
+                "MST": 3125,
+                "EVP": 909,
+                "HP": 7022,
+                "DFP": 810,
+                "ATA": 322,
+                "LCK": 127,
+                "ESP": 33,
+                "Range1": 30.0,
+                "Range2": 17.0,
+                "HP2": 0,
+                "XP": 851,
+                "TP": 0,
+                "EFR": 65,
+                "EIC": 98,
+                "ETH": 85,
+                "ELT": 15,
+                "EDK": 98
+            },
+            {
+                "name": "Zu (Crater)",
+                "ATP": 2321,
+                "MST": 0,
+                "EVP": 549,
+                "HP": 4285,
+                "DFP": 782,
+                "ATA": 350,
+                "LCK": 73,
+                "ESP": 32,
+                "Range1": 30.0,
+                "Range2": 17.0,
+                "HP2": 0,
+                "XP": 492,
+                "TP": 0,
+                "EFR": 75,
+                "EIC": 50,
+                "ETH": 98,
+                "ELT": 35,
+                "EDK": 95
+            },
+            {
+                "name": "Pazuzu (Crater)",
+                "ATP": 2785,
+                "MST": 0,
+                "EVP": 612,
+                "HP": 6340,
+                "DFP": 837,
+                "ATA": 375,
+                "LCK": 78,
+                "ESP": 37,
+                "Range1": 30.0,
+                "Range2": 17.0,
+                "HP2": 0,
+                "XP": 1178,
+                "TP": 0,
+                "EFR": 98,
+                "EIC": 85,
+                "ETH": 50,
+                "ELT": 98,
+                "EDK": 80
+            },
+            {
+                "name": "Astark",
+                "ATP": 2231,
+                "MST": 0,
+                "EVP": 592,
+                "HP": 4892,
+                "DFP": 670,
+                "ATA": 318,
+                "LCK": 65,
+                "ESP": 50,
+                "Range1": 30.0,
+                "Range2": 17.0,
+                "HP2": 0,
+                "XP": 507,
+                "TP": 0,
+                "EFR": 98,
+                "EIC": 40,
+                "ETH": 80,
+                "ELT": 35,
+                "EDK": 95
+            },
+            {
+                "name": "Satellite Lizard (Crater)",
+                "ATP": 2110,
+                "MST": 0,
+                "EVP": 762,
+                "HP": 3036,
+                "DFP": 782,
+                "ATA": 336,
+                "LCK": 62,
+                "ESP": 37,
+                "Range1": 30.0,
+                "Range2": 17.0,
+                "HP2": 0,
+                "XP": 422,
+                "TP": 0,
+                "EFR": 40,
+                "EIC": 80,
+                "ETH": 80,
+                "ELT": 50,
+                "EDK": 50
+            },
+            {
+                "name": "Yowie (Crater)",
+                "ATP": 2208,
+                "MST": 0,
+                "EVP": 869,
+                "HP": 3139,
+                "DFP": 848,
+                "ATA": 336,
+                "LCK": 67,
+                "ESP": 39,
+                "Range1": 30.0,
+                "Range2": 17.0,
+                "HP2": 0,
+                "XP": 446,
+                "TP": 0,
+                "EFR": 45,
+                "EIC": 90,
+                "ETH": 90,
+                "ELT": 50,
+                "EDK": 60
+            },
+            {
+                "name": "Dorphon",
+                "ATP": 2925,
+                "MST": 0,
+                "EVP": 721,
+                "HP": 9732,
+                "DFP": 818,
+                "ATA": 338,
+                "LCK": 60,
+                "ESP": 32,
+                "Range1": 30.0,
+                "Range2": 25.0,
+                "HP2": 0,
+                "XP": 796,
+                "TP": 0,
+                "EFR": 50,
+                "EIC": 85,
+                "ETH": 98,
+                "ELT": 20,
+                "EDK": 98
+            },
+            {
+                "name": "Dorphon Eclair",
+                "ATP": 3012,
+                "MST": 0,
+                "EVP": 793,
+                "HP": 12652,
+                "DFP": 859,
+                "ATA": 350,
+                "LCK": 73,
+                "ESP": 39,
+                "Range1": 30.0,
+                "Range2": 25.0,
+                "HP2": 0,
+                "XP": 1355,
+                "TP": 0,
+                "EFR": 90,
+                "EIC": 60,
+                "ETH": 98,
+                "ELT": 98,
+                "EDK": 80
+            },
+            {
+                "name": "Goran",
+                "ATP": 2371,
+                "MST": 0,
+                "EVP": 716,
+                "HP": 3550,
+                "DFP": 809,
+                "ATA": 330,
+                "LCK": 58,
+                "ESP": 21,
+                "Range1": 30.0,
+                "Range2": 17.0,
+                "HP2": 0,
+                "XP": 607,
+                "TP": 0,
+                "EFR": 45,
+                "EIC": 80,
+                "ETH": 98,
+                "ELT": 50,
+                "EDK": 90
+            },
+            {
+                "name": "Pyro Goran",
+                "ATP": 2504,
+                "MST": 0,
+                "EVP": 728,
+                "HP": 3664,
+                "DFP": 864,
+                "ATA": 340,
+                "LCK": 58,
+                "ESP": 32,
+                "Range1": 30.0,
+                "Range2": 17.0,
+                "HP2": 0,
+                "XP": 636,
+                "TP": 0,
+                "EFR": 80,
+                "EIC": 45,
+                "ETH": 98,
+                "ELT": 50,
+                "EDK": 90
+            },
+            {
+                "name": "Goran Detonator",
+                "ATP": 2947,
+                "MST": 0,
+                "EVP": 825,
+                "HP": 5990,
+                "DFP": 1017,
+                "ATA": 385,
+                "LCK": 66,
+                "ESP": 36,
+                "Range1": 30.0,
+                "Range2": 17.0,
+                "HP2": 0,
+                "XP": 802,
+                "TP": 0,
+                "EFR": 98,
+                "EIC": 85,
+                "ETH": 50,
+                "ELT": 30,
+                "EDK": 98
+            },
+            {
+                "name": "Sand Rappy (Desert)",
+                "ATP": 3007,
+                "MST": 0,
+                "EVP": 681,
+                "HP": 3373,
+                "DFP": 768,
+                "ATA": 314,
+                "LCK": 95,
+                "ESP": 45,
+                "Range1": 30.0,
+                "Range2": 17.0,
+                "HP2": 0,
+                "XP": 577,
+                "TP": 0,
+                "EFR": 45,
+                "EIC": 70,
+                "ETH": 98,
+                "ELT": 50,
+                "EDK": 70
+            },
+            {
+                "name": "Del Rappy (Desert)",
+                "ATP": 3496,
+                "MST": 3125,
+                "EVP": 978,
+                "HP": 8178,
+                "DFP": 948,
+                "ATA": 323,
+                "LCK": 127,
+                "ESP": 33,
+                "Range1": 30.0,
+                "Range2": 17.0,
+                "HP2": 0,
+                "XP": 1266,
+                "TP": 0,
+                "EFR": 70,
+                "EIC": 98,
+                "ETH": 90,
+                "ELT": 15,
+                "EDK": 98
+            },
+            {
+                "name": "Merissa A",
+                "ATP": 2782,
+                "MST": 0,
+                "EVP": 636,
+                "HP": 3700,
+                "DFP": 647,
+                "ATA": 298,
+                "LCK": 58,
+                "ESP": 58,
+                "Range1": 30.0,
+                "Range2": 17.0,
+                "HP2": 0,
+                "XP": 638,
+                "TP": 0,
+                "EFR": 40,
+                "EIC": 70,
+                "ETH": 75,
+                "ELT": 70,
+                "EDK": 98
+            },
+            {
+                "name": "Merissa AA",
+                "ATP": 3338,
+                "MST": 0,
+                "EVP": 668,
+                "HP": 5022,
+                "DFP": 692,
+                "ATA": 536,
+                "LCK": 93,
+                "ESP": 58,
+                "Range1": 30.0,
+                "Range2": 17.0,
+                "HP2": 0,
+                "XP": 1424,
+                "TP": 0,
+                "EFR": 75,
+                "EIC": 80,
+                "ETH": 40,
+                "ELT": 70,
+                "EDK": 98
+            },
+            {
+                "name": "Zu (Desert)",
+                "ATP": 3193,
+                "MST": 0,
+                "EVP": 681,
+                "HP": 3977,
+                "DFP": 872,
+                "ATA": 391,
+                "LCK": 77,
+                "ESP": 50,
+                "Range1": 30.0,
+                "Range2": 17.0,
+                "HP2": 0,
+                "XP": 679,
+                "TP": 0,
+                "EFR": 80,
+                "EIC": 55,
+                "ETH": 98,
+                "ELT": 35,
+                "EDK": 98
+            },
+            {
+                "name": "Pazuzu (Desert)",
+                "ATP": 3790,
+                "MST": 0,
+                "EVP": 715,
+                "HP": 7769,
+                "DFP": 933,
+                "ATA": 418,
+                "LCK": 82,
+                "ESP": 33,
+                "Range1": 30.0,
+                "Range2": 17.0,
+                "HP2": 0,
+                "XP": 1496,
+                "TP": 0,
+                "EFR": 98,
+                "EIC": 90,
+                "ETH": 55,
+                "ELT": 90,
+                "EDK": 90
+            },
+            {
+                "name": "Satellite Lizard (Desert)",
+                "ATP": 2841,
+                "MST": 0,
+                "EVP": 768,
+                "HP": 3720,
+                "DFP": 1042,
+                "ATA": 338,
+                "LCK": 64,
+                "ESP": 38,
+                "Range1": 30.0,
+                "Range2": 17.0,
+                "HP2": 0,
+                "XP": 643,
+                "TP": 0,
+                "EFR": 45,
+                "EIC": 90,
+                "ETH": 90,
+                "ELT": 50,
+                "EDK": 60
+            },
+            {
+                "name": "Yowie (Desert)",
+                "ATP": 2998,
+                "MST": 0,
+                "EVP": 878,
+                "HP": 4021,
+                "DFP": 1114,
+                "ATA": 338,
+                "LCK": 69,
+                "ESP": 40,
+                "Range1": 30.0,
+                "Range2": 17.0,
+                "HP2": 0,
+                "XP": 672,
+                "TP": 0,
+                "EFR": 50,
+                "EIC": 95,
+                "ETH": 95,
+                "ELT": 50,
+                "EDK": 70
+            },
+            {
+                "name": "Girtablulu",
+                "ATP": 2924,
+                "MST": 0,
+                "EVP": 580,
+                "HP": 17068,
+                "DFP": 736,
+                "ATA": 384,
+                "LCK": 56,
+                "ESP": 41,
+                "Range1": 30.0,
+                "Range2": 17.0,
+                "HP2": 0,
+                "XP": 788,
+                "TP": 0,
+                "EFR": 80,
+                "EIC": 98,
+                "ETH": 50,
+                "ELT": 20,
+                "EDK": 98
+            },
+            {
+                "name": "Saint-Milion (Phase 1)",
+                "ATP": 3939,
+                "MST": 0,
+                "EVP": 270,
+                "HP": 17595,
+                "DFP": 935,
+                "ATA": 555,
+                "LCK": 25,
+                "ESP": 100,
+                "Range1": 0.0,
+                "Range2": 0.0,
+                "HP2": 0,
+                "XP": 0,
+                "TP": 0,
+                "EFR": 98,
+                "EIC": 85,
+                "ETH": 40,
+                "ELT": 25,
+                "EDK": 0
+            },
+            {
+                "name": "Spinner (Saint-Milion 1)",
+                "ATP": 2600,
+                "MST": 2400,
+                "EVP": 270,
+                "HP": 2835,
+                "DFP": 1200,
+                "ATA": 555,
+                "LCK": 90,
+                "ESP": 100,
+                "Range1": 0.0,
+                "Range2": 0.0,
+                "HP2": 0,
+                "XP": 0,
+                "TP": 0,
+                "EFR": 5,
+                "EIC": 65,
+                "ETH": 65,
+                "ELT": 0,
+                "EDK": 0
+            },
+            {
+                "name": "Saint-Milion (Phase 2)",
+                "ATP": 4410,
+                "MST": 0,
+                "EVP": 828,
+                "HP": 26393,
+                "DFP": 1076,
+                "ATA": 555,
+                "LCK": 75,
+                "ESP": 100,
+                "Range1": 0.0,
+                "Range2": 0.0,
+                "HP2": 0,
+                "XP": 61750,
+                "TP": 0,
+                "EFR": 98,
+                "EIC": 50,
+                "ETH": 98,
+                "ELT": 30,
+                "EDK": 0
+            },
+            {
+                "name": "Spinner (Saint-Milion 2)",
+                "ATP": 2600,
+                "MST": 2400,
+                "EVP": 270,
+                "HP": 2268,
+                "DFP": 1200,
+                "ATA": 555,
+                "LCK": 90,
+                "ESP": 100,
+                "Range1": 0.0,
+                "Range2": 0.0,
+                "HP2": 0,
+                "XP": 0,
+                "TP": 0,
+                "EFR": 5,
+                "EIC": 65,
+                "ETH": 65,
+                "ELT": 0,
+                "EDK": 0
+            },
+            {
+                "name": "Shambertin (Phase 1)",
+                "ATP": 4136,
+                "MST": 0,
+                "EVP": 270,
+                "HP": 21114,
+                "DFP": 935,
+                "ATA": 555,
+                "LCK": 25,
+                "ESP": 100,
+                "Range1": 0.0,
+                "Range2": 0.0,
+                "HP2": 0,
+                "XP": 0,
+                "TP": 0,
+                "EFR": 85,
+                "EIC": 40,
+                "ETH": 98,
+                "ELT": 25,
+                "EDK": 0
+            },
+            {
+                "name": "Spinner (Shambertin 1)",
+                "ATP": 2730,
+                "MST": 2400,
+                "EVP": 270,
+                "HP": 3402,
+                "DFP": 1200,
+                "ATA": 555,
+                "LCK": 90,
+                "ESP": 100,
+                "Range1": 0.0,
+                "Range2": 0.0,
+                "HP2": 0,
+                "XP": 0,
+                "TP": 0,
+                "EFR": 65,
+                "EIC": 65,
+                "ETH": 5,
+                "ELT": 0,
+                "EDK": 0
+            },
+            {
+                "name": "Shambertin (Phase 2)",
+                "ATP": 4631,
+                "MST": 0,
+                "EVP": 828,
+                "HP": 27945,
+                "DFP": 1076,
+                "ATA": 555,
+                "LCK": 75,
+                "ESP": 100,
+                "Range1": 0.0,
+                "Range2": 0.0,
+                "HP2": 0,
+                "XP": 61750,
+                "TP": 0,
+                "EFR": 98,
+                "EIC": 98,
+                "ETH": 50,
+                "ELT": 30,
+                "EDK": 0
+            },
+            {
+                "name": "Spinner (Shambertin 2)",
+                "ATP": 2730,
+                "MST": 2400,
+                "EVP": 270,
+                "HP": 2722,
+                "DFP": 1200,
+                "ATA": 555,
+                "LCK": 90,
+                "ESP": 100,
+                "Range1": 0.0,
+                "Range2": 0.0,
+                "HP2": 0,
+                "XP": 0,
+                "TP": 0,
+                "EFR": 65,
+                "EIC": 65,
+                "ETH": 5,
+                "ELT": 0,
+                "EDK": 0
+            },
+            {
+                "name": "Kondrieu (Phase 1)",
+                "ATP": 3929,
+                "MST": 0,
+                "EVP": 270,
+                "HP": 24840,
+                "DFP": 935,
+                "ATA": 555,
+                "LCK": 25,
+                "ESP": 100,
+                "Range1": 0.0,
+                "Range2": 0.0,
+                "HP2": 0,
+                "XP": 0,
+                "TP": 0,
+                "EFR": 40,
+                "EIC": 98,
+                "ETH": 85,
+                "ELT": 25,
+                "EDK": 0
+            },
+            {
+                "name": "Spinner (Kondrieu 1)",
+                "ATP": 2594,
+                "MST": 2400,
+                "EVP": 270,
+                "HP": 4253,
+                "DFP": 1200,
+                "ATA": 555,
+                "LCK": 90,
+                "ESP": 100,
+                "Range1": 0.0,
+                "Range2": 0.0,
+                "HP2": 0,
+                "XP": 0,
+                "TP": 0,
+                "EFR": 80,
+                "EIC": 5,
+                "ETH": 80,
+                "ELT": 0,
+                "EDK": 0
+            },
+            {
+                "name": "Kondrieu (Phase 2)",
+                "ATP": 4399,
+                "MST": 0,
+                "EVP": 828,
+                "HP": 31438,
+                "DFP": 1076,
+                "ATA": 555,
+                "LCK": 75,
+                "ESP": 100,
+                "Range1": 0.0,
+                "Range2": 0.0,
+                "HP2": 0,
+                "XP": 61750,
+                "TP": 0,
+                "EFR": 98,
+                "EIC": 50,
+                "ETH": 98,
+                "ELT": 30,
+                "EDK": 0
+            },
+            {
+                "name": "Spinner (Kondrieu 2)",
+                "ATP": 2594,
+                "MST": 2400,
+                "EVP": 270,
+                "HP": 3402,
+                "DFP": 1200,
+                "ATA": 555,
+                "LCK": 90,
+                "ESP": 100,
+                "Range1": 0.0,
+                "Range2": 0.0,
+                "HP2": 0,
+                "XP": 0,
+                "TP": 0,
+                "EFR": 80,
+                "EIC": 5,
+                "ETH": 80,
+                "ELT": 0,
+                "EDK": 0
+            }
+        ];
+        let sortAscending = null;
+        $('#class-select').change(function() {
+            let playerClass = $('#class-select').val();
+            updateDamageTable();
+            $('#mstInput').val(classStats[playerClass].mst);
+            updateTotalFrames();
+        });
+        $('#weapon-select').change(updateDamageTable);
+        $('#frame-select').change(updateDamageTable);
+        $('#barrier-select').change(updateDamageTable);
+        $('#tech-select').change(updateDamageTable);
+        $('#mstInput').change(updateDamageTable);
+        $('#autoCombo').change(() => {
+            let autoCombo = $('#autoCombo').is(":checked")
+            updateDamageTable();
+        });
+
+        function updateTotalFrames() {
+
+        }
+
+        $('#monsters-header').click(() => {
+            pushSort("name");
+            if (sortAscending === null) {
+                $('#monsters-header div').text("Monster")
+            } else if (sortAscending) {
+                $('#monsters-header div').text("Monster ▲")
+            } else {
+                $('#monsters-header div').text("Monster ▼")
+            }
+            $('#damage-header').text("Damage")
+            $('#accuracy-header').text("Accuracy")
+        });
+        $('#damage-header').click(() => {
+            pushSort("damage");
+            if (sortAscending === null) {
+                $('#damage-header').text("Damage")
+            } else if (sortAscending) {
+                $('#damage-header').text("Damage ▲")
+            } else {
+                $('#damage-header').text("Damage ▼")
+            }
+            $('#monsters-header div').text("Monster")
+            $('#accuracy-header').text("Accuracy")
+        });
+
+        const techDamage = {
+            "Foie": (lvl) => (65 * lvl) - 85,
+            "Gifoie": (lvl) => (42 * lvl) + 30,
+            "Rafoie": (lvl) => (21 * lvl) + 370,
+            "Barta": (lvl) => (63 * lvl) - 125,
+            "Gibarta": (lvl) => (40 * lvl),
+            "Rabarta": (lvl) => (15 * lvl) + 470,
+            "Zonde": (lvl) => (55 * lvl) + 5,
+            "Gizonde": (lvl) => (38 * lvl) - 30,
+            "Razonde": (lvl) => (8 * lvl) + 565,
+            "Grants": (lvl) => (60 * lvl) + 1400,
+        }
+
+        function calculateBaseTechDamage(
+            tech, techLvl, mst
+        ) {
+            let baseDamage = techDamage[tech](techLvl);
+            return (mst + baseDamage) / 5
+        }
+
+        function updateDamageTable() {
+            let autoCombo = $('#autoCombo').is(":checked")
+            let mst = Number($('#mstInput').val())
+            let tech = $('#tech-select').val()
+            let baseTechDamage = calculateBaseTechDamage(tech, 29, mst)
+            let playerClass = $('#class-select').val();
+            let barrier = $('#barrier-select').val();
+            let frame = $('#frame-select').val();
+            let weapon = $('#weapon-select').val();
+            let multiplier = 1 + classStats[playerClass].techMultiplier(tech) + weaponMultipliers[weapon](tech) + frameMultipliers[frame](tech) + barrierMultipliers[barrier](tech);
+
+            let tbody = $('#combo-calc-table tbody');
+            tbody.empty();
+            let rows = [];
+            for (let index in selectedEnemies) {
+                let enemy = selectedEnemies[index];
+                let damage = Math.floor(baseTechDamage * multiplier * (1 - (enemy.EFR / 100)))
+                let percentDamage = 100 * (damage / (enemy.HP + enemy.HP2));
+                if (percentDamage > 100) {
+                    percentDamage = 100;
+                }
+                let row = {
+                    name: enemy.name,
+                    hp: enemy.HP + enemy.HP2,
+                    percentDamage: percentDamage,
+                    comboDamage: damage,
+                }
+
+                rows.push(row);
+            }
+
+            rows.sort((a, b) => {
+                if (sortAscending === null) {
+                    return 0;
+                }
+                if (sortColumn === "name") {
+                    if (sortAscending === true) {
+                        return a.name.localeCompare(b.name);
+                    } else {
+                        return b.name.localeCompare(a.name);
+                    }
+                } else if (sortColumn === "damage") {
+                    if (sortAscending === true) {
+                        return a.percentDamage - b.percentDamage;
+                    } else {
+                        return b.percentDamage - a.percentDamage;
+                    }
+                }
+            })
+
+            for (let index in rows) {
+                tbody.append(appendMosterRow(rows[index]))
+            }
+        }
+
+        new Vue({
+            components: {
+                Multiselect: window.VueMultiselect.default
+            },
+            data: {
+                defaultEnemies: [],
+                enemiesByLocation: [
+                    { name: "Forest", enemies: enemies},
+                ]
+            },
+            methods: {
+                enemiesSelected (selection) {
+                    selectedEnemies = [];
+                    for (let i in selection) {
+                        selectedEnemies.push(selection[i])
+                    }
+                    updateDamageTable();
+                }
+            }
+        }).$mount('#enemy-select-vue')
+        function appendMosterRow(rowEntry) {
+            let comboKill = rowEntry.comboDamage > rowEntry.hp;
+            let damageBgColor = comboKill ? 'rgb(61,73,61)' : 'rgb(73,73,61)';
+
+            return $('<tr/>')
+                .append($('<th/>', {
+                    'colspan': 2,
+                    'data-label': 'monster',
+                    'text': rowEntry.name
+                }))
+                .append($('<td/>', {
+                    'style': 'padding: 0'
+                }).append($('<div>', {
+                    'style': 'background: rgba(255,150,150,0.1)'
+                }).append($('<div>', {
+                    'style': 'background: ' + damageBgColor + '; padding: 0.78571429em 0.78571429em; width: ' + rowEntry.percentDamage + '%',
+                    'text': rowEntry.comboDamage.toFixed(0) + '/' + rowEntry.hp,
+                    'title': rowEntry.comboDamage.toFixed(0) + '/' + rowEntry.hp
+                }))))
+        }
+    </script>
+    </body>
+
+    </html>
+{{ end }}

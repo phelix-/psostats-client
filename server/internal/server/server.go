@@ -26,26 +26,29 @@ import (
 )
 
 type Server struct {
-	app                  *fiber.App
-	dynamoClient         *dynamodb.DynamoDB
-	userDb               userdb.UserDb
-	recentGames          []model.QuestRun
-	recentGamesCount     int
-	recentGamesSize      int
-	recentGamesLock      sync.Mutex
-	recordsLock          sync.Mutex
-	webhookUrl           string
-	indexTemplate        *template.Template
-	infoTemplate         *template.Template
-	downloadTemplate     *template.Template
-	gameTemplate         *template.Template
-	gameV3Template       *template.Template
-	playerTemplate       *template.Template
-	gameNotFoundTemplate *template.Template
-	recordsTemplate      *template.Template
-	anniversaryTemplate  *template.Template
-	comboCalcTemplate    *template.Template
-	anniversaryQuests    map[string]struct{}
+	app                     *fiber.App
+	dynamoClient            *dynamodb.DynamoDB
+	userDb                  userdb.UserDb
+	recentGames             []model.QuestRun
+	recentGamesCount        int
+	recentGamesSize         int
+	recentGamesLock         sync.Mutex
+	recordsLock             sync.Mutex
+	webhookUrl              string
+	indexTemplate           *template.Template
+	infoTemplate            *template.Template
+	downloadTemplate        *template.Template
+	gameTemplate            *template.Template
+	gameV3Template          *template.Template
+	gameV4Template          *template.Template
+	playerTemplate          *template.Template
+	gameNotFoundTemplate    *template.Template
+	recordsTemplate         *template.Template
+	anniversaryTemplate     *template.Template
+	anniversary2022Template *template.Template
+	comboCalcTemplate       *template.Template
+	anniversaryQuests       map[string]struct{}
+	anniversaryNamesInOrder []string
 }
 
 func New(dynamo *dynamodb.DynamoDB) *Server {
@@ -75,21 +78,44 @@ func New(dynamo *dynamodb.DynamoDB) *Server {
 			"Maximum Attack E: Crater": {},
 			"Maximum Attack E: Desert": {},
 		},
+		anniversaryNamesInOrder: []string{
+			"Maximum Attack E: Forest",
+			"Maximum Attack E: Caves",
+			"Maximum Attack E: Mines",
+			"Maximum Attack E: Ruins",
+			"Maximum Attack E: Temple",
+			"Maximum Attack E: Space",
+			"Maximum Attack E: CCA",
+			"Maximum Attack E: Seabed",
+			"Maximum Attack E: Tower",
+			"Maximum Attack E: Crater",
+			"Maximum Attack E: Desert",
+		},
 	}
 }
 
 func (s *Server) Run() {
 	s.app.Static("/favicon.ico", "./static/favicon.ico", fiber.Static{})
 	s.app.Static("/static/", "./static/", fiber.Static{})
+	s.app.Get("/js/game.js", s.GetGameJs)
+	s.app.Get("/js/draughts.js", s.DraughtsJs)
+	s.app.Get("/js/three.module.js", s.ThreeJs)
+	s.app.Get("/js/OrbitControls.js", s.OrbitControlsJs)
+
 	// UI
 	s.app.Get("/", s.Index)
 	s.app.Get("/game/:gameId/:gem?", s.GamePage)
 	s.app.Get("/gamev3/:gameId/:gem?", s.GamePageV3)
+	s.app.Get("/gamev4/:gameId/:gem?", s.GamePageV4)
 	s.app.Get("/info", s.InfoPage)
 	s.app.Get("/download", s.DownloadPage)
 	s.app.Get("/records", s.RecordsV2Page)
 	s.app.Get("/anniv2021", s.Anniv2021RecordsPage)
+	s.app.Get("/anniv2022", s.Anniv2022RecordsPage)
+	//s.app.Get("/threejs", s.ThreejsPage)
+	//s.app.Get("/geometry", s.GetGeometry)
 	s.app.Get("/combo-calculator", s.ComboCalcMultiPage)
+	s.app.Get("/tech-calculator", s.TechCalcPage)
 	s.app.Get("/combo-calculator/opm", s.ComboCalcOpmPage)
 	s.app.Get("/players/:player", s.PlayerV2Page)
 	// API
@@ -103,10 +129,12 @@ func (s *Server) Run() {
 	s.playerTemplate = ensureParsed("./server/internal/templates/playerV2.gohtml")
 	s.gameTemplate = ensureParsed("./server/internal/templates/game.gohtml")
 	s.gameV3Template = ensureParsed("./server/internal/templates/gamev3.gohtml")
+	s.gameV4Template = ensureParsed("./server/internal/templates/gamev4.gohtml")
 	s.downloadTemplate = ensureParsed("./server/internal/templates/download.gohtml")
 	s.gameNotFoundTemplate = ensureParsed("./server/internal/templates/gameNotFound.gohtml")
 	s.recordsTemplate = ensureParsed("./server/internal/templates/recordsV2.gohtml")
 	s.anniversaryTemplate = ensureParsed("./server/internal/templates/anniv2021.gohtml")
+	s.anniversary2022Template = ensureParsed("./server/internal/templates/anniv2022.gohtml")
 	s.comboCalcTemplate = ensureParsed("./server/internal/templates/comboCalc.gohtml")
 
 	if certLocation, found := os.LookupEnv("CERT"); found {
@@ -200,106 +228,6 @@ func (s *Server) comboCalcPage(opm bool, c *fiber.Ctx) error {
 	}
 	err := s.comboCalcTemplate.ExecuteTemplate(c.Response().BodyWriter(), "combo-calc", infoModel)
 
-	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
-	return err
-}
-
-func (s *Server) PlayerV2Page(c *fiber.Ctx) error {
-	player := c.Params("player")
-	player, err := url.PathUnescape(player)
-	if err != nil {
-		c.Status(500)
-		return err
-	}
-	recentGames, err := db.GetPlayerRecentGames(player, s.dynamoClient, 15)
-	if err != nil {
-		return err
-	}
-	games, err := db.GetQuestRecords(db.QuestRecordsTable, s.dynamoClient)
-	if err != nil {
-		return err
-	}
-	sortedRecords := sortGames(games)
-	playerPbs, err := db.GetPlayerPbs(player, s.dynamoClient)
-	if err != nil {
-		return err
-	}
-	sortedPbs := sortGames(playerPbs)
-
-	for _, pb := range playerPbs {
-		if sortedRecords[pb.Episode][pb.Quest][pb.Category].Id == pb.Id {
-			pbsForEp := sortedPbs[pb.Episode]
-			pbsForQuest := pbsForEp[pb.Quest]
-			pbForCategory := pbsForQuest[pb.Category]
-			pbForCategory.Record = true
-			pbsForQuest[pb.Category] = pbForCategory
-			pbsForEp[pb.Quest] = pbsForQuest
-			sortedPbs[pb.Episode] = pbsForEp
-		}
-	}
-	classUsage, err := db.GetPlayerClassCounts(player, s.dynamoClient)
-	if err != nil {
-		return err
-	}
-	for _, class := range psoclasses.GetAll() {
-		if _, exists := classUsage[class.Name]; !exists {
-			classUsage[class.Name] = 0
-		}
-	}
-	questsPlayed, err := db.GetPlayerQuestCounts(player, s.dynamoClient)
-	if err != nil {
-		return err
-	}
-	gamesByEpisode := map[int]int{1: 0, 2: 0, 4: 0}
-	questCounts := make([]QuestAndCount, 0)
-	totalGames := 0
-	for quest, count := range questsPlayed {
-		split := strings.SplitN(quest, "_", 2)
-		if len(split) == 2 {
-			episode, err := strconv.Atoi(split[0])
-			questName := split[1]
-			if err == nil {
-				totalGames += count
-				gamesByEpisode[episode] += count
-				questCounts = append(questCounts, QuestAndCount{questName, count})
-			}
-		}
-	}
-	favoriteQuest := QuestAndCount{"None", 0}
-	if len(questCounts) > 0 {
-		sort.Slice(questCounts, func(i, j int) bool { return questCounts[i].Count > questCounts[j].Count })
-		favoriteQuest = questCounts[0]
-	}
-
-	infoModel := struct {
-		PlayerName     string
-		Classes        map[string]int
-		TotalGames     int
-		GamesByEpisode map[int]int
-		FavoriteQuest  QuestAndCount
-		RecentGames    []model.FormattedGame
-		PbGames        map[int]map[string]map[string]model.FormattedGame
-	}{
-		PlayerName:     player,
-		Classes:        classUsage,
-		TotalGames:     totalGames,
-		GamesByEpisode: gamesByEpisode,
-		FavoriteQuest:  favoriteQuest,
-		RecentGames:    make([]model.FormattedGame, 0),
-		PbGames:        sortedPbs,
-	}
-	for _, game := range recentGames {
-		formattedGame := getFormattedGame(game)
-		pbForQuestAndCategory := sortedPbs[game.Episode][game.Quest][game.Category]
-		if pbForQuestAndCategory.Id == game.Id {
-			formattedGame.Pb = true
-			if pbForQuestAndCategory.Record {
-				formattedGame.Record = true
-			}
-		}
-		infoModel.RecentGames = append(infoModel.RecentGames, formattedGame)
-	}
-	err = s.playerTemplate.ExecuteTemplate(c.Response().BodyWriter(), "player", infoModel)
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
 }
@@ -505,7 +433,7 @@ func formatMap(game *model.QuestRun, data []model.DataFrame) []MapData {
 		playerByGc[player.GuildCard] = player
 	}
 	for _, frame := range data {
-		if frame.Map == 0 || frame.Map == 45 {
+		if frame.Map == 0 || frame.Map == 18 || frame.Map == 45 {
 			continue
 		}
 		if frame.Map != mapNum || frame.MapVariation != mapVariation {
@@ -587,6 +515,15 @@ func getEquipment(game *model.QuestRun, equipmentType string) []model.Equipment 
 	return equipmentOfType
 }
 
+func formatDurationSeconds(d time.Duration) string {
+	d = d.Round(time.Second)
+	minutes := d / time.Minute
+	d -= minutes * time.Minute
+	seconds := d / time.Second
+	d -= seconds * time.Second
+	return fmt.Sprintf("%d:%02d", minutes, seconds)
+}
+
 func formatDuration(d time.Duration) string {
 	d = d.Round(time.Millisecond)
 	minutes := d / time.Minute
@@ -595,6 +532,14 @@ func formatDuration(d time.Duration) string {
 	d -= seconds * time.Second
 	milliseconds := d / time.Millisecond
 	return fmt.Sprintf("%d:%02d.%03d", minutes, seconds, milliseconds)
+}
+
+func formatDurationSecMilli(d time.Duration) string {
+	d = d.Round(time.Millisecond)
+	seconds := d / time.Second
+	d -= seconds * time.Second
+	milliseconds := d / time.Millisecond
+	return fmt.Sprintf("%d.%03d", seconds, milliseconds)
 }
 
 func convertIntToXY(values []int) map[int]int {
@@ -732,6 +677,7 @@ func getFormattedGame(game model.Game) model.FormattedGame {
 		NumPlayers:   numPlayers,
 		Episode:      game.Episode,
 		Quest:        game.Quest,
+		Duration:     game.Time,
 		Time:         formatDuration(game.Time),
 		RelativeDate: formattedRelativeDate,
 		Date:         game.Timestamp.In(location).Format("15:04 01/02/2006"),

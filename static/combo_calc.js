@@ -30,7 +30,7 @@ const weapons = {
         maxAtp: 750,
         ata: 54,
         grind: 0,
-        special: "Lavis"
+        special: "Lavis Cannon"
     },
     "Excalibur": {
         name: "Excalibur",
@@ -252,7 +252,7 @@ const weapons = {
         ata: 40,
         grind: 0,
         combo: {"attack1Hits": 2, "attack2Hits": 2, "attack3Hits": 2},
-        special: "Lavis"
+        special: "Lavis Blade"
     },
     "Daylight Scar": {
         name: "Daylight Scar",
@@ -356,7 +356,7 @@ const weapons = {
         ata: 50,
         grind: 0,
         maxHit: 0,
-        combo: {"attack1Hits": 2, "attack2Hits": 1, "attack3Hits": 3}, special: "Lavis"
+        combo: {"attack1Hits": 2, "attack2Hits": 1, "attack3Hits": 3}, special: "Lavis Cannon"
     },
     "Twin Blaze": {
         name: "Twin Blaze",
@@ -402,7 +402,7 @@ const weapons = {
         ata: 45,
         grind: 0,
         combo: {"attack1Hits": 2, "attack2Hits": 1, "attack3Hits": 3},
-        special: "Lavis"
+        special: "Lavis Cannon"
     },
     "ES Twin": {
         name: "ES Twin",
@@ -412,11 +412,12 @@ const weapons = {
         ata: 40,
         grind: 250,
         maxHit: 0, maxAttr: 0,
-        combo: {"attack1Hits": 2, "attack2Hits": 1, "attack3Hits": 3}
+        combo: {"attack1Hits": 2, "attack2Hits": 1, "attack3Hits": 3},
+        special: "Berserk"
     },
 
     "Toy Hammer": {name: "Toy Hammer", animation: "Katana", minAtp: 1, maxAtp: 400, ata: 53, grind: 0},
-    "Raikiri": {name: "Raikiri", animation: "Katana", minAtp: 550, maxAtp: 560, ata: 30, grind: 0},
+    "Raikiri": {name: "Raikiri", animation: "Katana", minAtp: 550, maxAtp: 560, ata: 30, grind: 0, special: "Raikiri"},
     "Orotiagito": {
         name: "Orotiagito",
         animation: "Katana",
@@ -425,7 +426,7 @@ const weapons = {
         ata: 55,
         grind: 0,
         maxHit: 0,
-        special: "Lavis"
+        special: "Orotiagito"
     },
 
     "Musashi": {
@@ -977,9 +978,10 @@ function getSpecialAccuracyModifier(special) {
 
 function getDamageModifierForAttackType(attackType, special) {
     if (attackType === 'NORMAL') {
-        return 1.0;
+
+        return 0.9;
     } else if (attackType === 'HEAVY') {
-        return 1.89;
+        return 1.7;
     } else if (attackType === 'SPECIAL') {
         return getSpecialDamageModifier(special);
     } else if (attackType === 'NONE') {
@@ -988,12 +990,22 @@ function getDamageModifierForAttackType(attackType, special) {
 }
 
 function getSpecialDamageModifier(special) {
-    if (special === 'Charge' || special === 'Spirit' || special === 'Berserk') {
-        return 3.32;
+    if (special === 'Arrest') {
+        return 0.5;
+    } else if (special === 'Raikiri') {
+        return 0.875;
+    } else if (special === 'Lavis Cannon') {
+        return 0.5;
+    } else if (special === 'Lavis Blade') {
+        return 0.5;
+    } else if (special === 'Dark Flow' || special === 'TJS') {
+        return 1.7;
+    } else if (special === 'Orotiagito') {
+        return 1.75;
+    } else if (special === 'Charge' || special === 'Spirit' || special === 'Berserk') {
+        return 3.0;
     } else if (special === 'Vjaya') {
-        return 5.56;
-    } else if (special === 'Dark Flow' || special === 'Lavis' || special === 'TJS') {
-        return 1.89;
+        return 5.0;
     } else {
         return 0;
     }
@@ -1253,11 +1265,11 @@ function calculateBaseDamage(atpInput, enemy) {
 
     let effectiveDfp = enemy.dfp * (1.0 - zalureModifier);
 
-    let nMin = ((effectiveMinAtp - effectiveDfp) / 5) * 0.9;
+    let nMin = ((effectiveMinAtp - effectiveDfp) / 5);
     if (nMin < 0) {
         nMin = 0;
     }
-    let nMax = ((effectiveMaxAtp - effectiveDfp) / 5) * 0.9;
+    let nMax = ((effectiveMaxAtp - effectiveDfp) / 5);
     if (nMax < 0) {
         nMax = 0;
     }
