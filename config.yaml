@@ -14,8 +14,8 @@
 # pb - compare current split time to your personal best splits
 # record - compare current split time to the quest record splits
 # none - show the current split time but no comparison
-#questSplitsCompareTo: pb
+questSplitsCompareTo: record
 
 # Add your credentials here
-user: 'phelix'
-password: 'L7d^o2em^$8ez8AKPCr#'
+user: ''
+password: ''

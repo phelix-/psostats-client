@@ -978,7 +978,6 @@ function getSpecialAccuracyModifier(special) {
 
 function getDamageModifierForAttackType(attackType, special) {
     if (attackType === 'NORMAL') {
-
         return 0.9;
     } else if (attackType === 'HEAVY') {
         return 1.7;
@@ -997,7 +996,7 @@ function getSpecialDamageModifier(special) {
     } else if (special === 'Lavis Cannon') {
         return 0.5;
     } else if (special === 'Lavis Blade') {
-        return 0.5;
+        return 0.583;
     } else if (special === 'Dark Flow' || special === 'TJS') {
         return 1.7;
     } else if (special === 'Orotiagito') {
