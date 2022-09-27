@@ -71,6 +71,7 @@ func getAllQuests() []Quest {
 		{Episode: 1, Name: "Endless Nightmare #2", Number: 109, Start: warpIn(), End: register(30)},
 		{Episode: 1, Name: "Endless Nightmare #3", Number: 110, Start: warpIn(), End: register(30)},
 		{Episode: 1, Name: "Endless Nightmare #4", Number: 111, Start: warpIn(), End: register(30)},
+		{Episode: 1, Name: "Silent Afterimage #2", Number: 1866, Start: register(210), End: register(50)},
 		{Episode: 1, Name: "Anomalous Ordeal #1", Number: 1810, Start: register(82), End: register(254)},
 		{Episode: 1, Name: "Anomalous Ordeal #2", Number: 1811, Start: register(82), End: register(254)},
 		// Today's Rate
@@ -481,6 +482,7 @@ func getAllQuests() []Quest {
 
 		// ---- VR ----
 		{Episode: 4, Name: "Beyond the Horizon", Number: 313, Start: floorSwitch(1, 20), End: floorSwitch(8, 80)},
+		{Episode: 4, Name: "Sacred Groundz", Number: 11002, Start: register(110), ForceTerminal: true, End: register(155)},
 		// LOGiN presents 勇場のマッチレース
 
 		// ---- Halloween ----
