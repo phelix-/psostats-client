@@ -71,9 +71,19 @@ func getAllQuests() []Quest {
 		{Episode: 1, Name: "Endless Nightmare #2", Number: 109, Start: warpIn(), End: register(30)},
 		{Episode: 1, Name: "Endless Nightmare #3", Number: 110, Start: warpIn(), End: register(30)},
 		{Episode: 1, Name: "Endless Nightmare #4", Number: 111, Start: warpIn(), End: register(30)},
+		{Episode: 1, Name: "Silent Afterimage #1", Number: 1865, Start: register(210), End: register(50)},
 		{Episode: 1, Name: "Silent Afterimage #2", Number: 1866, Start: register(210), End: register(50)},
+		{Episode: 1, Name: "Silent Afterimage #3", Number: 1867, Start: register(210), End: register(50)},
+		{Episode: 1, Name: "Silent Afterimage #4", Number: 1868, Start: register(210), End: register(50)},
 		{Episode: 1, Name: "Anomalous Ordeal #1", Number: 1810, Start: register(82), End: register(254)},
 		{Episode: 1, Name: "Anomalous Ordeal #2", Number: 1811, Start: register(82), End: register(254)},
+		{Episode: 1, Name: "Anomalous Ordeal #3", Number: 1812, Start: register(82), End: register(254)},
+		{Episode: 1, Name: "Anomalous Ordeal #4", Number: 1813, Start: register(82), End: register(254)},
+		{Episode: 1, Name: "Anomalous Ordeal #5", Number: 1814, Start: register(82), End: register(254)},
+		{Episode: 1, Name: "Scarlet Realm #1", Number: 1827, Start: register(5), End: register(254)},
+		{Episode: 1, Name: "Scarlet Realm #2", Number: 1828, Start: register(7), End: register(254)},
+		{Episode: 1, Name: "Scarlet Realm #3", Number: 1829, Start: register(25), End: register(254)},
+		{Episode: 1, Name: "Scarlet Realm #4", Number: 1830, Start: register(4), End: register(254)},
 		// Today's Rate
 
 		// ---- Retrieval ----

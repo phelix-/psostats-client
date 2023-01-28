@@ -43,17 +43,18 @@ const (
 )
 
 type Inventory struct {
-	Equipment    []Equipment
-	Monomate     uint8
-	Dimate       uint8
-	Trimate      uint8
-	Monofluid    uint8
-	Difluid      uint8
-	Trifluid     uint8
-	MoonAtomizer uint8
-	StarAtomizer uint8
-	SolAtomizer  uint8
-	Telepipe     uint8
+	Equipment      []Equipment
+	EquippedWeapon Equipment
+	Monomate       uint8
+	Dimate         uint8
+	Trimate        uint8
+	Monofluid      uint8
+	Difluid        uint8
+	Trifluid       uint8
+	MoonAtomizer   uint8
+	StarAtomizer   uint8
+	SolAtomizer    uint8
+	Telepipe       uint8
 }
 
 type Equipment struct {
@@ -66,6 +67,12 @@ type Equipment struct {
 func ReadInventory(handle w32.HANDLE, playerIndex uint8) (Inventory, error) {
 	inventory := Inventory{}
 	equipment := make([]Equipment, 0)
+	equippedWeapon := Equipment{
+		Id:          model.WeaponBareHanded,
+		UnitxtIndex: "",
+		Type:        model.EquipmentTypeWeapon,
+		Display:     model.WeaponBareHanded,
+	}
 	buf, _, ok := w32.ReadProcessMemory(handle, uintptr(itemArrayCount), 2)
 	if !ok {
 		return inventory, errors.New("could not read item count")
@@ -106,6 +113,7 @@ func ReadInventory(handle w32.HANDLE, playerIndex uint8) (Inventory, error) {
 						currentEquipment.Type = model.EquipmentTypeWeapon
 						currentEquipment.Display = weapon.String()
 						equipment = append(equipment, currentEquipment)
+						equippedWeapon = currentEquipment
 					case 1:
 						switch itemGroup {
 						case 1:
@@ -141,6 +149,7 @@ func ReadInventory(handle w32.HANDLE, playerIndex uint8) (Inventory, error) {
 	}
 
 	inventory.Equipment = equipment
+	inventory.EquippedWeapon = equippedWeapon
 	return inventory, nil
 }
 
