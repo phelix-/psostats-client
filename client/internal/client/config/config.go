@@ -2,8 +2,8 @@
 package config
 
 import (
-	"io/ioutil"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -46,7 +46,7 @@ func (config *Config) GetServerBaseUrl() string {
 
 func ReadFromFile(fileLocation string) (*Config, error) {
 	config := Config{}
-	data, err := ioutil.ReadFile(fileLocation)
+	data, err := os.ReadFile(fileLocation)
 	if err != nil {
 		return nil, err
 	}
