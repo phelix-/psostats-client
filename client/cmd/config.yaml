@@ -1,0 +1,21 @@
+# PSOStats Client Config
+# Commented values are default settings
+
+# Console UI frames per second, must be between 1 and 30
+# uiFps: 5
+
+#serverBaseUrl: http://localhost
+#autoUpload: true
+
+# Configures quest splits. Set to true (default) to show quest splits, false to hide
+#questSplitsEnabled: true
+
+# Enables comparing your current run to saved quest splits. Possible options are
+# pb - compare current split time to your personal best splits
+# record - compare current split time to the quest record splits
+# none - show the current split time but no comparison
+questSplitsCompareTo: record
+
+# Add your credentials here
+user: ''
+password: ''

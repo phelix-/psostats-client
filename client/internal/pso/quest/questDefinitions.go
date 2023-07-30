@@ -80,10 +80,10 @@ func getAllQuests() []Quest {
 		{Episode: 1, Name: "Anomalous Ordeal #3", Number: 1812, Start: register(82), End: register(254)},
 		{Episode: 1, Name: "Anomalous Ordeal #4", Number: 1813, Start: register(82), End: register(254)},
 		{Episode: 1, Name: "Anomalous Ordeal #5", Number: 1814, Start: register(82), End: register(254)},
-		{Episode: 1, Name: "Scarlet Realm #1", Number: 1827, Start: register(5), End: register(254)},
-		{Episode: 1, Name: "Scarlet Realm #2", Number: 1828, Start: register(7), End: register(254)},
-		{Episode: 1, Name: "Scarlet Realm #3", Number: 1829, Start: register(25), End: register(254)},
-		{Episode: 1, Name: "Scarlet Realm #4", Number: 1830, Start: register(4), End: register(254)},
+		{Episode: 1, Name: "Scarlet Realm #1", Number: 1827, Start: register(5), End: register(254), ForceTerminal: true},
+		{Episode: 1, Name: "Scarlet Realm #2", Number: 1828, Start: register(7), End: register(254), ForceTerminal: true},
+		{Episode: 1, Name: "Scarlet Realm #3", Number: 1829, Start: register(25), End: register(254), ForceTerminal: true},
+		{Episode: 1, Name: "Scarlet Realm #4", Number: 1830, Start: register(4), End: register(254), ForceTerminal: true},
 		// Today's Rate
 
 		// ---- Retrieval ----

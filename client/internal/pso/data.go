@@ -955,7 +955,7 @@ func (pso *PSO) ephineaFastBurstEnabled() bool {
 }
 
 func (pso *PSO) GetMonsterList() ([]Monster, error) {
-	npcArrayAddr := uintptr(0x00AAD720)
+	npcArrayAddr := uintptr(numbers.ReadU32Unchecked(pso.handle, uintptr(0x007B4BA0+2)))
 	npcCount := int(numbers.ReadU32Unchecked(pso.handle, 0x00AAE164))
 	playerCount := int(pso.getPlayerCount())
 	ephineaMonsters := uintptr(numbers.ReadU32Unchecked(pso.handle, 0x00B5F800))
