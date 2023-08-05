@@ -124,7 +124,7 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 				log.Printf("failed to update leaderboard for game %v - %v", questRun.Id, err)
 			}
 		}
-		s.updateAnniv2020Record(questRun, matchingGame)
+		s.updateAnniv2023Record(questRun, matchingGame)
 		s.recordsLock.Unlock()
 
 		playerPb, err := db.GetPlayerPB(questRun.QuestName, user, numPlayers, questRun.PbCategory, s.dynamoClient)
@@ -159,38 +159,38 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 	return nil
 }
 
-func (s *Server) updateAnniv2020Record(questRun model.QuestRun, matchingGame *model.QuestRun) {
+func (s *Server) updateAnniv2023Record(questRun model.QuestRun, matchingGame *model.QuestRun) {
 	_, anniversaryQuest := s.anniversaryQuests[questRun.QuestName]
 	if questRun.PbCategory || !anniversaryQuest || questRun.Server != "ephinea" {
 		return
 	}
 	numPlayers := len(questRun.AllPlayers)
-	topRun, err := db.GetAnniv2021Record(questRun.QuestName, numPlayers, questRun.PbCategory, s.dynamoClient)
+	topRun, err := db.GetAnniv2023Record(questRun.QuestName, numPlayers, questRun.PbCategory, s.dynamoClient)
 	if err != nil {
 		log.Printf("failed to get top quest runs for gameId:%v - %v", questRun.Id, err)
 	} else if matchingGame != nil {
 		if topRun == nil {
 			log.Printf("Matching game but no topRun, almost definitely a bug")
 		} else if matchingGame.Id == topRun.Id {
-			if err := db.AddPovToRecord(db.Anniv2021RecordsTable, questRun, s.dynamoClient); err != nil {
+			if err := db.AddPovToRecord(db.Anniv2023RecordsTable, questRun, s.dynamoClient); err != nil {
 				log.Printf("failed to add pov to anniv record")
 			}
 		}
 	} else if isBetterRun(questRun, topRun) {
 		log.Printf("new record for %v %vp pb:%v - %v",
 			questRun.QuestName, numPlayers, questRun.PbCategory, questRun.Id)
-		if err = db.WriteAnniv2021Record(&questRun, s.dynamoClient); err != nil {
+		if err = db.WriteAnniv2023Record(&questRun, s.dynamoClient); err != nil {
 			log.Printf("failed to update anniv leaderboard for game %v - %v", questRun.Id, err)
 		}
 	}
 
-	pb, err := db.GetQuestSeriesPb("a2022", questRun.UserName, questRun.QuestName, s.dynamoClient)
+	pb, err := db.GetQuestSeriesPb("a2023", questRun.UserName, questRun.QuestName, s.dynamoClient)
 	if err != nil {
 		log.Printf("GetQuestSeriesPb %s", err)
 	}
 	questDuration, _ := time.ParseDuration(questRun.QuestDuration)
 	if pb == nil || questDuration < pb.Time {
-		err = db.WriteQuestSeriesPb("a2022", &questRun, s.dynamoClient)
+		err = db.WriteQuestSeriesPb("a2023", &questRun, s.dynamoClient)
 		if err != nil {
 			log.Printf("WriteQuestSeriesPb %s", err)
 		}

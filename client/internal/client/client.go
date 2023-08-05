@@ -110,10 +110,12 @@ func (c *Client) Run() error {
 			}
 		case game := <-c.startedGame:
 			if c.config.GetQuestSplitsEnabled() && c.config.GetQuestSplitsCompareTo() != "none" {
-				err := c.getQuestSplits(game.QuestName, len(game.AllPlayers), game.PbCategory)
-				if err != nil {
-					log.Printf("Error getting quest splits %v", err)
-				}
+				go func() {
+					err := c.getQuestSplits(game.QuestName, len(game.AllPlayers), game.PbCategory)
+					if err != nil {
+						log.Printf("Error getting quest splits %v", err)
+					}
+				}()
 			}
 		case game := <-c.completeGame:
 			if c.config.AutoUploadEnabled() {

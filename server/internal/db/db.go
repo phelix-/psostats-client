@@ -25,6 +25,9 @@ const (
 	AnnivStats               = "anniv_stats"
 	AnnivRecordHistory       = "anniv_record_history"
 	Anniv2021RecordsTable    = "records_anniv_2021"
+	Anniv2023Stats           = "anniv_stats_2023"
+	Anniv2023RecordHistory   = "anniv_record_history_2023"
+	Anniv2023RecordsTable    = "anniv_records_2023"
 	RecentGamesByPlayerTable = "recent_games_by_player_2"
 	RecentGamesByMonth       = "recent_games_by_month_2"
 	GameCountTable           = "games_counter"
@@ -368,9 +371,9 @@ func WriteGameByQuestRecord(questRun *model.QuestRun, dynamoClient *dynamodb.Dyn
 	return err
 }
 
-func WriteAnniv2021Record(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) error {
-	summary, err := writeRecord(Anniv2021RecordsTable, questRun, dynamoClient)
-	writeRecordHistory(AnnivRecordHistory, summary, dynamoClient)
+func WriteAnniv2023Record(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) error {
+	summary, err := writeRecord(Anniv2023RecordsTable, questRun, dynamoClient)
+	writeRecordHistory(Anniv2023RecordHistory, summary, dynamoClient)
 	return err
 }
 
@@ -411,8 +414,8 @@ func GetQuestRecord(quest string, numPlayers int, pbCategory bool, dynamoClient 
 	return getRecord(QuestRecordsTable, quest, numPlayers, pbCategory, dynamoClient)
 }
 
-func GetAnniv2021Record(quest string, numPlayers int, pbCategory bool, dynamoClient *dynamodb.DynamoDB) (*model.Game, error) {
-	return getRecord(Anniv2021RecordsTable, quest, numPlayers, pbCategory, dynamoClient)
+func GetAnniv2023Record(quest string, numPlayers int, pbCategory bool, dynamoClient *dynamodb.DynamoDB) (*model.Game, error) {
+	return getRecord(Anniv2023RecordsTable, quest, numPlayers, pbCategory, dynamoClient)
 }
 
 func GetQuestRecords(tableName string, dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
@@ -639,7 +642,7 @@ func addAnniversaryCounter(questName, counterName string, value int64, db *dynam
 	questNameAttr := dynamodb.AttributeValue{S: aws.String(questName)}
 
 	updateItemInput := dynamodb.UpdateItemInput{
-		TableName:        aws.String(AnnivStats),
+		TableName:        aws.String(Anniv2023Stats),
 		Key:              map[string]*dynamodb.AttributeValue{"Key": &questNameAttr, "Counter": &counterAttr},
 		AttributeUpdates: map[string]*dynamodb.AttributeValueUpdate{"count": &update},
 	}
@@ -655,11 +658,11 @@ type AnniversaryCounter struct {
 	Count   int64
 }
 
-func GetAnniversaryCounters(db *dynamodb.DynamoDB) ([]AnniversaryCounter, error) {
+func GetAnniversaryCounters(tableName string, db *dynamodb.DynamoDB) ([]AnniversaryCounter, error) {
 	scanInput := dynamodb.ScanInput{
 		AttributesToGet: aws.StringSlice([]string{"Key", "Counter", "count"}),
 		Limit:           aws.Int64(1000),
-		TableName:       aws.String(AnnivStats),
+		TableName:       aws.String(tableName),
 	}
 	scan, err := db.Scan(&scanInput)
 	if err != nil {

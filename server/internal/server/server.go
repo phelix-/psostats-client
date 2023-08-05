@@ -112,6 +112,7 @@ func (s *Server) Run() {
 	s.app.Get("/records", s.RecordsV2Page)
 	s.app.Get("/anniv2021", s.Anniv2021RecordsPage)
 	s.app.Get("/anniv2022", s.Anniv2022RecordsPage)
+	s.app.Get("/anniv2023", s.Anniv2023RecordsPage)
 	//s.app.Get("/threejs", s.ThreejsPage)
 	//s.app.Get("/geometry", s.GetGeometry)
 	s.app.Get("/combo-calculator", s.ComboCalcMultiPage)
@@ -697,6 +698,7 @@ func (s *Server) GetGame(c *fiber.Ctx) error {
 		c.Status(404)
 		return nil
 	} else {
+		log.Printf("Serving %v", gameId)
 		compressed, _ := db.CompressGame(game)
 		c.Response().AppendBody(compressed)
 		c.Response().Header.Set("Content-Type", "application/json")

@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/phelix-/psostats/v2/pkg/model"
 	"github.com/phelix-/psostats/v2/server/internal/db"
+	"log"
 	"sort"
 	"strconv"
 	"text/template"
@@ -234,6 +235,7 @@ func (s *Server) GamePageV3(c *fiber.Ctx) error {
 		}
 		err = s.gameV3Template.Funcs(funcMap).ExecuteTemplate(c.Response().BodyWriter(), "game", model)
 	}
+	log.Printf("Serving %v", gameId)
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
 }

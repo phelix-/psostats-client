@@ -14,7 +14,7 @@ import (
 )
 
 func (s *Server) Anniv2022RecordsPage(c *fiber.Ctx) error {
-	overallCounters, questCounters := s.getCounters()
+	overallCounters, questCounters := s.getCounters(2022)
 	records, err := db.GetQuestRecords(db.Anniv2021RecordsTable, s.dynamoClient)
 	if err != nil {
 		log.Printf("get recent games %v", err)
@@ -50,7 +50,7 @@ func (s *Server) Anniv2022RecordsPage(c *fiber.Ctx) error {
 			"Tower",
 			"Crater",
 			"Desert"},
-		TopLaps:        s.getTopLaps(),
+		TopLaps:        s.getTopLaps("a2022"),
 		OverallCounter: overallCounters,
 		QuestCounters:  questCounters,
 		Records:        sortedRecs,
@@ -122,7 +122,7 @@ func (s *Server) sortRecordHistory(games []model.Game) map[string][]RecordHistor
 		gamesByQuest[game.Quest] = gamesForQuest
 	}
 	for quest, gamesForQuest := range gamesByQuest {
-		nextGame := RecordHistoryPoint{Time: time.Now()}
+		nextGame := RecordHistoryPoint{Time: time.Date(2023, time.September, 7, 0, 0, 0, 0, time.UTC)}
 		if len(gamesForQuest) > 0 {
 			lastGame := gamesForQuest[len(gamesForQuest)-1]
 			nextGame.P1 = lastGame.P1
@@ -136,7 +136,7 @@ func (s *Server) sortRecordHistory(games []model.Game) map[string][]RecordHistor
 	return gamesByQuest
 }
 
-func (s *Server) getCounters() (QuestCounters, map[string]QuestCounters) {
+func (s *Server) getCounters(year int) (QuestCounters, map[string]QuestCounters) {
 	questCounters := make(map[string]QuestCounters)
 
 	overallCounter := QuestCounters{
@@ -157,8 +157,12 @@ func (s *Server) getCounters() (QuestCounters, map[string]QuestCounters) {
 			RunsByDay:          make(map[time.Time]int64),
 		}
 	}
+	tableName := db.AnnivStats
+	if year == 2023 {
+		tableName = db.Anniv2023Stats
+	}
 
-	if counters, err := db.GetAnniversaryCounters(s.dynamoClient); err == nil {
+	if counters, err := db.GetAnniversaryCounters(tableName, s.dynamoClient); err == nil {
 		for _, counter := range counters {
 			if counterForQuest, found := questCounters[counter.Key]; found {
 				if counter.Counter == "MesetaCharged" {
@@ -218,10 +222,10 @@ func (s *Server) getCounters() (QuestCounters, map[string]QuestCounters) {
 	return overallCounter, questCounters
 }
 
-func (s *Server) getTopLaps() []AnniversaryTimes {
+func (s *Server) getTopLaps(questSeries string) []AnniversaryTimes {
 	anniversaryTimes := make([]AnniversaryTimes, 0)
 	timesByPlayer := make(map[string]map[string]db.QuestSeriesPb)
-	if pbs, err := db.GetQuestSeriesPbs("a2022", s.dynamoClient); err == nil {
+	if pbs, err := db.GetQuestSeriesPbs(questSeries, s.dynamoClient); err == nil {
 		for _, pb := range pbs {
 			annivTimes, found := timesByPlayer[pb.User]
 			if !found {
