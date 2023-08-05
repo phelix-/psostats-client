@@ -4,9 +4,9 @@
     <head>
         <meta name="viewport" content="width=device-width"/>
         <meta property="og:site_name" content="PSOStats"/>
-        <meta property="og:title" content="Ephinea Anniversary 2022"/>
-        <meta property="og:description" content="Statistics and records for Ephinea's 7th anniversary event"/>
-        <title>PSOStats - Anniversary 2022</title>
+        <meta property="og:title" content="Ephinea Anniversary {{ .Year }}"/>
+        <meta property="og:description" content="Statistics and records for Ephinea's {{ .AnnivNumber }}th anniversary event"/>
+        <title>PSOStats - Anniversary {{ .Year }}</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
         <link href="/static/main2.css" rel="stylesheet" type="text/css">
         <script src='https://code.jquery.com/jquery-1.11.3.min.js'></script>
@@ -33,7 +33,7 @@
         {{ template "navbar" }}
         <div class="row">
             <div class="col">
-                <h1>Ephinea Anniversary 2022</h1>
+                <h1>Ephinea Anniversary {{ .Year }}</h1>
             </div>
         </div>
 

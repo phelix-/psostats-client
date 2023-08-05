@@ -28,6 +28,8 @@ func (s *Server) Anniv2022RecordsPage(c *fiber.Ctx) error {
 	//}
 	sortedRecs := sortAnnivGames(records)
 	recordModel := struct {
+		Year            int
+		AnnivNumber     int
 		QuestNames      []string
 		QuestShortNames []string
 		TopLaps         []AnniversaryTimes
@@ -38,7 +40,9 @@ func (s *Server) Anniv2022RecordsPage(c *fiber.Ctx) error {
 		SectionIds      []string
 		RecordHistory   map[string][]RecordHistoryPoint
 	}{
-		QuestNames: s.anniversaryNamesInOrder,
+		Year:        2022,
+		AnnivNumber: 7,
+		QuestNames:  s.anniversaryNamesInOrder,
 		QuestShortNames: []string{"Forest",
 			"Caves",
 			"Mines",
