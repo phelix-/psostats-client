@@ -214,10 +214,7 @@
                 <button type="button" class="btn btn-danger" id="clear-button">Clear</button>
             </div>
             <div class="col-2 mb-1">
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="checkbox" id="autoCombo">
-                    <label class="form-check-label" for="autoCombo">Auto Cast</label>
-                </div>
+                <button type="button" class="btn btn-primary" id="auto-cast">Auto</button>
             </div>
             <div class="col-12 mb-3" id="total-frames"></div>
         </div>
@@ -2307,12 +2304,7 @@
         $('#weapon-select').change(updateDamageTable);
         $('#techLvlInput').change(updateDamageTable);
         $('#mstInput').change(updateDamageTable);
-        $('#autoCombo').change(() => {
-            let autoCombo = $('#autoCombo').is(":checked")
-            if(autoCombo) {
-                solveAutoCast();
-            }
-        });
+        $('#auto-cast').click(solveAutoCast);
         $('#cast-button').click(pushTech);
         $('#clear-button').click(() => {
             techs = [];
@@ -2447,6 +2439,7 @@
 
             let monsterNames = [];
             let datasets = [];
+            let damageDone = Array(selectedEnemies.length).fill(0);
 
             for (let index in techs) {
                 let tech = techs[index];
@@ -2468,7 +2461,9 @@
                 }
                 for (let index in selectedEnemies) {
                     let enemy = selectedEnemies[index];
-                    let damage = Math.floor(baseTechDamage * multiplier * (1 - (technique[techName].resistance(enemy) / 100)))
+                    let hpRemaining = (enemy.HP + enemy.HP2) - damageDone[index];
+                    let damage = Math.min(hpRemaining, Math.floor(baseTechDamage * multiplier * (1 - (technique[techName].resistance(enemy) / 100))));
+                    damageDone[index] = damageDone[index] + damage;
                     // let percentDamage = 100 * (damage / (enemy.HP + enemy.HP2));
                     dataset.data.push(damage);
                 }
