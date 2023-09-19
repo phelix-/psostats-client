@@ -10,6 +10,7 @@
         <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
         <script src="https://unpkg.com/vue-multiselect@2.1.0"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.8.2/chart.min.js" integrity="sha512-zjlf0U0eJmSo1Le4/zcZI51ks5SjuQXkU0yOdsOBubjSmio9iCUp8XPLkEAADZNBdR9crRy3cniZ65LF2w8sRA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <link rel="stylesheet" href="https://unpkg.com/vue-multiselect@2.1.0/dist/vue-multiselect.min.css">
         <link href="/static/main2.css" rel="stylesheet" type="text/css">
     </head>
@@ -113,13 +114,33 @@
                     </optgroup>
                 </select>
             </div>
+            <div class="col-6 col-md-3 mb-1">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">MST</div>
+                    </div>
+                    <input type="text" class="form-control" id="mstInput" value="1500" >
+                </div>
+            </div>
+            <div class="col-6 col-md-3 mb-1">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">Lvl</div>
+                    </div>
+                    <input type="text" class="form-control" id="techLvlInput" value="30" >
+                </div>
+            </div>
+
+        </div>
+        <div class="row psostats-content">
+
             <div class="col-12 col-sm-6 col-lg-3 mb-1">
                 <div class="input-group">
                     <div class="input-group-prepend">
                         <div class="input-group-text">Weapon</div>
                     </div>
                     <select id="weapon-select" class="form-control" aria-label="Weapon Select">
-                        <option value="None" selected>Bare Handed</option>
+                        <option value="Bare Handed" selected>Bare Handed</option>
                         <option value="Psycho Wand">Psycho Wand</option>
                         <option value="Magical Piece">Magical Piece</option>
                         <option value="Club of Laconium">Club of Laconium</option>
@@ -137,10 +158,10 @@
                     </div>
 
                     <select id="frame-select" class="form-control" aria-label="Frame Select">
-                        <option value="NONE">None</option>
-                        <option value="IGNITION" selected>Ignition Cloak</option>
-                        <option value="TEMPEST">Tempest Cloak</option>
-                        <option value="CONGEAL">Congeal Cloak</option>
+                        <option value="None">None</option>
+                        <option value="Ignition" selected>Ignition Cloak</option>
+                        <option value="Tempest">Tempest Cloak</option>
+                        <option value="Congeal">Congeal Cloak</option>
                     </select>
                 </div>
             </div>
@@ -184,17 +205,15 @@
                 </div>
             </div>
 
-            <div class="col-6 col-md-3 mb-1">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">MST</div>
-                    </div>
-                    <input type="text" class="form-control" id="mstInput" value="1500" >
-                </div>
-            </div>
         </div>
         <div class="row psostats-content">
-            <div class="col-12 mb-1">
+            <div class="col-2 mb-1">
+                <button type="button" class="btn btn-warning" id="cast-button">Cast</button>
+            </div>
+            <div class="col-2 mb-1">
+                <button type="button" class="btn btn-danger" id="clear-button">Clear</button>
+            </div>
+            <div class="col-2 mb-1">
                 <div class="form-check form-check-inline">
                     <input class="form-check-input" type="checkbox" id="autoCombo">
                     <label class="form-check-label" for="autoCombo">Auto Cast</label>
@@ -229,20 +248,10 @@
                 </div>
             </div>
         </div>
-        <div class="row" style="overflow-x: auto;">
-            <table class="table table-dark table-bordered table-responsive-md" id="combo-calc-table">
-                <thead>
-                <tr>
-                    <th scope="col" class="sortable" id="monsters-header" colspan="2"><div style="width: 175px">Monster</div></th>
-                    <th scope="col" class="sortable" id="damage-header" >Damage</th>
-                    <th scope="col" class="sortable" id="accuracy-header" >Accuracy</th>
-                    <th scope="col" ><div style="width: 88px; ">Attack 1</div></th>
-                    <th scope="col" ><div style="width: 88px; ">Attack 2</div></th>
-                    <th scope="col" ><div style="width: 88px; ">Attack 3</div></th>
-                </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+        <div class="row psostats-chart">
+            <div class="col-12" style="height: 800px">
+                <canvas id="damage-chart" style="height: 800px"></canvas>
+            </div>
         </div>
     </div>
     <script>
@@ -250,18 +259,20 @@
             updateTotalFrames();
         });
         let selectedEnemies = [];
+        let techs = [];
+        let chartData = {};
         const classStats = {
-            HUmar: {animation: "male",              mst: 732,   techMultiplier: (tech) => 0},
-            HUnewearl: {animation: "female",        mst: 1177,   techMultiplier: (tech) => 0},
-            RAmar: {animation: "male",              mst: 665,   techMultiplier: (tech) => 0},
-            RAmarl: {animation: "female",           mst: 1031,   techMultiplier: (tech) => 0},
-            FOmar: {animation: "male",              mst: 1340,   techMultiplier: (tech) => tech.startsWith("Gi") || tech === "Grants" ? 0.3 : 0},
-            FOmarl: {animation: "female",           mst: 1284,    techMultiplier: (tech) => tech === "Grants" ? 0.3 : 0},
-            FOnewm: {animation: "male",             mst: 1500,    techMultiplier: (tech) => tech.startsWith("Gi") || tech.startsWith("Ra") ? 0.3 : 0},
-            FOnewearl: {animation: "female",        mst: 1750,    techMultiplier: (tech) => tech === "Foie" || tech === "Barta" || tech === "Zonde" ? 0.3 : 0}
+            HUmar: {animation: "male",              maxTechLvl: 15, mst: 732,   techMultiplier: (tech) => 0},
+            HUnewearl: {animation: "female",        maxTechLvl: 20, mst: 1177,   techMultiplier: (tech) => 0},
+            RAmar: {animation: "male",              maxTechLvl: 15, mst: 665,   techMultiplier: (tech) => 0},
+            RAmarl: {animation: "female",           maxTechLvl: 20, mst: 1031,   techMultiplier: (tech) => 0},
+            FOmar: {animation: "male",              maxTechLvl: 30, mst: 1340,   techMultiplier: (tech) => tech.startsWith("Gi") || tech === "Grants" ? 0.3 : 0},
+            FOmarl: {animation: "female",           maxTechLvl: 30, mst: 1284,    techMultiplier: (tech) => tech === "Grants" ? 0.3 : 0},
+            FOnewm: {animation: "male",             maxTechLvl: 30, mst: 1500,    techMultiplier: (tech) => tech.startsWith("Gi") || tech.startsWith("Ra") ? 0.3 : 0},
+            FOnewearl: {animation: "female",        maxTechLvl: 30, mst: 1750,    techMultiplier: (tech) => tech === "Foie" || tech === "Barta" || tech === "Zonde" ? 0.3 : 0}
         };
         const weaponMultipliers = {
-            "None": (tech) => 0,
+            "Bare Handed": (tech) => 0,
             "Psycho Wand": (tech) => tech.startsWith("Ra") ? 0.3 : 0,
             "Magical Piece": (tech) => tech.startsWith("Gi") ? 0.3 : 0,
             "Club of Laconium": (tech) => tech === "Foie" ? 0.4 : 0,
@@ -271,10 +282,10 @@
             "Mercurius Rod": (tech) => tech === "Grants" ? 0.3 : 0,
         }
         const frameMultipliers = {
-            "NONE": (tech) => 0,
-            "IGNITION": (tech) => tech.toLowerCase().endsWith("foie") ? 0.1 : 0,
-            "TEMPEST": (tech) => tech.toLowerCase().endsWith("zonde") ? 0.1 : 0,
-            "CONGEAL": (tech) => tech.toLowerCase().endsWith("barta") ? 0.1 : 0,
+            "None": (tech) => 0,
+            "Ignition": (tech) => tech.toLowerCase().endsWith("foie") ? 0.1 : 0,
+            "Tempest": (tech) => tech.toLowerCase().endsWith("zonde") ? 0.1 : 0,
+            "Congeal": (tech) => tech.toLowerCase().endsWith("barta") ? 0.1 : 0,
         }
         const barrierMultipliers = {
             "None": (tech) => 0,
@@ -2288,122 +2299,284 @@
         let sortAscending = null;
         $('#class-select').change(function() {
             let playerClass = $('#class-select').val();
-            updateDamageTable();
             $('#mstInput').val(classStats[playerClass].mst);
+            $('#techLvlInput').val(classStats[playerClass].maxTechLvl)
+            updateDamageTable();
             updateTotalFrames();
         });
         $('#weapon-select').change(updateDamageTable);
-        $('#frame-select').change(updateDamageTable);
-        $('#barrier-select').change(updateDamageTable);
-        $('#tech-select').change(updateDamageTable);
+        $('#techLvlInput').change(updateDamageTable);
         $('#mstInput').change(updateDamageTable);
         $('#autoCombo').change(() => {
             let autoCombo = $('#autoCombo').is(":checked")
+            if(autoCombo) {
+                solveAutoCast();
+            }
+        });
+        $('#cast-button').click(pushTech);
+        $('#clear-button').click(() => {
+            techs = [];
             updateDamageTable();
         });
 
         function updateTotalFrames() {
-
+            let playerClass = $('#class-select').val();
+            let techLvl = Number($('#techLvlInput').val()) - 1
+            if (playerClass === 'FOnewm' && techLvl === 29) {
+                let totalFrames = 0;
+                for (let index in techs) {
+                    let tech = techs[index].tech;
+                    totalFrames += technique[tech].frames;
+                    if (techs[index].weapon !== 'Bare Handed') {
+                        totalFrames += 3;
+                    }
+                }
+                $('#total-frames').text(`Total Frames: ${totalFrames}`)
+            } else {
+                $('#total-frames').text("Total Frames: not implemented")
+            }
         }
 
-        $('#monsters-header').click(() => {
-            pushSort("name");
-            if (sortAscending === null) {
-                $('#monsters-header div').text("Monster")
-            } else if (sortAscending) {
-                $('#monsters-header div').text("Monster ▲")
-            } else {
-                $('#monsters-header div').text("Monster ▼")
-            }
-            $('#damage-header').text("Damage")
-            $('#accuracy-header').text("Accuracy")
-        });
-        $('#damage-header').click(() => {
-            pushSort("damage");
-            if (sortAscending === null) {
-                $('#damage-header').text("Damage")
-            } else if (sortAscending) {
-                $('#damage-header').text("Damage ▲")
-            } else {
-                $('#damage-header').text("Damage ▼")
-            }
-            $('#monsters-header div').text("Monster")
-            $('#accuracy-header').text("Accuracy")
-        });
+        function pushTech() {
+            techs.push({
+                tech: $('#tech-select').val(),
+                barrier: $('#barrier-select').val(),
+                frame: $('#frame-select').val(),
+                weapon: $('#weapon-select').val(),
+            });
+            updateDamageTable();
+        }
 
-        const techDamage = {
-            "Foie": (lvl) => (65 * lvl) - 85,
-            "Gifoie": (lvl) => (42 * lvl) + 30,
-            "Rafoie": (lvl) => (21 * lvl) + 370,
-            "Barta": (lvl) => (63 * lvl) - 125,
-            "Gibarta": (lvl) => (40 * lvl),
-            "Rabarta": (lvl) => (15 * lvl) + 470,
-            "Zonde": (lvl) => (55 * lvl) + 5,
-            "Gizonde": (lvl) => (38 * lvl) - 30,
-            "Razonde": (lvl) => (8 * lvl) + 565,
-            "Grants": (lvl) => (60 * lvl) + 1400,
+        const technique = {
+            "Foie": {
+                damage: (lvl) => lvl > 14 ? (65 * lvl) - 85 : (50 * lvl) + 110,
+                tpCost: (lvl) => (1.3 * lvl) + 5,
+                frames: 27,
+                resistance: (monster) => monster.EFR,
+                borderColor: 'rgba(255,0,0,.3)',
+                backgroundColor: 'rgba(255,0,0,.1)',
+            },
+            "Gifoie": {
+                damage: (lvl) => lvl > 14 ? (42 * lvl) + 30 : (26 * lvl) + 260,
+                tpCost: (lvl) => (0.37 * lvl) + 20,
+                frames: 57,
+                resistance: (monster) => monster.EFR,
+                borderColor: 'rgba(255,0,0,.3)',
+                backgroundColor: 'rgba(255,0,0,.1)',
+            },
+            "Rafoie": {
+                damage: (lvl) => lvl > 14 ? (21 * lvl) + 370 : (22 * lvl) + 350,
+                tpCost: (lvl) => (0.25 * lvl) + 30,
+                frames: 27,
+                resistance: (monster) => monster.EFR,
+                borderColor: 'rgba(255,0,0,.3)',
+                backgroundColor: 'rgba(255,0,0,.1)',
+            },
+            "Barta": {
+                damage: (lvl) => lvl > 14 ? (63 * lvl) - 125 : (50 * lvl) + 230,
+                tpCost: (lvl) => (1.2 * lvl) + 4,
+                frames: 27,
+                resistance: (monster) => monster.EIC,
+                borderColor: 'rgba(0,0,255,.3)',
+                backgroundColor: 'rgba(0,0,255,.1)',
+            },
+            "Gibarta": {
+                damage: (lvl) => lvl > 14 ? (40 * lvl) : (24 * lvl) + 230,
+                tpCost: (lvl) => (.5 * lvl) + 25,
+                frames: 42,
+                resistance: (monster) => monster.EIC,
+                borderColor: 'rgba(0,0,255,.3)',
+                backgroundColor: 'rgba(0,0,255,.1)',
+            },
+            "Rabarta": {
+                damage: (lvl) => lvl > 14 ? (15 * lvl) + 470 : (19 * lvl) + 400,
+                tpCost: (lvl) => (0.2 * lvl) + 35,
+                frames: 27,
+                resistance: (monster) => monster.EIC,
+                borderColor: 'rgba(0,0,255,.3)',
+                backgroundColor: 'rgba(0,0,255,.1)',
+            },
+            "Zonde": {
+                damage: (lvl) => lvl > 14 ? (55 * lvl) + 5 : (50 * lvl) + 80,
+                tpCost: (lvl) => (1.1 * lvl) + 6,
+                frames: 27,
+                resistance: (monster) => monster.ETH,
+                borderColor: 'rgba(255,255,0,.3)',
+                backgroundColor: 'rgba(255,255,0,.1)',
+            },
+            "Gizonde": {
+                damage: (lvl) => lvl > 14 ? (38 * lvl) - 30 : (22 * lvl) + 200,
+                tpCost: (lvl) => (0.6 * lvl) + 25,
+                frames: 22,
+                resistance: (monster) => monster.ETH,
+                borderColor: 'rgba(255,255,0,.3)',
+                backgroundColor: 'rgba(255,255,0,.1)',
+            },
+            "Razonde": {
+                damage: (lvl) => lvl > 14 ? (8 * lvl) + 565 : (16 * lvl) + 450,
+                tpCost: (lvl) => (0.3 * lvl) + 35,
+                frames: 27,
+                resistance: (monster) => monster.ETH,
+                borderColor: 'rgba(255,255,0,.3)',
+                backgroundColor: 'rgba(255,255,0,.1)',
+            },
+            "Grants": {
+                damage: (lvl) => lvl > 14 ? (60 * lvl) + 1400 : (75 * lvl) + 1180,
+                tpCost: (lvl) => (1.1 * lvl) + 45,
+                frames: 37,
+                resistance: (monster) => monster.ELT,
+                borderColor: 'rgba(255,255,255,.3)',
+                backgroundColor: 'rgba(255,255,255,.1)',
+            },
+
         }
 
         function calculateBaseTechDamage(
             tech, techLvl, mst
         ) {
-            let baseDamage = techDamage[tech](techLvl);
+            let baseDamage = technique[tech].damage(techLvl);
             return (mst + baseDamage) / 5
         }
 
         function updateDamageTable() {
-            let autoCombo = $('#autoCombo').is(":checked")
-            let mst = Number($('#mstInput').val())
-            let tech = $('#tech-select').val()
-            let baseTechDamage = calculateBaseTechDamage(tech, 29, mst)
+            updateTotalFrames();
+            // let autoCombo = $('#autoCombo').is(":checked")
+            let mst = Number($('#mstInput').val());
+            let techLvl = Number($('#techLvlInput').val()) - 1;
+            let playerClass = $('#class-select').val();
+
+            let monsterNames = [];
+            let datasets = [];
+
+            for (let index in techs) {
+                let tech = techs[index];
+                let techName = tech.tech;
+                let barrier = tech.barrier;
+                let frame = tech.frame;
+                let weapon = tech.weapon;
+                let multiplier = 1 + classStats[playerClass].techMultiplier(techName)
+                    + weaponMultipliers[weapon](techName)
+                    + frameMultipliers[frame](techName)
+                    + barrierMultipliers[barrier](techName);
+                let baseTechDamage = calculateBaseTechDamage(techName, techLvl, mst)
+
+                let dataset = {
+                    label: `${techName} (${weapon}/${barrier}/${frame})`,
+                    borderColor: technique[techName].borderColor,
+                    backgroundColor: technique[techName].backgroundColor,
+                    data: [],
+                }
+                for (let index in selectedEnemies) {
+                    let enemy = selectedEnemies[index];
+                    let damage = Math.floor(baseTechDamage * multiplier * (1 - (technique[techName].resistance(enemy) / 100)))
+                    // let percentDamage = 100 * (damage / (enemy.HP + enemy.HP2));
+                    dataset.data.push(damage);
+                }
+                datasets.push(dataset);
+            }
+            let hpRemainingDataset = {
+                label: 'HP Remaining',
+                backgroundColor: 'rgba(0,0,0,.5)',
+                data: [],
+            };
+            for (let index in selectedEnemies) {
+                let enemy = selectedEnemies[index];
+                let totalHp = enemy.HP + enemy.HP2;
+                for (let techIndex in techs) {
+                    totalHp -= datasets[techIndex].data[index];
+                }
+                if (totalHp < 0) {
+                    totalHp = 0;
+                }
+                hpRemainingDataset.data[index] = totalHp;
+                monsterNames.push(enemy.name);
+            }
+            datasets.push(hpRemainingDataset);
+            chartData.labels = monsterNames;
+            chartData.datasets = datasets;
+            damageChart.update();
+        }
+
+        function solveAutoCast() {
+            let mst = Number($('#mstInput').val());
+            let techLvl = Number($('#techLvlInput').val()) - 1;
             let playerClass = $('#class-select').val();
             let barrier = $('#barrier-select').val();
             let frame = $('#frame-select').val();
-            let weapon = $('#weapon-select').val();
-            let multiplier = 1 + classStats[playerClass].techMultiplier(tech) + weaponMultipliers[weapon](tech) + frameMultipliers[frame](tech) + barrierMultipliers[barrier](tech);
 
-            let tbody = $('#combo-calc-table tbody');
-            tbody.empty();
-            let rows = [];
+            let bareRafoieDamage = calculateBaseTechDamage('Rafoie', techLvl, mst) * (1 + classStats[playerClass].techMultiplier('Rafoie')
+                + frameMultipliers[frame]('Rafoie')
+                + barrierMultipliers[barrier]('Rafoie'));
+            let pwandRafoieDamage = calculateBaseTechDamage('Rafoie', techLvl, mst) * (1 + classStats[playerClass].techMultiplier('Rafoie')
+                + frameMultipliers[frame]('Rafoie')
+                + barrierMultipliers[barrier]('Rafoie')
+                + weaponMultipliers['Psycho Wand']('Rafoie')
+            );
+            let bareRazondeDamage = calculateBaseTechDamage('Razonde', techLvl, mst) * (1 + classStats[playerClass].techMultiplier('Razonde')
+                + frameMultipliers[frame]('Razonde')
+                + barrierMultipliers[barrier]('Razonde'));
+            let pwandRazondeDamage = calculateBaseTechDamage('Razonde', techLvl, mst) * (1 + classStats[playerClass].techMultiplier('Razonde')
+                + frameMultipliers[frame]('Razonde')
+                + barrierMultipliers[barrier]('Razonde')
+                + weaponMultipliers['Psycho Wand']('Razonde')
+            );
+            let bareRabartaDamage = calculateBaseTechDamage('Rabarta', techLvl, mst) * (1 + classStats[playerClass].techMultiplier('Rabarta')
+                + frameMultipliers[frame]('Rabarta')
+                + barrierMultipliers[barrier]('Rabarta'));
+            let pwandRabartaDamage = calculateBaseTechDamage('Rabarta', techLvl, mst) * (1 + classStats[playerClass].techMultiplier('Rabarta')
+                + frameMultipliers[frame]('Rabarta')
+                + barrierMultipliers[barrier]('Rabarta')
+                + weaponMultipliers['Psycho Wand']('Rabarta')
+            );
+
+            let equippedDamage = {
+                'Rafoie': pwandRafoieDamage,
+                'Rabarta': pwandRabartaDamage,
+                'Razonde': pwandRazondeDamage,
+            };
+
+            let damageDone = [];
             for (let index in selectedEnemies) {
-                let enemy = selectedEnemies[index];
-                let damage = Math.floor(baseTechDamage * multiplier * (1 - (enemy.EFR / 100)))
-                let percentDamage = 100 * (damage / (enemy.HP + enemy.HP2));
-                if (percentDamage > 100) {
-                    percentDamage = 100;
-                }
-                let row = {
-                    name: enemy.name,
-                    hp: enemy.HP + enemy.HP2,
-                    percentDamage: percentDamage,
-                    comboDamage: damage,
-                }
-
-                rows.push(row);
+                damageDone.push(0);
             }
-
-            rows.sort((a, b) => {
-                if (sortAscending === null) {
-                    return 0;
+            techs = [];
+            let someEnemiesAlive = true;
+            while (someEnemiesAlive) {
+                let rafDamage = 0;
+                let razDamage = 0;
+                let rabDamage = 0;
+                for (let index in selectedEnemies) {
+                    let enemy = selectedEnemies[index];
+                    let hpRemaining = Math.max(0, (enemy.HP + enemy.HP2) - damageDone[index]);
+                    rafDamage += Math.min(hpRemaining, Math.floor(pwandRafoieDamage * (1 - (technique['Rafoie'].resistance(enemy) / 100))));
+                    razDamage += Math.min(hpRemaining, Math.floor(pwandRazondeDamage * (1 - (technique['Razonde'].resistance(enemy) / 100))));
+                    rabDamage += Math.min(hpRemaining, Math.floor(pwandRabartaDamage * (1 - (technique['Rabarta'].resistance(enemy) / 100))));
                 }
-                if (sortColumn === "name") {
-                    if (sortAscending === true) {
-                        return a.name.localeCompare(b.name);
-                    } else {
-                        return b.name.localeCompare(a.name);
-                    }
-                } else if (sortColumn === "damage") {
-                    if (sortAscending === true) {
-                        return a.percentDamage - b.percentDamage;
-                    } else {
-                        return b.percentDamage - a.percentDamage;
+                let chosenTech = '';
+                if (rafDamage > razDamage && rafDamage > rabDamage) {
+                    chosenTech = 'Rafoie';
+                } else if (razDamage > rabDamage) {
+                    chosenTech = 'Razonde';
+                } else {
+                    chosenTech = 'Rabarta';
+                }
+                techs.push({
+                    tech: chosenTech,
+                    barrier: barrier,
+                    frame: frame,
+                    weapon: 'Psycho Wand',
+                });
+                someEnemiesAlive = false;
+                for (let index in selectedEnemies) {
+                    let enemy = selectedEnemies[index];
+                    let totalDamageDone = damageDone[index] + Math.floor(equippedDamage[chosenTech] * (1 - (technique[chosenTech].resistance(enemy) / 100)))
+                    damageDone[index] = totalDamageDone
+                    if (totalDamageDone < (enemy.HP + enemy.HP2)) {
+                        someEnemiesAlive = true;
                     }
                 }
-            })
-
-            for (let index in rows) {
-                tbody.append(appendMosterRow(rows[index]))
             }
+            updateDamageTable();
         }
 
         new Vue({
@@ -2413,7 +2586,7 @@
             data: {
                 defaultEnemies: [],
                 enemiesByLocation: [
-                    { name: "Forest", enemies: enemies},
+                    { name: "Wherever", enemies: enemies},
                 ]
             },
             methods: {
@@ -2426,26 +2599,31 @@
                 }
             }
         }).$mount('#enemy-select-vue')
-        function appendMosterRow(rowEntry) {
-            let comboKill = rowEntry.comboDamage > rowEntry.hp;
-            let damageBgColor = comboKill ? 'rgb(61,73,61)' : 'rgb(73,73,61)';
 
-            return $('<tr/>')
-                .append($('<th/>', {
-                    'colspan': 2,
-                    'data-label': 'monster',
-                    'text': rowEntry.name
-                }))
-                .append($('<td/>', {
-                    'style': 'padding: 0'
-                }).append($('<div>', {
-                    'style': 'background: rgba(255,150,150,0.1)'
-                }).append($('<div>', {
-                    'style': 'background: ' + damageBgColor + '; padding: 0.78571429em 0.78571429em; width: ' + rowEntry.percentDamage + '%',
-                    'text': rowEntry.comboDamage.toFixed(0) + '/' + rowEntry.hp,
-                    'title': rowEntry.comboDamage.toFixed(0) + '/' + rowEntry.hp
-                }))))
-        }
+        const damageChartContext = document.getElementById("damage-chart");
+        const damageChart = new Chart(damageChartContext, {
+            type: "bar",
+            data: chartData,
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                elements: {
+                    bar: {
+                        borderWidth: 1,
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                    },
+                    y: {
+                        stacked: true,
+                    }
+                }
+            },
+        });
+
     </script>
     </body>
 
