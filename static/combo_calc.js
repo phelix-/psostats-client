@@ -505,6 +505,16 @@ const weapons = {
 
         combo: {"attack1Hits": 1, "attack2Hits": 2, "attack3Hits": 2}
     },
+    "Nei's Claw": {
+        name: "Nei's Claw",
+        animation: "Claw",
+        minAtp: 756,
+        maxAtp: 756,
+        ata: 60,
+        grind: 0,
+        special: "Spirit"
+        combo: {"attack1Hits": 1, "attack2Hits": 2, "attack3Hits": 2}
+    },
 
     "Raygun": {name: "Raygun", animation: "Handgun", minAtp: 150, maxAtp: 180, ata: 35, grind: 15},
     "Master Raven": {
