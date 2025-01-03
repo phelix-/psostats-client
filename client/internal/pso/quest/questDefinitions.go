@@ -103,6 +103,7 @@ func getAllQuests() []Quest {
 		// ---- Event ----
 		{Episode: 1, Name: "Christmas Fiasco", Remap: remap("Christmas Fiasco Episode 1")},
 		{Episode: 1, Name: "Christmas Fiasco Episode 1", Number: 900, Start: floorSwitch(4, 100), End: floorSwitch(10, 3)},
+		{Episode: 1, Name: "December Disaster #1", Number: 1786, Start: floorSwitch(2, 1), End: register(241)},
 		{Episode: 1, Name: "Maximum Attack E: Forest", Number: 930, Start: floorSwitch(2, 0), End: register(50), Splits: []Split{
 			{Name: "Room 1", Trigger: floorSwitch(2, 1)},
 			{Name: "Room 2", Trigger: floorSwitch(2, 2)},
@@ -276,6 +277,7 @@ func getAllQuests() []Quest {
 		// Festivity On The Beach
 		{Episode: 2, Name: "Christmas Fiasco", Remap: remap("Christmas Fiasco Episode 2")},
 		{Episode: 2, Name: "Christmas Fiasco Episode 2", Number: 901, Start: floorSwitch(4, 100), End: floorSwitch(11, 3)},
+		{Episode: 2, Name: "December Disaster #2", Number: 1787, Start: floorSwitch(7, 200), End: register(241)},
 		{Episode: 2, Name: "Maximum Attack E: Temple", Number: 934, Start: floorSwitch(1, 0), End: register(50), Splits: []Split{
 			{Name: "Room 1", Trigger: floorSwitch(1, 1)},
 			{Name: "Room 2", Trigger: floorSwitch(1, 2)},
