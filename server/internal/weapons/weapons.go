@@ -111,6 +111,8 @@ func GetWeapons() []Weapon {
 		{Name: "TypeSS/Swords", MinAtp: 150, MaxAtp: 150, Ata: 45, Grind: 125, ComboPreset: Combo{Attack1Hits: 1, Attack2Hits: 2, Attack3Hits: 2}, MaxHit: 100, MaxAttr: 100, Animation: "Twin Sword"},
 		{Name: "ES Swords", MinAtp: 180, MaxAtp: 180, Ata: 45, Grind: 250, MaxHit: 0, MaxAttr: 0, ComboPreset: Combo{Attack1Hits: 1, Attack2Hits: 2, Attack3Hits: 2}, Animation: "Twin Sword"},
 
+		{Name: "Nei's Claw", MinAtp: 756, MaxAtp: 756, Ata: 60, Grind: 0, Special: "Spirit", MaxHit: 100, MaxAttr: 100, Animation: "Claw"},
+
 		{Name: "Raygun", MinAtp: 150, MaxAtp: 180, Ata: 35, Grind: 15, Special: "Charge", MaxHit: 100, MaxAttr: 100, Animation: "Handgun"},
 		{Name: "Master Raven", MinAtp: 350, MaxAtp: 380, Ata: 52, Grind: 9, MaxHit: 0, ComboPreset: Combo{Attack1Hits: 3, Attack2: "NONE", Attack3: "NONE"}, MaxAttr: 100, Animation: "Master Raven"},
 		{Name: "Last Swan", MinAtp: 80, MaxAtp: 90, Ata: 32, Grind: 9, MaxHit: 0, ComboPreset: Combo{Attack1Hits: 3, Attack2Hits: 3, Attack3Hits: 3}, MaxAttr: 100, Animation: "Last Swan"},

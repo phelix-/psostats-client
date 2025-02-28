@@ -512,8 +512,7 @@ const weapons = {
         maxAtp: 756,
         ata: 60,
         grind: 0,
-        special: "Spirit"
-        combo: {"attack1Hits": 1, "attack2Hits": 2, "attack3Hits": 2}
+        special: "Spirit",
     },
 
     "Raygun": {name: "Raygun", animation: "Handgun", minAtp: 150, maxAtp: 180, ata: 35, grind: 15},
@@ -1014,7 +1013,7 @@ function getSpecialDamageModifier(special) {
     } else if (special === 'Charge' || special === 'Spirit' || special === 'Berserk') {
         return 3.0;
     } else if (special === 'Vjaya') {
-        return 5.0;
+        return 5.1;
     } else {
         return 0;
     }
@@ -1023,10 +1022,10 @@ function getSpecialDamageModifier(special) {
 function getEvpModifier(frozen, paralyzed) {
     let modifier = 1.0;
     if (frozen) {
-        modifier *= 0.7;
+        modifier -= 0.3;
     }
     if (paralyzed) {
-        modifier *= 0.85;
+        modifier -= 0.15;
     }
     return modifier;
 }
