@@ -97,6 +97,12 @@
             </div>
         </div>
         <div class="row psostats-content">
+            <div class="col-12 mb-1">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="commanderBlade">
+                    <label class="form-check-label" for="commanderBlade">Commander Blade</label>
+                </div>
+            </div>
             <div class="col-12 col-sm-6 col-lg-3 mb-1">
                 <select class="form-control" id="class-select" aria-label="Class Select">
                     <optgroup label="Hunter">
@@ -233,6 +239,7 @@
                     <option value="Berserk">Berserk</option>
                     <option value="Spirit">Spirit</option>
                     <option value="Gush">Gush</option>
+                    <option value="Devil's">Devil's</option>
                     <option value="Demon's">Demon&#39;s</option>
                     <option value="Lavis Cannon">Lavis Cannon</option>
                     <option value="Lavis Blade">Lavis Blade</option>
@@ -446,6 +453,10 @@
             updateAtaInput();
             updateDamageTable();
         })
+        $('#commanderBlade').change(() => {
+            updateAtaInput();
+            updateDamageTable();
+        })
         $('#special-select').change(updateDamageTable);
         $('#sphereInput').change(updateDamageTable);
         $('#minAtpInput').change(updateDamageTable);
@@ -482,6 +493,7 @@
             const selectedBarrier = $('#barrier-select').val();
             const selectedUnit = $('#unit-select').val()
             const bonusAta = getSetEffectAta(selectedWeapon, selectedFrame, selectedBarrier, selectedUnit)
+            const commanderBladeAta = $('#commanderBlade').is(":checked") ? 20 : 0;
 
             $('#ataInput').val(
                 selectedClass.ata +
@@ -489,7 +501,8 @@
                 frames[selectedFrame].ata +
                 barriers[selectedBarrier].ata +
                 bonusAta +
-                Number($('#hitInput').val()))
+                Number($('#hitInput').val()) +
+                commanderBladeAta)
         }
 
         function updateMinAtpInput() {

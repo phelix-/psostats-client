@@ -1095,28 +1095,28 @@ function getDamageForCombo(enemyHp, atpInput, comboInput, special, baseDamage) {
     let a1Damage = 0;
     let a2Damage = 0;
     let a3Damage = 0;
-    let demonsMultiplier = getDemonsModifier(atpInput.playerClass);
-    if (comboInput.a1Type === "SPECIAL" && special === "Demon's") {
+    let hpCutModifier = special === "Devil's" ? getDevilsModifier(atpInput.playerClass) : getDemonsModifier(atpInput.playerClass);
+    if (comboInput.a1Type === "SPECIAL" && ["Demon's", "Devil's"].includes(special)) {
         for (let i = 0; i < comboInput.a1Hits; i++) {
-            a1Damage = (enemyHp - total) * demonsMultiplier;
+            a1Damage = (enemyHp - total) * hpCutModifier;
             total += a1Damage;
         }
     } else {
         a1Damage = getDamageModifierForAttackType(comboInput.a1Type, special) * baseDamage;
         total += a1Damage * comboInput.a1Hits;
     }
-    if (comboInput.a2Type === "SPECIAL" && special === "Demon's") {
+    if (comboInput.a2Type === "SPECIAL" && ["Demon's", "Devil's"].includes(special)) {
         for (let i = 0; i < comboInput.a2Hits; i++) {
-            a2Damage = (enemyHp - total) * demonsMultiplier;
+            a2Damage = (enemyHp - total) * hpCutModifier;
             total += a2Damage;
         }
     } else {
         a2Damage = getDamageModifierForAttackType(comboInput.a2Type, special) * baseDamage;
         total += a2Damage * comboInput.a2Hits;
     }
-    if (comboInput.a3Type === "SPECIAL" && special === "Demon's") {
+    if (comboInput.a3Type === "SPECIAL" && ["Demon's", "Devil's"].includes(special)) {
         for (let i = 0; i < comboInput.a3Hits; i++) {
-            a3Damage = (enemyHp - total) * demonsMultiplier;
+            a3Damage = (enemyHp - total) * hpCutModifier;
             total += a3Damage;
         }
     } else {
@@ -1136,6 +1136,18 @@ function getDemonsModifier(playerClass) {
             return 0.45;
         default:
             return 0.75;
+    }
+}
+
+function getDevilsModifier(playerClass) {
+    switch (playerClass) {
+        case "HUcast":
+        case "HUcaseal":
+        case "RAcast":
+        case "RAcaseal":
+            return 0.20;
+        default:
+            return 0.50;
     }
 }
 
