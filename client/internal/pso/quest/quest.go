@@ -91,7 +91,9 @@ func NewQuests() Quests {
 		}
 		questsForEpisode[quest.Name] = quest
 		allQuests[quest.Episode] = questsForEpisode
-		questsById[quest.Number] = quest
+		if quest.Number > 0 {
+			questsById[quest.Number] = quest
+		}
 	}
 
 	return Quests{
