@@ -11,9 +11,9 @@ const (
 )
 
 type User struct {
-	Id       string `json:"id"`
-	Password string `json:"password"`
-	Admin    bool   `json:"admin"`
+	Id       string `json:"id" dynamodbav:"Id"`
+	Password string `json:"password" dynamodbav:"Password"`
+	Admin    bool   `json:"admin" dynamodbav:"Admin"`
 }
 
 type UserDb interface {

@@ -832,9 +832,14 @@ func (s *Server) RegisterUser(c *fiber.Ctx) error {
 	}
 	var newUser userdb.User
 	if err := c.BodyParser(&newUser); err != nil {
-		log.Printf("body parser")
-		c.Status(400)
-		return err
+		//log.Printf("body parser")
+		//c.Status(400)
+		testUser := userdb.User{
+			Id:       "testid",
+			Password: "testpass",
+			Admin:    false,
+		}
+		return respondWithJson(testUser, c)
 	}
 	newUser.Admin = false
 	newUser.Password = HashPassword(newUser.Password)
@@ -855,7 +860,7 @@ func (s *Server) RegisterUser(c *fiber.Ctx) error {
 		return err
 	}
 
-	s.SendWebhook(Webhook{Embeds: []Embed{{Title: "PSOStats User Registered: " + user.Id}}}, s.adminWebhookUrl)
+	s.SendWebhook(Webhook{Embeds: []Embed{{Title: "New User Registered: " + newUser.Id}}}, s.adminWebhookUrl)
 	return nil
 }
 
