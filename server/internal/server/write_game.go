@@ -247,10 +247,10 @@ func (s *Server) findMatchingGame(questRun model.QuestRun) *model.QuestRun {
 
 func IsLeaderboardCandidate(questRun model.QuestRun) bool {
 	clientHasWarpInfo := getClientVersionInt(questRun.Client) >= 10401
-	fastWarpOk := clientHasWarpInfo && !questRun.FastWarps
-
 	cmodeRegex := regexp.MustCompile("[12]c\\d")
-	allowedDifficulty := questRun.Difficulty == "Ultimate" || cmodeRegex.MatchString(questRun.QuestName)
+	isCmode := cmodeRegex.MatchString(questRun.QuestName)
+	fastWarpOk := (clientHasWarpInfo && !questRun.FastWarps) || isCmode
+	allowedDifficulty := questRun.Difficulty == "Ultimate" || isCmode
 	return fastWarpOk && allowedDifficulty && questRun.QuestComplete && !questRun.IllegalShifta
 }
 
