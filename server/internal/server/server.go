@@ -815,10 +815,7 @@ func (s *Server) GetPbSplits(c *fiber.Ctx) error {
 			return nil
 		} else {
 			game.Splits[len(game.Splits)-1].End = game.QuestEndTime
-			splitBytes, _ := json.Marshal(game.Splits)
-			c.Response().AppendBody(splitBytes)
-			c.Response().Header.Set("Content-Type", "application/json")
-			return nil
+			return respondWithJson(game.Splits, c)
 		}
 	}
 }
@@ -849,7 +846,7 @@ func (s *Server) RegisterUser(c *fiber.Ctx) error {
 	if existingUser != nil {
 		c.Status(400)
 		c.Response().AppendBodyString("User already exists")
-		c.Response().Header.Set("Content-Type", "application/json")
+		c.Response().Header.Set("Content-Type", "plain/text")
 		return nil
 	}
 
@@ -858,11 +855,7 @@ func (s *Server) RegisterUser(c *fiber.Ctx) error {
 		return err
 	}
 
-	s.SendWebhook(Webhook{Embeds: []Embed{
-		{
-			Title: "PSOStats User Registered: " + user.Id,
-		},
-	}}, s.adminWebhookUrl)
+	s.SendWebhook(Webhook{Embeds: []Embed{{Title: "PSOStats User Registered: " + user.Id}}}, s.adminWebhookUrl)
 	return nil
 }
 
@@ -871,12 +864,13 @@ func (s *Server) GetWeapons(c *fiber.Ctx) error {
 }
 
 func respondWithJson(data any, c *fiber.Ctx) error {
-	jsonBytes, err := json.Marshal(data)
+	jsonBytes, err := db.Compress(data)
 	if err != nil {
 		return err
 	}
 	c.Response().AppendBody(jsonBytes)
 	c.Response().Header.Set("Content-Type", "application/json")
+	c.Response().Header.Set("Content-Encoding", "gzip")
 	return nil
 }
 
