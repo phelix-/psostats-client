@@ -882,7 +882,7 @@ func (s *Server) PostMotd(c *fiber.Ctx) error {
 		c.Status(400)
 		return err
 	}
-	message := fmt.Sprintf("Logged in as %v, up to date", user)
+	message := fmt.Sprintf("Logged in as %v, up to date", user.Id)
 	if getClientVersionInt(clientInfo) < 11001 {
 		message = "Update available. https://psostats.com/download"
 	}
