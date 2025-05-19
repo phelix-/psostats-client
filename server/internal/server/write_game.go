@@ -9,6 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/phelix-/psostats/v2/pkg/model"
 	"github.com/phelix-/psostats/v2/server/internal/db"
+	"github.com/phelix-/psostats/v2/server/internal/userdb"
 	"github.com/valyala/fasthttp"
 	"log"
 	"net/http"
@@ -34,17 +35,17 @@ func getUserFromBasicAuth(headerBytes []byte) (string, string, error) {
 	}
 }
 
-func (s *Server) verifyAuth(header *fasthttp.RequestHeader) (bool, string) {
+func (s *Server) verifyAuth(header *fasthttp.RequestHeader) (bool, *userdb.User) {
 	user, pass, err := getUserFromBasicAuth(header.Peek("Authorization"))
 	if err != nil || len(user) < 1 {
-		return false, ""
+		return false, nil
 	}
 	userObject, err := s.userDb.GetUser(user)
 	if err != nil || userObject == nil {
-		return false, ""
+		return false, nil
 	}
 	passwordsMatch := DoPasswordsMatch(userObject.Password, pass)
-	return passwordsMatch, user
+	return passwordsMatch, userObject
 }
 
 func (s *Server) PostGame(c *fiber.Ctx) error {
@@ -66,7 +67,7 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 		c.Status(400)
 		return err
 	}
-	questRun.UserName = user
+	questRun.UserName = user.Id
 	questRun.SubmittedTime = time.Now()
 
 	matchingGame := s.findMatchingGame(questRun)
@@ -127,7 +128,7 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 		s.updateAnniv2023Record(questRun, matchingGame)
 		s.recordsLock.Unlock()
 
-		playerPb, err := db.GetPlayerPB(questRun.QuestName, user, numPlayers, questRun.PbCategory, s.dynamoClient)
+		playerPb, err := db.GetPlayerPB(questRun.QuestName, user.Id, numPlayers, questRun.PbCategory, s.dynamoClient)
 		if err != nil {
 			log.Printf("failed to get player pb for gameId:%v - %v", questRun.Id, err)
 		} else if isBetterRun(questRun, playerPb) {
@@ -255,7 +256,7 @@ func IsLeaderboardCandidate(questRun model.QuestRun) bool {
 
 func (s *Server) QuestRecordWebhook(questRun model.QuestRun, previousRecord *model.Game) {
 	if len(s.webhookUrl) > 0 {
-		duration, err := time.ParseDuration(questRun.QuestDuration)
+		duration, _ := time.ParseDuration(questRun.QuestDuration)
 		formattedScore := ""
 		if isRankedByScore(questRun) {
 			formattedScore = fmt.Sprintf("%d points in ", questRun.Points)
@@ -279,27 +280,31 @@ func (s *Server) QuestRecordWebhook(questRun model.QuestRun, previousRecord *mod
 				previousRecordText = "\nbeating the previous record by " + formatDuration(timeDifference)
 			}
 		}
-		jsonBytes, err := json.Marshal(Webhook{Embeds: []Embed{
+		s.SendWebhook(Webhook{Embeds: []Embed{
 			{
 				Title: "New Record: " + questRun.QuestName,
-				Description: fmt.Sprintf("%v%v https://psostats.com/gamev4/%v%v",
+				Description: fmt.Sprintf("%v%v https://psostats.com/game/%v%v",
 					formattedScore, formattedDuration, questRun.Id, previousRecordText),
 				Fields: []Field{
 					{Name: "Players", Value: playersString, Inline: true},
 				},
 			},
-		}})
-		if err != nil {
-			log.Printf("Failed to marshal data %v", err)
-		}
+		}}, s.webhookUrl)
+	}
+}
 
-		urls := strings.Split(s.webhookUrl, ",")
-		for _, url := range urls {
-			buf := bytes.NewBuffer(jsonBytes)
-			_, err := http.Post(url, "application/json", buf)
-			if err != nil {
-				log.Printf("Failed to perform webhook %v", err)
-			}
+func (s *Server) SendWebhook(webhook Webhook, webhookUrl string) {
+	jsonBytes, err := json.Marshal(webhook)
+	if err != nil {
+		log.Printf("Failed to marshal data %v", err)
+	}
+
+	urls := strings.Split(webhookUrl, ",")
+	for _, url := range urls {
+		buf := bytes.NewBuffer(jsonBytes)
+		_, err := http.Post(url, "application/json", buf)
+		if err != nil {
+			log.Printf("Failed to perform webhook %v", err)
 		}
 	}
 }

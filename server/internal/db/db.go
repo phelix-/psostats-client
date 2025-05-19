@@ -66,7 +66,7 @@ func WriteGameById(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) (s
 	questRun.Id = fmt.Sprintf("%d", gameId)
 	_ = writeDataFrames(questRun, dynamoClient)
 	questRun.DataFrames = make([]model.DataFrame, 0)
-	gameGzip, err := CompressGame(questRun)
+	gameGzip, err := Compress(questRun)
 	if err != nil {
 		return "", err
 	}
@@ -206,7 +206,7 @@ func GetDataFrames(gameId string, gem int, db *dynamodb.DynamoDB) ([]model.DataF
 func AttachGameToId(questRun model.QuestRun, id string, dynamoClient *dynamodb.DynamoDB) error {
 	_ = writeDataFrames(&questRun, dynamoClient)
 	questRun.DataFrames = make([]model.DataFrame, 0)
-	gameGzip, err := CompressGame(&questRun)
+	gameGzip, err := Compress(&questRun)
 	if err != nil {
 		return err
 	}
@@ -307,10 +307,10 @@ func writeRecentGame(game model.Game, dynamoClient *dynamodb.DynamoDB) error {
 	return err
 }
 
-func CompressGame(questRun *model.QuestRun) ([]byte, error) {
+func Compress(data any) ([]byte, error) {
 	buffer := new(bytes.Buffer)
 	writer := gzip.NewWriter(buffer)
-	jsonQuestBytes, err := json.Marshal(questRun)
+	jsonQuestBytes, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}

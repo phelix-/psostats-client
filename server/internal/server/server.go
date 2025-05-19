@@ -35,6 +35,7 @@ type Server struct {
 	recentGamesLock         sync.Mutex
 	recordsLock             sync.Mutex
 	webhookUrl              string
+	adminWebhookUrl         string
 	indexTemplate           *template.Template
 	infoTemplate            *template.Template
 	downloadTemplate        *template.Template
@@ -57,6 +58,7 @@ func New(dynamo *dynamodb.DynamoDB) *Server {
 	})
 	cacheSize := 500
 	webhookUrl, _ := os.LookupEnv("WEBHOOK_URL")
+	adminWebhookUrl, _ := os.LookupEnv("ADMIN_WEBHOOK_URL")
 	return &Server{
 		app:              f,
 		dynamoClient:     dynamo,
@@ -65,6 +67,7 @@ func New(dynamo *dynamodb.DynamoDB) *Server {
 		recentGamesCount: 0,
 		recentGamesSize:  cacheSize,
 		webhookUrl:       webhookUrl,
+		adminWebhookUrl:  adminWebhookUrl,
 		anniversaryQuests: map[string]struct{}{
 			"Maximum Attack E: Forest": {},
 			"Maximum Attack E: Caves":  {},
@@ -104,7 +107,8 @@ func (s *Server) Run() {
 
 	// UI
 	s.app.Get("/", s.Index)
-	s.app.Get("/game/:gameId/:gem?", s.GamePage)
+	s.app.Get("/game/:gameId/:gem?", s.GamePageV4)
+	s.app.Get("/gamev1/:gameId/:gem?", s.GamePage)
 	s.app.Get("/gamev3/:gameId/:gem?", s.GamePageV3)
 	s.app.Get("/gamev4/:gameId/:gem?", s.GamePageV4)
 	s.app.Get("/info", s.InfoPage)
@@ -122,9 +126,12 @@ func (s *Server) Run() {
 	// API
 	s.app.Post("/api/game", s.PostGame)
 	s.app.Get("/api/game/:gameId/:gem?", s.GetGame)
+	s.app.Get("/api/record/:quest", s.GetRecord)
 	s.app.Get("/api/record-splits/:quest", s.GetRecordSplits)
 	s.app.Get("/api/pb-splits/:quest", s.GetPbSplits)
+	s.app.Get("/api/weapons", s.GetWeapons)
 	s.app.Post("/api/motd", s.PostMotd)
+	s.app.Post("/api/users/register", s.RegisterUser)
 	s.indexTemplate = ensureParsed("./server/internal/templates/index.gohtml")
 	s.infoTemplate = ensureParsed("./server/internal/templates/info.gohtml")
 	s.playerTemplate = ensureParsed("./server/internal/templates/playerV2.gohtml")
@@ -699,7 +706,33 @@ func (s *Server) GetGame(c *fiber.Ctx) error {
 		return nil
 	} else {
 		log.Printf("Serving %v", gameId)
-		compressed, _ := db.CompressGame(game)
+		compressed, _ := db.Compress(game)
+		c.Response().AppendBody(compressed)
+		c.Response().Header.Set("Content-Type", "application/json")
+		c.Response().Header.Set("Content-Encoding", "gzip")
+		return nil
+	}
+}
+
+func (s *Server) GetRecord(c *fiber.Ctx) error {
+	questName := c.Params("quest")
+	questName, err := url.PathUnescape(questName)
+	if err != nil {
+		return err
+	}
+	playersString := c.Query("players", "4")
+	pbString := c.Query("pb", "false")
+	pbCategory := strings.ToLower(pbString) == "true"
+	numPlayers, err := strconv.Atoi(playersString)
+	if err != nil {
+		return err
+	}
+	questRecord, err := db.GetQuestRecord(questName, numPlayers, pbCategory, s.dynamoClient)
+	if questRecord == nil {
+		c.Status(404)
+		return nil
+	} else {
+		compressed, _ := db.Compress(questRecord)
 		c.Response().AppendBody(compressed)
 		c.Response().Header.Set("Content-Type", "application/json")
 		c.Response().Header.Set("Content-Encoding", "gzip")
@@ -764,7 +797,7 @@ func (s *Server) GetPbSplits(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	questRecord, err := db.GetPlayerPB(questName, user, numPlayers, pbCategory, s.dynamoClient)
+	questRecord, err := db.GetPlayerPB(questName, user.Id, numPlayers, pbCategory, s.dynamoClient)
 	if err != nil {
 		return err
 	}
@@ -788,6 +821,63 @@ func (s *Server) GetPbSplits(c *fiber.Ctx) error {
 			return nil
 		}
 	}
+}
+
+func (s *Server) RegisterUser(c *fiber.Ctx) error {
+	authorized, user := s.verifyAuth(&c.Request().Header)
+	if !authorized {
+		c.Status(401)
+		return nil
+	}
+	if !user.Admin {
+		c.Status(403)
+		return nil
+	}
+	var newUser userdb.User
+	if err := c.BodyParser(&newUser); err != nil {
+		log.Printf("body parser")
+		c.Status(400)
+		return err
+	}
+	newUser.Admin = false
+	newUser.Password = HashPassword(newUser.Password)
+
+	existingUser, err := s.userDb.GetUser(newUser.Id)
+	if err != nil {
+		return err
+	}
+	if existingUser != nil {
+		c.Status(400)
+		c.Response().AppendBodyString("User already exists")
+		c.Response().Header.Set("Content-Type", "application/json")
+		return nil
+	}
+
+	err = s.userDb.CreateUser(newUser)
+	if err != nil {
+		return err
+	}
+
+	s.SendWebhook(Webhook{Embeds: []Embed{
+		{
+			Title: "PSOStats User Registered: " + user.Id,
+		},
+	}}, s.adminWebhookUrl)
+	return nil
+}
+
+func (s *Server) GetWeapons(c *fiber.Ctx) error {
+	return respondWithJson(weapons.GetWeapons(), c)
+}
+
+func respondWithJson(data any, c *fiber.Ctx) error {
+	jsonBytes, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	c.Response().AppendBody(jsonBytes)
+	c.Response().Header.Set("Content-Type", "application/json")
+	return nil
 }
 
 func (s *Server) PostMotd(c *fiber.Ctx) error {
