@@ -75,6 +75,10 @@ func getAllQuests() []Quest {
 		{Episode: 1, Name: "Silent Afterimage #2", Number: 1866, Start: register(210), End: register(50)},
 		{Episode: 1, Name: "Silent Afterimage #3", Number: 1867, Start: register(210), End: register(50)},
 		{Episode: 1, Name: "Silent Afterimage #4", Number: 1868, Start: register(210), End: register(50)},
+		{Episode: 1, Name: "Chronocide Trial #1", Number: 1869, Start: register(210), End: register(50)},
+		{Episode: 1, Name: "Chronocide Trial #2", Number: 1870, Start: register(210), End: register(50)},
+		{Episode: 1, Name: "Chronocide Trial #3", Number: 1871, Start: register(210), End: register(50)},
+		{Episode: 1, Name: "Chronocide Trial #4", Number: 1872, Start: register(210), End: register(50)},
 		{Episode: 1, Name: "Anomalous Ordeal #1", Number: 1810, Start: register(82), End: register(254)},
 		{Episode: 1, Name: "Anomalous Ordeal #2", Number: 1811, Start: register(82), End: register(254)},
 		{Episode: 1, Name: "Anomalous Ordeal #3", Number: 1812, Start: register(82), End: register(254)},
@@ -198,6 +202,7 @@ func getAllQuests() []Quest {
 		{Episode: 1, Name: "Towards the Future", Number: 118, Start: register(12), End: register(254)},
 		{Episode: 1, Name: "Tyrell's Ego", Number: 161, Start: register(4), End: register(101)},
 		{Episode: 1, Name: "総督の贈り物", Start: floorSwitch(6, 165), End: floorSwitch(6, 33)},
+		{Episode: 1, Name: "Coetaneous Resolve", Number: 1873, Start: register(210), End: register(50)},
 		// Labyrinthine Trial
 		// Sugoroku
 		// Sim 2.0
