@@ -82,7 +82,7 @@ type Quests struct {
 func NewQuests() Quests {
 	questsById := make(map[uint16]Quest)
 	allQuests := make(map[int]map[string]Quest)
-	unsortedQuests := getAllQuests()
+	unsortedQuests := GetAllQuests()
 
 	for _, quest := range unsortedQuests {
 		questsForEpisode := allQuests[quest.Episode]

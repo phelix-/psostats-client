@@ -84,7 +84,7 @@
                             <td><a href="/players/{{ .User }}">{{ .User }}</a> </td>
                             {{ $playerLap := . }}
                             {{ range $index, $time := .Times }}
-                            <td style="background-color: {{ index $playerLap.Colors $index }}">{{if gt (len (index $playerLap.GameIds $index)) 0}} <a href="/gamev4/{{index $playerLap.GameIds $index}}">{{ $time }}</a>{{else}}N/A{{end}}</td>
+                            <td style="background-color: {{ index $playerLap.Colors $index }}">{{if gt (len (index $playerLap.GameIds $index)) 0}} <a href="/game/{{index $playerLap.GameIds $index}}">{{ $time }}</a>{{else}}N/A{{end}}</td>
                             {{ end }}
                         </tr>
                     {{ end }}
@@ -106,7 +106,7 @@
                 <div class="row">
                     {{ range $category, $game := $questMap }}
                         <div class="col-6 col-sm-3 mt-3">
-                            <h3>{{$game.NumPlayers}}P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/><a href="/gamev4/{{$game.Id}}">{{$game.Time}}</a></h3>
+                            <h3>{{$game.NumPlayers}}P<img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/><a href="/game/{{$game.Id}}">{{$game.Time}}</a></h3>
                             {{ range $index,$player := $game.Players }}
                                 <div><span style="width:85px; display: inline-block">{{$player.Class}}</span>{{$player.Name}}</div>
                             {{ end }}

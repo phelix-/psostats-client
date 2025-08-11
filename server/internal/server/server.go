@@ -117,6 +117,7 @@ func (s *Server) Run() {
 	s.app.Get("/anniv2021", s.Anniv2021RecordsPage)
 	s.app.Get("/anniv2022", s.Anniv2022RecordsPage)
 	s.app.Get("/anniv2023", s.Anniv2023RecordsPage)
+	s.app.Get("/anniv2025", s.Anniv2025RecordsPage)
 	//s.app.Get("/threejs", s.ThreejsPage)
 	//s.app.Get("/geometry", s.GetGeometry)
 	s.app.Get("/combo-calculator", s.ComboCalcMultiPage)
@@ -832,18 +833,22 @@ func (s *Server) RegisterUser(c *fiber.Ctx) error {
 	}
 	var newUser userdb.User
 	if err := c.BodyParser(&newUser); err != nil {
-		//log.Printf("body parser")
-		//c.Status(400)
-		testUser := userdb.User{
-			Id:       "testid",
-			Password: "testpass",
-			Admin:    false,
-		}
-		return respondWithJson(testUser, c)
+		c.Status(400)
+		return nil
 	}
 	newUser.Admin = false
 	newUser.Password = HashPassword(newUser.Password)
 
+	userForId, err := s.userDb.GetUserByDiscordId(newUser.DiscordId)
+	if err != nil {
+		return err
+	}
+	if userForId != nil {
+		c.Status(400)
+		c.Response().AppendBodyString("User already associated with this discord account")
+		c.Response().Header.Set("Content-Type", "plain/text")
+		return nil
+	}
 	existingUser, err := s.userDb.GetUser(newUser.Id)
 	if err != nil {
 		return err

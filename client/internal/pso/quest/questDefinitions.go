@@ -1,6 +1,6 @@
 package quest
 
-func getAllQuests() []Quest {
+func GetAllQuests() []Quest {
 	return []Quest{
 		// ---------------------------------------------------------------------------------
 		//     Episode 1

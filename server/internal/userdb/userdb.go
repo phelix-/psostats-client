@@ -7,17 +7,21 @@ import (
 )
 
 const (
-	PlayersTable = "players"
+	PlayersTable          = "players"
+	PlayersByDiscordTable = "players_by_discord"
 )
 
 type User struct {
-	Id       string `json:"id" dynamodbav:"Id"`
-	Password string `json:"password" dynamodbav:"Password"`
-	Admin    bool   `json:"admin" dynamodbav:"Admin"`
+	Id          string `json:"id" dynamodbav:"Id"`
+	Password    string `json:"password" dynamodbav:"Password"`
+	DiscordName string `json:"discord_name" dynamodbav:"DiscordName"`
+	DiscordId   string `json:"discord_id" dynamodbav:"DiscordId"`
+	Admin       bool   `json:"admin" dynamodbav:"Admin"`
 }
 
 type UserDb interface {
 	GetUser(userName string) (*User, error)
+	GetUserByDiscordId(discordId string) (*User, error)
 	CreateUser(user User) error
 }
 
@@ -47,6 +51,24 @@ func (d DynamoUserDb) GetUser(userName string) (*User, error) {
 	return &user, err
 }
 
+func (d DynamoUserDb) GetUserByDiscordId(discordId string) (*User, error) {
+	user := User{}
+	primaryKey := dynamodb.AttributeValue{
+		S: aws.String(discordId),
+	}
+	getItem := dynamodb.GetItemInput{
+		TableName: aws.String(PlayersByDiscordTable),
+		Key:       map[string]*dynamodb.AttributeValue{"DiscordId": &primaryKey},
+	}
+	item, err := d.dynamoClient.GetItem(&getItem)
+	if err != nil || item.Item == nil {
+		return nil, err
+	}
+
+	err = dynamodbattribute.UnmarshalMap(item.Item, &user)
+	return &user, err
+}
+
 func (d DynamoUserDb) CreateUser(user User) error {
 	marshalled, err := dynamodbattribute.MarshalMap(user)
 	if err != nil {
@@ -57,6 +79,14 @@ func (d DynamoUserDb) CreateUser(user User) error {
 		TableName: aws.String(PlayersTable),
 	}
 	_, err = d.dynamoClient.PutItem(userInput)
+	if err != nil {
+		return err
+	}
+	userByDiscord := &dynamodb.PutItemInput{
+		Item:      marshalled,
+		TableName: aws.String(PlayersByDiscordTable),
+	}
+	_, err = d.dynamoClient.PutItem(userByDiscord)
 	if err != nil {
 		return err
 	}

@@ -164,6 +164,8 @@ func (s *Server) getCounters(year int) (QuestCounters, map[string]QuestCounters)
 	tableName := db.AnnivStats
 	if year == 2023 {
 		tableName = db.Anniv2023Stats
+	} else if year == 2025 {
+		tableName = db.Anniv2025Stats
 	}
 
 	if counters, err := db.GetAnniversaryCounters(tableName, s.dynamoClient); err == nil {
