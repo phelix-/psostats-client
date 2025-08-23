@@ -101,6 +101,14 @@ func GetAllQuests() []Quest {
 		// TMBTP
 
 		// ---- Event ----
+		{Episode: 1, Name: "August Atrocity #1", Number: 960, Start: floorSwitch(7, 1), End: register(50), Splits: []Split{
+			{Name: "Room 1", Trigger: floorSwitch(7, 2)},
+			{Name: "Room 2", Trigger: floorSwitch(7, 3)},
+			{Name: "Room 3", Trigger: floorSwitch(7, 4)},
+			{Name: "Room 4", Trigger: floorSwitch(7, 5)},
+			{Name: "Room 5", Trigger: floorSwitch(7, 6)},
+			{Name: "Room 6", Trigger: register(50)},
+		}},
 		{Episode: 1, Name: "Christmas Fiasco", Remap: remap("Christmas Fiasco Episode 1")},
 		{Episode: 1, Name: "Christmas Fiasco Episode 1", Number: 900, Start: floorSwitch(4, 100), End: floorSwitch(10, 3)},
 		{Episode: 1, Name: "December Disaster #1", Number: 1786, Start: floorSwitch(2, 1), End: register(241)},
@@ -110,13 +118,13 @@ func GetAllQuests() []Quest {
 			{Name: "Room 3", Trigger: floorSwitch(2, 3)},
 			{Name: "Room 4", Trigger: register(50)},
 		}},
-		{Episode: 1, Name: "Maximum Attack E: Forest -MM-", Number: 960, Start: floorSwitch(2, 0), End: register(50),
-			Splits: []Split{
-				{Name: "Room 1", Trigger: floorSwitch(2, 99)},
-				{Name: "Room 2", Trigger: floorSwitch(2, 3)},
-				{Name: "Room 3", Trigger: floorSwitch(2, 2)},
-				{Name: "Room 4", Trigger: register(50)},
-			}},
+		//{Episode: 1, Name: "Maximum Attack E: Forest -MM-", Number: 960, Start: floorSwitch(2, 0), End: register(50),
+		//	Splits: []Split{
+		//		{Name: "Room 1", Trigger: floorSwitch(2, 99)},
+		//		{Name: "Room 2", Trigger: floorSwitch(2, 3)},
+		//		{Name: "Room 3", Trigger: floorSwitch(2, 2)},
+		//		{Name: "Room 4", Trigger: register(50)},
+		//	}},
 		{Episode: 1, Name: "Maximum Attack E: Cave", Remap: remap("Maximum Attack E: Caves")},
 		{Episode: 1, Name: "Maximum Attack E: Caves", Number: 931, Start: floorSwitch(4, 0), End: register(50), Splits: []Split{
 			{Name: "Room 1", Trigger: floorSwitch(4, 1)},
@@ -127,16 +135,16 @@ func GetAllQuests() []Quest {
 			{Name: "Room 6", Trigger: floorSwitch(4, 6)},
 			{Name: "Room 7", Trigger: register(50)},
 		}},
-		{Episode: 1, Name: "Maximum Attack E: Caves -MM-", Number: 961, Start: floorSwitch(4, 0), End: register(50),
-			Splits: []Split{
-				{Name: "Room 1", Trigger: floorSwitch(4, 1)},
-				{Name: "Room 2", Trigger: floorSwitch(4, 2)},
-				{Name: "Room 3", Trigger: floorSwitch(4, 3)},
-				{Name: "Room 4", Trigger: floorSwitch(4, 4)},
-				{Name: "Room 5", Trigger: floorSwitch(4, 5)},
-				{Name: "Room 6", Trigger: floorSwitch(4, 6)},
-				{Name: "Room 7", Trigger: register(50)},
-			}},
+		//{Episode: 1, Name: "Maximum Attack E: Caves -MM-", Number: 961, Start: floorSwitch(4, 0), End: register(50),
+		//	Splits: []Split{
+		//		{Name: "Room 1", Trigger: floorSwitch(4, 1)},
+		//		{Name: "Room 2", Trigger: floorSwitch(4, 2)},
+		//		{Name: "Room 3", Trigger: floorSwitch(4, 3)},
+		//		{Name: "Room 4", Trigger: floorSwitch(4, 4)},
+		//		{Name: "Room 5", Trigger: floorSwitch(4, 5)},
+		//		{Name: "Room 6", Trigger: floorSwitch(4, 6)},
+		//		{Name: "Room 7", Trigger: register(50)},
+		//	}},
 		{Episode: 1, Name: "Maximum Attack E: Mine", Remap: remap("Maximum Attack E: Mines")},
 		{Episode: 1, Name: "Maximum Attack E: Mines", Number: 932, Start: floorSwitch(6, 0), End: register(50), Splits: []Split{
 			{Name: "Room 1", Trigger: floorSwitch(6, 1)},
@@ -275,6 +283,14 @@ func GetAllQuests() []Quest {
 
 		// ---- Event ----
 		// Festivity On The Beach
+		{Episode: 2, Name: "August Atrocity #2", Number: 961, Start: floorSwitch(6, 1), End: register(50), Splits: []Split{
+			{Name: "Room 1", Trigger: floorSwitch(6, 2)},
+			{Name: "Room 2", Trigger: floorSwitch(6, 3)},
+			{Name: "Room 3", Trigger: floorSwitch(6, 4)},
+			{Name: "Room 4", Trigger: floorSwitch(6, 5)},
+			{Name: "Room 5", Trigger: floorSwitch(6, 6)},
+			{Name: "Room 6", Trigger: register(50)},
+		}},
 		{Episode: 2, Name: "Christmas Fiasco", Remap: remap("Christmas Fiasco Episode 2")},
 		{Episode: 2, Name: "Christmas Fiasco Episode 2", Number: 901, Start: floorSwitch(4, 100), End: floorSwitch(11, 3)},
 		{Episode: 2, Name: "December Disaster #2", Number: 1787, Start: floorSwitch(7, 200), End: register(241)},

@@ -80,6 +80,8 @@ func New(dynamo *dynamodb.DynamoDB) *Server {
 			"Maximum Attack E: Tower":  {},
 			"Maximum Attack E: Crater": {},
 			"Maximum Attack E: Desert": {},
+			"August Atrocity #1":       {},
+			"August Atrocity #2":       {},
 		},
 		anniversaryNamesInOrder: []string{
 			"Maximum Attack E: Forest",
