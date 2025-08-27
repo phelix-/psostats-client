@@ -13,16 +13,14 @@
         <script src='https://code.jquery.com/jquery-1.11.3.min.js'></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.8.2/chart.min.js" integrity="sha512-zjlf0U0eJmSo1Le4/zcZI51ks5SjuQXkU0yOdsOBubjSmio9iCUp8XPLkEAADZNBdR9crRy3cniZ65LF2w8sRA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/2.0.0/chartjs-plugin-annotation.min.js" integrity="sha512-sLZhA8NE4bIPKMnsROQpJTBKVOQf8ie2GMFVXVfcg90tJ0aNhAWxhPyN0BRjwvZ35dSQF7kSzXtCU11KvWvNwQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
-              integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
-              crossorigin=""/>
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
         <script type="importmap">
-        {
-            "imports": {
-                "three": "./js/three.module.js",
-                "OrbitControls":"./js/OrbitControls.js",
+            {
+                "imports": {
+                    "three": "./js/three.module.js",
+                    "OrbitControls":"./js/OrbitControls.js",
+                }
             }
-        }
         </script>
         <script>
             const meshesByFloor = {{ .MeshesByFloor }};
@@ -113,11 +111,16 @@
             width: 100%;
         }
         .psostats-map-title {
-            padding-left: 4px;
-            padding-top: 4px;
+            font-size: 1.5em;
+            margin: 4px;
+        }
+
+        .map-button {
+            cursor: pointer;
         }
         .psostats-map-row {
             flex-grow: 1;
+            position: relative;
         }
         li.psostats-weapon {
             height: 30px;
@@ -131,8 +134,42 @@
         @supports (-moz-appearance: none) {
             .psostats-weapon > .usage-bar { margin-top: -27px; }
         }
+
         .psostats-weapon > .usage-bar:first-of-type {
             margin-left: -16px;
+        }
+        .fullscreen-map {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            right: 0;
+        }
+
+        .map-info {
+            position: fixed;
+            right: 0;
+            width: 200px;
+            z-index: 100;
+            margin: 14px;
+        }
+
+        .map-playback-controls {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            z-index: 100;
+            margin: 14px;
+        }
+
+        .map-equipped-weapon {
+            font-size: 14px;
+        }
+
+        .map-hp {
+            background-color: red;
+            width: 100%;
+            overflow: visible;
         }
     </style>
     <body>
@@ -251,13 +288,21 @@
 
                 </div>
             </div>
-            <div class="psostats-map-row" style="min-height: 50vh; min-width: 300px">
+            <div id="map-row" class="psostats-map-row" style="min-height: 50vh; min-width: 300px">
                 <canvas id="map-canvas" style="position: absolute;"></canvas>
                 <div style="position: absolute; z-index: 100;">
-                    <h4 class="psostats-map-title" id="playback-floor-name"></h4>
-                    <h3 id="playback-timer" style="padding-left: 4px; display: inline-block;">0:00</h3>
-                    <button id="pause-button" style="z-index: 500;">Play/Pause</button>
-                    <input id="playback-position" type="range" width="100%" min="0" value="0">
+                    <span class="psostats-map-title" id="playback-floor-name"></span>
+                    <span id="playback-timer" style="padding-left: 4px; display: inline-block; font-size: 1.5em;">0:00</span>
+                </div>
+                <div id="map-playback-controls" class="map-playback-controls">
+                    <span id="map-fullscreen-toggle" class="material-symbols-outlined map-button" style="font-size: 36px">fullscreen</span>
+                    <span id="pause-button" class="material-symbols-outlined map-button" style="font-size: 36px">play_arrow</span>
+                    <input id="playback-position" type="range" width="100%" min="0" value="0" style="display: inline-block;">
+                </div>
+                <div id="map-info-box" class="map-info">
+                    <h5 id="map-equipped-weapon" class="map-equipped-weapon"></h5>
+                    <div id="map-hp" class="map-hp">test</div>
+                    <div id="map-enemy" class="map-enemy"></div>
                 </div>
             </div>
         </div>
@@ -285,7 +330,7 @@
                 </div>
             </div>
         </div>
-        </div>
+    </div>
     </body>
     </html>
     <script>

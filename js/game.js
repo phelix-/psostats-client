@@ -14,10 +14,18 @@ let paused = true;
 let currentMap = -1;
 let cameraUnset = true;
 const pauseButton = document.getElementById("pause-button");
+const mapRow = document.getElementById("map-row");
+const mapFullscreenButton = document.getElementById("map-fullscreen-toggle");
 const playbackPositionSlider = document.getElementById("playback-position");
 const playbackTimer = document.getElementById("playback-timer");
+const mapEnemy = document.getElementById("map-enemy");
+const mapHp = document.getElementById("map-hp");
+const equippedWeapon = document.getElementById("map-equipped-weapon");
 const floorName = document.getElementById("playback-floor-name")
 const darksquare = new THREE.MeshBasicMaterial( { color: "#303030" });
+let hoveredEnemy = null;
+let hoveredEnemyMesh = null;
+let storedMaterial = null;
 const floorNames = {
     "0":"Pioneer II",
     "1":"Forest 1",
@@ -165,6 +173,21 @@ function init() {
     draughts = new Draughts();
     pauseButton.onclick = function() {
         paused = !paused;
+        if (paused) {
+            pauseButton.innerText = "play_arrow";
+        } else {
+            pauseButton.innerText = "pause";
+        }
+    }
+    mapFullscreenButton.onclick = function () {
+        if (mapRow.classList.contains("fullscreen-map")) {
+            mapRow.classList.remove("fullscreen-map");
+            mapFullscreenButton.innerText = "fullscreen";
+        } else {
+            mapRow.classList.add("fullscreen-map");
+            mapFullscreenButton.innerText = "fullscreen_exit";
+        }
+        onWindowResize();
     }
     playbackPositionSlider.setAttribute("min", "0")
     playbackPositionSlider.setAttribute("max", "" + (dataFrames.length - 1))
@@ -204,6 +227,14 @@ function animate() {
             // gameTimelineChart.update();
         }
         let currentDataFrame = dataFrames[frame % dataFrames.length]
+        equippedWeapon.innerText = weapons[currentDataFrame.Weapon];
+        mapHp.innerText = currentDataFrame.HP;
+        mapHp.style.width = ((Number(currentDataFrame.HP) * 100) / 2214) + "%";
+        if (hoveredEnemy != null) {
+            mapEnemy.innerText = monsters[hoveredEnemy].Name;
+        } else {
+            mapEnemy.innerText = "";
+        }
         if (currentDataFrame.Map !== currentMap) {
             currentMap = currentDataFrame.Map;
             floorName.innerText = floorNames[currentMap];
@@ -296,7 +327,40 @@ function onWindowResize() {
 
 }
 
+function onDocumentMouseMove(event) {
+    let mouse = new THREE.Vector2();
+    const parentNode = canvas.parentNode;
+    mouse.x = ((event.clientX - parentNode.offsetLeft) / parentNode.clientWidth) * 2 - 1;
+    mouse.y = - ((event.clientY - parentNode.offsetTop) / parentNode.clientHeight) * 2 + 1;
+    let raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera( mouse, camera );
+    let intersects = raycaster.intersectObject( scene , true);
+
+    let currentEnemy = null;
+    if(intersects.length > 0) {
+        for (let id in visibleMonsters) {
+            if (intersects[0].object === visibleMonsters[id]) {
+                currentEnemy = id;
+            }
+        }
+    }
+    if (hoveredEnemy !== currentEnemy) {
+        if (hoveredEnemyMesh != null) {
+            hoveredEnemyMesh.material = storedMaterial
+        }
+        hoveredEnemy = currentEnemy;
+        if (hoveredEnemy != null) {
+            hoveredEnemyMesh = intersects[0].object;
+            storedMaterial = hoveredEnemyMesh.material
+            hoveredEnemyMesh.material = new THREE.MeshBasicMaterial({color: "0xff9900"});
+        } else {
+            hoveredEnemyMesh = null;
+        }
+    }
+}
+
 
 window.addEventListener('resize', onWindowResize);
+document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 
 window.onload = init;
