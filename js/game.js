@@ -9,6 +9,11 @@ var players = {};
 let visibleMonsters = {};
 const playerColors = ["red", "blue", "green", "yellow"];
 const exampleSphere = new THREE.SphereGeometry(5,8,8)
+const coneGeom = new THREE.ConeGeometry(5, 7);
+const combinedGeom = new THREE.BufferGeometry();
+
+combinedGeom.merge(exampleSphere);
+// combinedGeom.merge(coneGeom);
 const canvas = document.getElementById("map-canvas")
 let paused = true;
 let currentMap = -1;
@@ -231,7 +236,12 @@ function animate() {
         mapHp.innerText = currentDataFrame.HP;
         mapHp.style.width = ((Number(currentDataFrame.HP) * 100) / 2214) + "%";
         if (hoveredEnemy != null) {
-            mapEnemy.innerText = monsters[hoveredEnemy].Name;
+            if (currentDataFrame.MonsterLocation[hoveredEnemy].HP > 0) {
+                mapEnemy.innerText = monsters[hoveredEnemy].Name + " " + currentDataFrame.MonsterLocation[hoveredEnemy].HP;
+            } else {
+                mapEnemy.innerText = monsters[hoveredEnemy].Name;
+            }
+
         } else {
             mapEnemy.innerText = "";
         }
@@ -255,14 +265,24 @@ function animate() {
         let playerIndex = 0;
         for (let playerId in currentDataFrame.PlayerByGcLocation) {
             let player = players[playerId]
+            let currentDataFrameHasFacing = currentDataFrame.PlayerByGcLocation[playerId].Facing != null
             if (!player) {
-                player = new THREE.Mesh(exampleSphere, new THREE.MeshBasicMaterial( {color: playerColors[playerIndex]}))
+                let playerGeometry = currentDataFrameHasFacing != null ? coneGeom : exampleSphere;
+                player = new THREE.Mesh(playerGeometry, new THREE.MeshBasicMaterial( {color: playerColors[playerIndex]}))
                 players[playerId] = player;
                 scene.add(player);
             }
             player.position.x = currentDataFrame.PlayerByGcLocation[playerId].X;
             player.position.y = currentDataFrame.PlayerByGcLocation[playerId].Y + 5;
             player.position.z = currentDataFrame.PlayerByGcLocation[playerId].Z;
+
+            let playerYAngle = currentDataFrameHasFacing ?
+                ((currentDataFrame.PlayerByGcLocation[playerId].Facing * 3.14) / 0xFFFF) - 2.355 : 0
+
+            let rotationX = 0;
+            let rotationY = playerYAngle;
+            let rotationZ = 1.57;
+            player.rotation.set(rotationX, rotationY, rotationZ);
             if (playerIndex === 0) {
                 if (cameraUnset ||
                     Math.abs(camera.position.x - player.position.x) > 1000 ||

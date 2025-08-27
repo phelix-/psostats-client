@@ -57,7 +57,7 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 
 	var questRun model.QuestRun
 	if err := c.BodyParser(&questRun); err != nil {
-		log.Printf("body parser")
+		log.Printf("body parser error: %v", err)
 		c.Status(400)
 		return err
 	}

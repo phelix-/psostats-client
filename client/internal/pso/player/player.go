@@ -129,6 +129,7 @@ func ParsePlayerMemory(buf []uint16, base uintptr) BasePlayerInfo {
 			Floor:   floor,
 			Room:    room,
 			Warping: playerWarping,
+			Facing:  buf[(0x60-base)/2],
 			X:       numbers.Float32FromU16(buf[(0x38-base)/2], buf[(0x3A-base)/2]),
 			Y:       numbers.Float32FromU16(buf[(0x3C-base)/2], buf[(0x3E-base)/2]),
 			Z:       numbers.Float32FromU16(buf[(0x40-base)/2], buf[(0x42-base)/2]),
