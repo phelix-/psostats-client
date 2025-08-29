@@ -1,19 +1,15 @@
 import * as THREE from '/js/three.module.js';
 import { OrbitControls } from '/js/OrbitControls.js';
 
-var scene, camera, renderer, controls, draughts, board;
+let scene, camera, renderer, controls, floorGroup;
 let frame = 0;
 let frameFraction = 0;
 const playbackSpeed = 30;
-var players = {};
+let players = {};
 let visibleMonsters = {};
 const playerColors = ["red", "blue", "green", "yellow"];
 const exampleSphere = new THREE.SphereGeometry(5,8,8)
 const coneGeom = new THREE.ConeGeometry(5, 7);
-const combinedGeom = new THREE.BufferGeometry();
-
-combinedGeom.merge(exampleSphere);
-// combinedGeom.merge(coneGeom);
 const canvas = document.getElementById("map-canvas")
 let paused = true;
 let currentMap = -1;
@@ -24,17 +20,24 @@ const mapFullscreenButton = document.getElementById("map-fullscreen-toggle");
 const playbackPositionSlider = document.getElementById("playback-position");
 const playbackTimer = document.getElementById("playback-timer");
 const mapEnemy = document.getElementById("map-enemy");
-const mapHp = document.getElementById("map-hp");
-const mapTp = document.getElementById("map-tp");
-const equippedWeapon = document.getElementById("map-equipped-weapon");
-const floorName = document.getElementById("playback-floor-name")
-const darksquare = new THREE.MeshBasicMaterial( { color: "#303030" });
-let hoveredEnemy = null;
+const MAP_HP_BAR = document.getElementById("map-hp");
+const MAP_TP_BAR = document.getElementById("map-tp");
+const MAP_EQUIPPED_WEAPON = document.getElementById("map-equipped-weapon");
+const MAP_FLOOR_NAME = document.getElementById("playback-floor-name");
+const floorMaterial = new THREE.MeshLambertMaterial( { color: "#303030" });
+let hoveredPlayerId = null;
+let hoveredPlayerMesh = null;
+let storedPlayerMaterial = null;
+let hoveredEnemyId = null;
 let hoveredEnemyMesh = null;
-let storedMaterial = null;
-const showUnitxtId = true;
-const showPlayerCoordinates = true;
-const showMonsterCoordinates = true;
+let storedEnemyMaterial = null;
+// const config = getConfig();
+const showUnitxtId = Boolean(window.localStorage.getItem("showUnitxtId"));
+const showFacing = Boolean(window.localStorage.getItem("showFacing"));
+const showPlayerCoordinates = Boolean(window.localStorage.getItem("showPlayerCoordinates"));
+const showMonsterCoordinates = Boolean(window.localStorage.getItem("showMonsterCoordinates"));
+
+const iceColor = '#4fb1db'
 const floorNames = {
     "0":"Pioneer II",
     "1":"Forest 1",
@@ -83,6 +86,83 @@ const floorNames = {
     "44":"Meteor Impact Site",
     "45":"Pioneer II"
 }
+
+function getConfig() {
+    let gameConfig = window.localStorage.getItem("gameConfig");
+    if (!gameConfig) {
+        gameConfig = {
+            "showUnitxtId": false,
+            "showFacing": false,
+            "showPlayerCoordinates": true,
+            "showMonsterCoordinates": true,
+        };
+
+        window.localStorage.setItem("gameConfig", gameConfig);
+    }
+    return gameConfig;
+}
+
+function createCanabinGeometry() {
+    const canabinGeometry = new THREE.Group()
+    const canabinMesh = new THREE.Mesh(new THREE.CylinderGeometry(4,4,2),  new THREE.MeshToonMaterial( {color: "#6b5353"}));
+    const canabinFaceMesh = new THREE.Mesh(new THREE.CylinderGeometry(1,1,2),  new THREE.MeshToonMaterial( {color: "#1f359c"}))
+    canabinFaceMesh.position.set(0, 1, 0);
+    canabinGeometry.add(canabinMesh);
+    canabinGeometry.add(canabinFaceMesh);
+    canabinGeometry.rotateZ(1.57)
+    return canabinGeometry;
+}
+function createCanuneGeometry() {
+    const canabinGeometry = new THREE.Group()
+    const canabinMesh = new THREE.Mesh(new THREE.CylinderGeometry(4,4,2),  new THREE.MeshPhongMaterial( {color: "#b96a07"}));
+    const canabinFaceMesh = new THREE.Mesh(new THREE.CylinderGeometry(1,1,2),  new THREE.MeshPhongMaterial( {color: "#1f359c"}))
+    canabinFaceMesh.position.set(0, 1, 0);
+    canabinGeometry.add(canabinMesh);
+    canabinGeometry.add(canabinFaceMesh);
+    canabinGeometry.rotateZ(1.57)
+    return canabinGeometry;
+}
+
+function createBaranzGeometry() {
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(14,10,20),  new THREE.MeshToonMaterial( {color: "#0002b2"}));
+    const canabinFaceMesh = new THREE.Mesh(new THREE.CylinderGeometry(1,1,2),  new THREE.MeshPhongMaterial( {color: "#1f359c"}))
+    canabinFaceMesh.position.set(0, 1, 0);
+    const group = new THREE.Group()
+    group.add(body);
+    group.add(canabinFaceMesh);
+    return group;
+}
+
+function createClawGeometry() {
+    const combined = new THREE.Group()
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(
+    4, 4, 2, 8, 2,
+        false, Math.PI * 0.25, Math.PI * 1.5),  new THREE.MeshToonMaterial( {color: "#807373"}));
+    const tail = new THREE.Mesh(new THREE.ConeGeometry(1,8,8),  new THREE.MeshToonMaterial( {color: "#807373"}))
+    body.rotateY(-Math.PI * 0.5);
+    tail.rotateZ(-Math.PI * 0.5);
+    tail.position.set(5, 0, 0);
+    // canabinFaceMesh.position.set(0, 1, 0);
+    combined.add(body);
+    combined.add(tail);
+    body.castShadow = true;
+    tail.castShadow = true;
+    // combined.rotateZ(1.57)
+    return combined;
+}
+
+function getGeometry(unitxtId) {
+    switch (unitxtId) {
+        case 25: return createBaranzGeometry();
+        case 28: return createCanabinGeometry();
+        case 29: return createCanuneGeometry();
+        case 38: return createClawGeometry();
+        default:
+            const meshInfo = monsterMeshes[unitxtId]
+            return new THREE.Mesh(meshInfo.geometry, meshInfo.material);
+    }
+}
+
 const monsterMeshes = {
     "5": {"geometry": new THREE.SphereGeometry(3,8,8), "material": new THREE.MeshBasicMaterial( {color: "#e8eca6", wireframe: true}), "heightOffset": 3},
     "9": {"geometry": new THREE.SphereGeometry(5,8,8), "material": new THREE.MeshBasicMaterial( {color: "#755138", wireframe: true}), "heightOffset": 3},
@@ -106,24 +186,24 @@ const monsterMeshes = {
     /* Migium */ "22": { "geometry": new THREE.SphereGeometry(6,8,8), "material": new THREE.MeshBasicMaterial( {color: "#a76dff", wireframe: true}), "heightOffset": 3},
     /* Hidoom */ "23": { "geometry": new THREE.SphereGeometry(6,8,8), "material": new THREE.MeshBasicMaterial( {color: "#ff996d", wireframe: true}), "heightOffset": 3},
 
-    /* Gillchic */"50": {"geometry": new THREE.ConeGeometry(5,8), "material": new THREE.MeshBasicMaterial( {color: "#707070", wireframe: true}), "heightOffset": 3},
-    "24": {"geometry": new THREE.SphereGeometry(5,8,8), "material": new THREE.MeshBasicMaterial( {color: "#702a00", wireframe: true}), "heightOffset": 3},
-    "28": {"geometry": new THREE.CylinderGeometry(4,4,2), "material": new THREE.MeshBasicMaterial( {color: "#6b5353"}), "heightOffset": 3},
-    "29": {"geometry": new THREE.CylinderGeometry(4,4,2), "material": new THREE.MeshBasicMaterial( {color: "#b96a07"}), "heightOffset": 3},
-    "26": { "geometry": new THREE.SphereGeometry(6,8,8), "material": new THREE.MeshBasicMaterial( {color: "#326dff", wireframe: true}), "heightOffset": 3},
-    "27": { "geometry": new THREE.SphereGeometry(6,8,8), "material": new THREE.MeshBasicMaterial( {color: "#c00000", wireframe: true}), "heightOffset": 3},
-    "25": { "geometry": new THREE.SphereGeometry(12,8,8), "material": new THREE.MeshBasicMaterial( {color: "#0002b2", wireframe: true}), "heightOffset": 3},
+    /* Gillchic */ "50": {"geometry": new THREE.ConeGeometry(5,8), "material": new THREE.MeshToonMaterial( {color: "#707070"}), "heightOffset": 3},
+    "24": {"geometry": new THREE.SphereGeometry(5,8,8), "material": new THREE.MeshToonMaterial( {color: "#702a00"}), "heightOffset": 3},
+    /* Canabin */ "28": {"geometry": new THREE.CylinderGeometry(4,4,2), "material": new THREE.MeshPhongMaterial( {color: "#6b5353"}), "heightOffset": 3},
+    /* Canune */ "29": {"geometry": new THREE.CylinderGeometry(4,4,2), "material": new THREE.MeshToonMaterial( {color: "#b96a07"}), "heightOffset": 3},
+    "26": { "geometry": new THREE.SphereGeometry(6,8,8), "material": new THREE.MeshToonMaterial( {color: "#326dff", wireframe: true}), "heightOffset": 3},
+    /* Sinow Red */ "27": { "geometry": new THREE.SphereGeometry(6,8,8), "material": new THREE.MeshToonMaterial( {color: "#c00000", wireframe: true}), "heightOffset": 3},
+    "25": { "geometry": new THREE.SphereGeometry(12,8,8), "material": new THREE.MeshToonMaterial( {color: "#0002b2", wireframe: true}), "heightOffset": 3},
 
     "41": {"geometry": new THREE.SphereGeometry(3,8,8), "material": new THREE.MeshBasicMaterial( {color: "#43a401", wireframe: true}), "heightOffset": 3},
     "42": { "geometry": new THREE.SphereGeometry(3,8,8), "material": new THREE.MeshBasicMaterial( {color: "#7601a4", wireframe: true}), "heightOffset": 3},
     "43": { "geometry": new THREE.SphereGeometry(3,8,8), "material": new THREE.MeshBasicMaterial( {color: "#a48301", wireframe: true}), "heightOffset": 3},
-    "38": {"geometry": new THREE.CylinderGeometry(4,4,2), "material": new THREE.MeshBasicMaterial( {color: "#886060"}), "heightOffset": 3},
+    /* Claw */ "38": {"geometry": new THREE.CylinderGeometry(4,4,2), "material": new THREE.MeshBasicMaterial( {color: "#886060"}), "heightOffset": 3},
     "40": {"geometry": new THREE.CylinderGeometry(2,8,8), "material": new THREE.MeshBasicMaterial( {color: "#886060"}), "heightOffset": 3},
     /* Delsaber */ "30": { "geometry": new THREE.SphereGeometry(6,8,8), "material": new THREE.MeshBasicMaterial( {color: "#a16dff", wireframe: true}), "heightOffset": 3},
-    "31": { "geometry": new THREE.SphereGeometry(4,8,8), "material": new THREE.MeshBasicMaterial( {color: "#5900ff", wireframe: true}), "heightOffset": 3},
+    /* Sorc */ "31": { "geometry": new THREE.SphereGeometry(4,8,8), "material": new THREE.MeshBasicMaterial( {color: "#5900ff", wireframe: true}), "heightOffset": 3},
     "32": { "geometry": new THREE.SphereGeometry(2,8,8), "material": new THREE.MeshBasicMaterial( {color: "#5900ff", wireframe: true}), "heightOffset": 3},
     "33": { "geometry": new THREE.SphereGeometry(2,8,8), "material": new THREE.MeshBasicMaterial( {color: "#5900ff", wireframe: true}), "heightOffset": 3},
-    "37": { "geometry": new THREE.CylinderGeometry(5,5,8), "material": new THREE.MeshBasicMaterial( {color: "#00ffe0", wireframe: true}), "heightOffset": 3},
+    /* Indie Belra */ "37": { "geometry": new THREE.CylinderGeometry(5,5,8), "material": new THREE.MeshBasicMaterial( {color: "#00ffe0", wireframe: true}), "heightOffset": 3},
     "36": { "geometry": new THREE.SphereGeometry(6,8,8), "material": new THREE.MeshBasicMaterial( {color: "#d59d1c", wireframe: true}), "heightOffset": 3},
 
     "52": { "geometry": new THREE.SphereGeometry(3,8,8), "material": new THREE.MeshBasicMaterial( {color: "#a41f01", wireframe: true}), "heightOffset": 3},
@@ -178,26 +258,29 @@ const monsterMeshes = {
     "93": { "geometry": new THREE.SphereGeometry(20,8,8), "material": new THREE.MeshBasicMaterial( {color: "#ab5bff", wireframe: true}), "heightOffset": 3},
 };
 
+function toggleFullscreenMap() {
+    if (mapRow.classList.contains("fullscreen-map")) {
+        mapRow.classList.remove("fullscreen-map");
+        mapFullscreenButton.innerText = "fullscreen";
+    } else {
+        mapRow.classList.add("fullscreen-map");
+        mapFullscreenButton.innerText = "fullscreen_exit";
+    }
+    onWindowResize();
+}
+
+function togglePlaybackPause() {
+    paused = !paused;
+    if (paused) {
+        pauseButton.innerText = "play_arrow";
+    } else {
+        pauseButton.innerText = "pause";
+    }
+}
+
 function init() {
-    draughts = new Draughts();
-    pauseButton.onclick = function() {
-        paused = !paused;
-        if (paused) {
-            pauseButton.innerText = "play_arrow";
-        } else {
-            pauseButton.innerText = "pause";
-        }
-    }
-    mapFullscreenButton.onclick = function () {
-        if (mapRow.classList.contains("fullscreen-map")) {
-            mapRow.classList.remove("fullscreen-map");
-            mapFullscreenButton.innerText = "fullscreen";
-        } else {
-            mapRow.classList.add("fullscreen-map");
-            mapFullscreenButton.innerText = "fullscreen_exit";
-        }
-        onWindowResize();
-    }
+    pauseButton.onclick = togglePlaybackPause;
+    mapFullscreenButton.onclick = toggleFullscreenMap;
     playbackPositionSlider.setAttribute("min", "0")
     playbackPositionSlider.setAttribute("max", "" + (dataFrames.length - 1))
     playbackPositionSlider.value = 0
@@ -209,18 +292,47 @@ function init() {
 
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(75, canvas.parentNode.clientWidth / canvas.parentNode.clientHeight, 0.1, 5000);
+    addAmbientLight(scene);
+    addDirectLight(scene);
 
     renderer = new THREE.WebGLRenderer({canvas: canvas});
     renderer.setSize(canvas.parentNode.clientWidth, canvas.parentNode.clientHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     controls = new OrbitControls(camera, renderer.domElement);
 
     controls.maxPolarAngle = Math.PI / 2;
 
     controls.enableDamping = true;
-    board = new THREE.Group();
-
+    floorGroup = new THREE.Group();
 
     window.requestAnimationFrame(animate);
+}
+
+function addAmbientLight(scene) {
+    let light = new THREE.DirectionalLight( "#ffffff", 0.55);
+    light.castShadow = false;
+    scene.add(light);
+}
+
+function addDirectLight(scene) {
+    let light = new THREE.DirectionalLight("#ffffff", 1);
+    let shadowmapSize = 4096;
+    light.castShadow = true;
+    light.shadow.normalBias = 0.01;
+
+    light.shadow.mapSize.width = shadowmapSize;
+    light.shadow.mapSize.height = shadowmapSize;
+    light.shadow.camera.near = -750;
+    light.shadow.camera.far = 280;
+
+    light.shadow.camera.left = -1000;
+    light.shadow.camera.bottom = -1000;
+    light.shadow.camera.right = 1000;
+    light.shadow.camera.top = 1000;
+
+    light.shadow.blurSamples = 12;
+    scene.add(light);
 }
 
 function animate() {
@@ -231,28 +343,22 @@ function animate() {
             frame = frame % dataFrames.length;
             playbackPositionSlider.value = frame;
             playbackTimer.innerText = Math.floor(frame / 60) + ":" + String(frame % 60).padStart(2, '0');
-            // gameTimelineChart.options.plugins.annotation.annotations.cursor.xMin = frame;
-            // gameTimelineChart.options.plugins.annotation.annotations.cursor.xMax = frame;
-            // gameTimelineChart.update();
         }
-        let currentDataFrame = dataFrames[frame % dataFrames.length]
-        equippedWeapon.innerText = weapons[currentDataFrame.Weapon];
-        mapHp.innerText = currentDataFrame.HP;
-        mapHp.style.width = ((Number(currentDataFrame.HP) * 100) / maxHp) + "%";
-        if (maxTp > 0) {
-            mapTp.innerText = currentDataFrame.TP;
-            mapTp.style.width = ((Number(currentDataFrame.TP) * 100) / maxTp) + "%";
-        }
-        if (hoveredEnemy != null) {
-            let monsterLocation = currentDataFrame.MonsterLocation[hoveredEnemy];
+        let currentDataFrame = dataFrames[frame % dataFrames.length];
+        let primaryPlayerState = currentDataFrame.PlayerByGcLocation[viewingGc];
+        updatePlayerInfo(currentDataFrame);
+
+        if (hoveredEnemyId != null) {
+            let monsterLocation = currentDataFrame.MonsterLocation[hoveredEnemyId];
             if (monsterLocation.HP > 0) {
-                let unitxtId = showUnitxtId ? monsters[hoveredEnemy].UnitxtId + " " : "";
+                let unitxtId = showUnitxtId ? monsters[hoveredEnemyId].UnitxtId + " " : "";
+                let facing = showFacing ? " " + monsterLocation.Facing : "";
                 let coordinates = showMonsterCoordinates
-                    ? `(${monsterLocation.X}, ${monsterLocation.Y}, ${monsterLocation.Z}) ${monsterLocation.Facing}`
+                    ? `(${monsterLocation.X}, ${monsterLocation.Y}, ${monsterLocation.Z})${facing}`
                     : "";
-                mapEnemy.innerText = `${monsters[hoveredEnemy].Name} ${unitxtId} ${coordinates} ${monsterLocation.HP}`;
+                mapEnemy.innerText = `${monsters[hoveredEnemyId].Name} ${unitxtId} ${coordinates} ${monsterLocation.HP}`;
             } else {
-                mapEnemy.innerText = monsters[hoveredEnemy].Name;
+                mapEnemy.innerText = monsters[hoveredEnemyId].Name;
             }
 
         } else {
@@ -260,54 +366,62 @@ function animate() {
         }
         if (currentDataFrame.Map !== currentMap) {
             currentMap = currentDataFrame.Map;
-            floorName.innerText = floorNames[currentMap];
+            MAP_FLOOR_NAME.innerText = floorNames[currentMap];
             cameraUnset = true;
-            scene.remove(board)
-            board.clear();
+            scene.remove(floorGroup)
+            floorGroup.clear();
             const meshes = meshesByFloor[currentMap].meshes
-            const normals = meshesByFloor[currentMap].normals
             for (let i = 0; i < meshes.length; i++) {
                 let geom = new THREE.BufferGeometry()
-                geom.setFromPoints(meshes[i])
-                geom.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(normals[i]), 3));
-                let cube = new THREE.Mesh(geom, darksquare)
-                board.add(cube)
+                geom.setFromPoints(meshes[i]);
+                geom.computeVertexNormals();
+                geom.normalizeNormals();
+                const floorMesh = new THREE.Mesh(geom, floorMaterial);
+                floorMesh.receiveShadow = true;
+                floorMesh.castShadow = true;
+                floorGroup.add(floorMesh);
             }
-            scene.add(board)
+            floorGroup.receiveShadow = true;
+            floorGroup.castShadow = true;
+            scene.add(floorGroup)
         }
-        let playerIndex = 0;
-        for (let playerId in currentDataFrame.PlayerByGcLocation) {
-            let player = players[playerId]
+        let playerIndex = -1;
+        for (let playerId of gcsByGem) {
+            playerIndex++;
+            let player = players[playerId];
+            let playerState = currentDataFrame.PlayerByGcLocation[playerId];
+            if (player && (playerState.Floor !== primaryPlayerState.Floor || playerState.Warping)) {
+                scene.remove(player);
+                players[playerId] = null;
+            }
+            if (playerState.Floor !== primaryPlayerState.Floor || playerState.Warping) {
+                continue;
+            }
             if (!player) {
                 let playerGeometry = hasFacing ? coneGeom : exampleSphere;
-                player = new THREE.Mesh(playerGeometry, new THREE.MeshBasicMaterial( {color: playerColors[playerIndex]}))
+                player = new THREE.Mesh(playerGeometry, new THREE.MeshToonMaterial( {color: playerColors[playerIndex], /*emissive: new THREE.Color(0xAA00FF), emissiveIntensity: 100*/}))
+                player["playerId"] = playerId;
                 players[playerId] = player;
+                player.castShadow = true
                 scene.add(player);
             }
-            player.position.x = currentDataFrame.PlayerByGcLocation[playerId].X;
-            player.position.y = currentDataFrame.PlayerByGcLocation[playerId].Y + 5;
-            player.position.z = currentDataFrame.PlayerByGcLocation[playerId].Z;
+            player.position.x = playerState.X;
+            player.position.y = playerState.Y + 5;
+            player.position.z = playerState.Z;
 
-            let playerYAngle = hasFacing ? ((currentDataFrame.PlayerByGcLocation[playerId].Facing * 6.28) / 0xFFFF) + 1.57 : 0;
-
-            let rotationX = 0;
-            let rotationY = playerYAngle;
-            let rotationZ = 1.57;
-            player.rotation.set(rotationX, rotationY, rotationZ);
-            if (playerIndex === 0) {
-                if (cameraUnset ||
-                    Math.abs(camera.position.x - player.position.x) > 1000 ||
-                    Math.abs(camera.position.y - player.position.y) > 1000 ||
-                    Math.abs(camera.position.x - player.position.x) > 1000
-                ) {
-                    camera.position.x = player.position.x;
-                    camera.position.y = player.position.y + 300;
-                    camera.position.z = player.position.z - 300;
-                    controls.target.set(player.position.x,player.position.y,player.position.z);
-                    cameraUnset = false;
-                }
-            }
-            playerIndex++;
+            let playerYAngle = hasFacing ? ((playerState.Facing * (Math.PI * 2)) / 0xFFFF) + (Math.PI / 2) : 0;
+            player.rotation.set(0, playerYAngle, Math.PI / 2);
+        }
+        if (cameraUnset ||
+            Math.abs(camera.position.x - primaryPlayerState.X) +
+            Math.abs(camera.position.y - primaryPlayerState.Y) +
+            Math.abs(camera.position.z - primaryPlayerState.Z) > 1000
+        ) {
+            camera.position.x = primaryPlayerState.X;
+            camera.position.y = primaryPlayerState.Y + 300;
+            camera.position.z = primaryPlayerState.Z - 300;
+            controls.target.set(primaryPlayerState.X, primaryPlayerState.Y, primaryPlayerState.Z);
+            cameraUnset = false;
         }
 
         for (let monsterId in currentDataFrame.MonsterLocation) {
@@ -318,23 +432,43 @@ function animate() {
                     console.warn("Missing", monsterId)
                 }
                 let monsterMeshInfo = monsterMeshes[monsterInfo.UnitxtId]
+
                 if (monsterMeshInfo) {
-                    monster = new THREE.Mesh(monsterMeshInfo.geometry, monsterMeshInfo.material);
+                    let monsterMesh = getGeometry(monsterInfo.UnitxtId);
+                    monsterMesh["monsterId"] = monsterId;
+                    if (monsterMesh["children"] && monsterMesh.children.length > 0) {
+                        // for groups
+                        monsterMesh.children[0]["monsterId"] = monsterId;
+                    }
+                    monsterMesh.castShadow = true;
+                    monster = new THREE.Group();
+                    monster.add(monsterMesh);
                 } else {
                     console.warn("Missing mesh", monsterInfo.UnitxtId, monsterInfo.Name)
                     monster = new THREE.Mesh(new THREE.SphereGeometry(3,8,8), new THREE.MeshBasicMaterial( {color: "white", wireframe: true}))
                 }
-                visibleMonsters[monsterId] = monster
+                visibleMonsters[monsterId] = monster;
+                monster.castShadow = true;
                 scene.add(monster)
             }
-            monster.position.x = currentDataFrame.MonsterLocation[monsterId].X ;
-            monster.position.y = currentDataFrame.MonsterLocation[monsterId].Y + 3 ;
-            monster.position.z = currentDataFrame.MonsterLocation[monsterId].Z ;
-            let monsterAngle = hasFacing ? ((currentDataFrame.MonsterLocation[monsterId].Facing * 6.28) / 0xFFFF) + 1.57 : 0;
+            let monsterLocationElement = currentDataFrame.MonsterLocation[monsterId];
+            monster.position.x = monsterLocationElement.X ;
+            monster.position.y = monsterLocationElement.Y + 3 ;
+            monster.position.z = monsterLocationElement.Z ;
+            let monsterAngle = hasFacing ? ((monsterLocationElement.Facing * (Math.PI * 2)) / 0xFFFF) + (Math.PI / 2) : 0;
             // 16383 -> 3.14
             // 0 ->
             // 49151 -> 0
-            monster.rotation.set(0, monsterAngle, 1.57);
+            monster.rotation.set(0, monsterAngle, 0);
+            if (monsterLocationElement.Frozen && monster["iceMesh"] === undefined) {
+                const iceMesh = new THREE.Mesh(new THREE.OctahedronGeometry(10), new THREE.MeshBasicMaterial({color: iceColor, opacity: 0.3, transparent: true}));
+                // iceMesh["monsterId"] = monsterId
+                monster.add(iceMesh);
+                monster["iceMesh"] = iceMesh;
+            } else if (!monsterLocationElement.Frozen && monster["iceMesh"] !== undefined) {
+                monster.remove(monster["iceMesh"]);
+                monster["iceMesh"] = undefined;
+            }
         }
         for (let monsterId in visibleMonsters) {
             let monster = currentDataFrame.MonsterLocation[monsterId]
@@ -349,46 +483,90 @@ function animate() {
     }
 
     renderer.render(scene, camera);
-
     window.requestAnimationFrame(animate);
+}
 
+function updatePlayerInfo(currentDataFrame) {
+    let gcToDisplay = hoveredPlayerId !== null ? hoveredPlayerId : viewingGc;
+    let playerLocation = currentDataFrame.PlayerByGcLocation[gcToDisplay];
+    let facing = showFacing ? " " + playerLocation.Facing : "";
+    let coordinates = showPlayerCoordinates ? `(${playerLocation.X}, ${playerLocation.Y}, ${playerLocation.Z})${facing}` : "";
+    if (hoveredPlayerId !== null && hoveredPlayerId !== viewingGc) {
+        let player = charactersByGc[hoveredPlayerId];
+        MAP_EQUIPPED_WEAPON.innerText = `${player.name} (${player.class})${coordinates}`;
+        MAP_HP_BAR.innerText = "";
+        MAP_HP_BAR.style.width = "0";
+        MAP_TP_BAR.innerText = "";
+        MAP_TP_BAR.style.width = "0";
+    } else {
+        let player = charactersByGc[viewingGc];
+        MAP_EQUIPPED_WEAPON.innerText = `${player.name} (${player.class})${coordinates}\n
+        ${weapons[currentDataFrame.Weapon]}`;
+        MAP_HP_BAR.innerText = currentDataFrame.HP;
+        MAP_HP_BAR.style.width = ((Number(currentDataFrame.HP) * 100) / maxHp) + "%";
+        if (maxTp > 0) {
+            MAP_TP_BAR.innerText = currentDataFrame.TP;
+            MAP_TP_BAR.style.width = ((Number(currentDataFrame.TP) * 100) / maxTp) + "%";
+        }
+    }
 }
 
 function onWindowResize() {
-
     camera.aspect = canvas.parentNode.clientWidth / canvas.parentNode.clientHeight;
     camera.updateProjectionMatrix();
-
     renderer.setSize( canvas.parentNode.clientWidth, canvas.parentNode.clientHeight );
-
 }
 
 function onDocumentMouseMove(event) {
+    if (cameraUnset) {
+        return;
+    }
     let mouse = new THREE.Vector2();
     const parentNode = canvas.parentNode;
-    mouse.x = ((event.clientX - parentNode.offsetLeft) / parentNode.clientWidth) * 2 - 1;
-    mouse.y = - ((event.clientY - parentNode.offsetTop) / parentNode.clientHeight) * 2 + 1;
+    mouse.x = ((event.pageX - parentNode.offsetLeft) / parentNode.clientWidth) * 2 - 1;
+    mouse.y = - ((event.pageY - parentNode.offsetTop) / parentNode.clientHeight) * 2 + 1;
     let raycaster = new THREE.Raycaster();
     raycaster.setFromCamera( mouse, camera );
     let intersects = raycaster.intersectObject( scene , true);
 
-    let currentEnemy = null;
-    if(intersects.length > 0) {
-        for (let id in visibleMonsters) {
-            if (intersects[0].object === visibleMonsters[id]) {
-                currentEnemy = id;
-            }
+    let intersectedEnemy = null
+    let intersectedEnemyId = null;
+    let intersectedPlayer = null;
+    let intersectedPlayerId = null;
+    for (let intersectedMesh of intersects) {
+        if (intersectedMesh.object["playerId"] in players) {
+            intersectedPlayer = intersectedMesh.object;
+            intersectedPlayerId = intersectedMesh.object["playerId"];
+        }
+        if (intersectedMesh.object["monsterId"] in visibleMonsters) {
+            intersectedEnemy = intersectedMesh.object;
+            intersectedEnemyId = intersectedMesh.object["monsterId"]
         }
     }
-    if (hoveredEnemy !== currentEnemy) {
-        if (hoveredEnemyMesh != null) {
-            hoveredEnemyMesh.material = storedMaterial
+
+    if (hoveredPlayerId !== intersectedPlayerId) {
+        if (hoveredPlayerMesh != null) {
+            hoveredPlayerMesh.material = storedPlayerMaterial;
         }
-        hoveredEnemy = currentEnemy;
-        if (hoveredEnemy != null) {
-            hoveredEnemyMesh = intersects[0].object;
-            storedMaterial = hoveredEnemyMesh.material
-            hoveredEnemyMesh.material = new THREE.MeshBasicMaterial({color: "0xff9900"});
+        hoveredPlayerId = intersectedPlayerId;
+        if (hoveredPlayerId != null) {
+            hoveredPlayerMesh = intersectedPlayer;
+            storedPlayerMaterial = hoveredPlayerMesh.material;
+            hoveredPlayerMesh.material = new THREE.MeshBasicMaterial({color: "#ffffff"});
+        } else {
+            hoveredPlayerMesh = null;
+        }
+    }
+
+    if (hoveredEnemyId !== intersectedEnemyId) {
+        if (hoveredEnemyMesh != null) {
+            hoveredEnemyMesh.material = storedEnemyMaterial;
+        }
+        hoveredEnemyId = intersectedEnemyId;
+        if (hoveredEnemyId != null) {
+            hoveredEnemyMesh = intersectedEnemy;
+            storedEnemyMaterial = hoveredEnemyMesh.material
+            hoveredEnemyMesh.material = new THREE.MeshBasicMaterial({color: "#ff9900"});
         } else {
             hoveredEnemyMesh = null;
         }
