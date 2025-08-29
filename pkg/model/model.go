@@ -106,15 +106,16 @@ type Monster struct {
 }
 
 type MonsterLocation struct {
-	Floor    uint16
-	Room     uint16
-	X        float32
-	Y        float32
-	Z        float32
-	Facing   uint16
-	HP       uint16
-	Frozen   bool
-	Arrested bool
+	Floor     uint16
+	Room      uint16
+	X         float32
+	Y         float32
+	Z         float32
+	Facing    uint16
+	HP        uint16
+	Frozen    bool
+	Paralyzed bool
+	Confused  bool
 }
 
 type Location struct {

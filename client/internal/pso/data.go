@@ -970,7 +970,7 @@ func (pso *PSO) GetMonsterList() ([]Monster, error) {
 		monsterAddr := uintptr(numbers.Uint32FromU16(buf[2*i], buf[(2*i)+1]))
 		if monsterAddr != 0 {
 			monsterId := numbers.ReadU16(pso.handle, monsterAddr+0x1c)
-			monsterType, err := numbers.ReadU32(pso.handle, monsterAddr+0x378)
+			untxtId, err := numbers.ReadU32(pso.handle, monsterAddr+0x378)
 			facing := numbers.ReadU16(pso.handle, monsterAddr+0x60)
 			if err != nil {
 				return nil, err
@@ -982,7 +982,11 @@ func (pso *PSO) GetMonsterList() ([]Monster, error) {
 			} else {
 				hp = numbers.ReadU16(pso.handle, monsterAddr+0x334)
 			}
-			if monsterType == 45 {
+			monsterStatus := numbers.ReadU16(pso.handle, monsterAddr+0x268)
+			frozen := monsterStatus == 0x02
+			confused := monsterStatus == 0x12
+			paralyzed := numbers.ReadU16(pso.handle, monsterAddr+0x25C) == 0x10
+			if untxtId == 45 {
 				// DRL
 				if i == 0 {
 					hp = numbers.ReadU16(pso.handle, monsterAddr+monsterDeRolLeHP)
@@ -990,7 +994,7 @@ func (pso *PSO) GetMonsterList() ([]Monster, error) {
 				} else {
 					hp = numbers.ReadU16(pso.handle, monsterAddr+monsterDeRolLeShellHP)
 				}
-			} else if monsterType == 73 {
+			} else if untxtId == 73 {
 				// Barba Ray
 				if i == 0 {
 					hp = numbers.ReadU16(pso.handle, monsterAddr+monsterBarbaRayHP)
@@ -1003,24 +1007,27 @@ func (pso *PSO) GetMonsterList() ([]Monster, error) {
 			if hp > 0x8000 {
 				hp = 0
 			}
-			if monsterType != 0 {
-				monsterName, err := pso.getMonsterName(monsterType)
+			if untxtId != 0 {
+				monsterName, err := pso.getMonsterName(untxtId)
 				if err != nil {
-					log.Printf("cannot read monster name for id %v %v", monsterType, err)
+					log.Printf("cannot read monster name for id %v %v", untxtId, err)
 				} else {
 					monsters = append(monsters, Monster{
 						Name:            monsterName,
 						hp:              hp,
 						Id:              monsterId,
 						Index:           i,
-						UnitxtId:        monsterType,
+						UnitxtId:        untxtId,
 						LastAttackerIdx: lastAttackerIndex,
 						Location: model.MonsterLocation{
-							HP:     hp,
-							Facing: facing,
-							X:      numbers.ReadF32(pso.handle, monsterAddr+0x38),
-							Y:      numbers.ReadF32(pso.handle, monsterAddr+0x3C),
-							Z:      numbers.ReadF32(pso.handle, monsterAddr+0x40),
+							HP:        hp,
+							Facing:    facing,
+							Frozen:    frozen,
+							Paralyzed: paralyzed,
+							Confused:  confused,
+							X:         numbers.ReadF32(pso.handle, monsterAddr+0x38),
+							Y:         numbers.ReadF32(pso.handle, monsterAddr+0x3C),
+							Z:         numbers.ReadF32(pso.handle, monsterAddr+0x40),
 						},
 					})
 					if hp > 0 {
