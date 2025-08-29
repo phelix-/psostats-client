@@ -105,12 +105,25 @@ type Monster struct {
 	Location   Location
 }
 
+type MonsterLocation struct {
+	Floor    uint16
+	Room     uint16
+	X        float32
+	Y        float32
+	Z        float32
+	Facing   uint16
+	HP       uint16
+	Frozen   bool
+	Arrested bool
+}
+
 type Location struct {
 	Floor   uint16
 	Room    uint16
 	X       float32
 	Y       float32
 	Z       float32
+	Facing  uint16
 	Warping bool
 }
 
@@ -135,7 +148,7 @@ type DataFrame struct {
 	Weapon             string
 	PlayerByGcLocation map[string]Location
 	PlayerLocation     map[int]Location
-	MonsterLocation    map[int]Location
+	MonsterLocation    map[int]MonsterLocation
 }
 
 type BossData struct {

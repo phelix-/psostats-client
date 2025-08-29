@@ -350,12 +350,22 @@ func (s *Server) GamePageV4(c *fiber.Ctx) error {
 			}
 		}
 		mostTime := 0
+		maxHp := uint16(0)
+		maxTp := uint16(0)
+		hasFacing := false
 		timeByStateMap := make(map[string]TimeAndStateDisplay)
 		for _, frame := range game.DataFrames {
+			if frame.HP > maxHp {
+				maxHp = frame.HP
+			}
+			if frame.TP > maxTp {
+				maxTp = frame.TP
+			}
 			nameForState := getNameForState(frame.State)
 			currentValue := timeByStateMap[nameForState.Display]
 			nameForState.Time = 1 + currentValue.Time
 			timeByStateMap[nameForState.Display] = nameForState
+			hasFacing = hasFacing || frame.PlayerByGcLocation[game.GuildCard].Facing > 0
 		}
 		for _, state := range timeByStateMap {
 			if state.Time > mostTime {
@@ -417,6 +427,9 @@ func (s *Server) GamePageV4(c *fiber.Ctx) error {
 			TimeByState        []TimeAndStateDisplay
 			PlayerDataFrames   map[int][]model.DataFrame
 			SortedWeapons      []WeaponDisplay
+			MaxHp              uint16
+			MaxTp              uint16
+			HasFacing          bool
 			JsonMeshes         string
 			Monsters           string
 			DataFrames         string
@@ -452,6 +465,9 @@ func (s *Server) GamePageV4(c *fiber.Ctx) error {
 			PlayerDataFrames: playerDataFrames,
 			TimeByState:      timeByState,
 			SortedWeapons:    weaponDisplay,
+			MaxHp:            maxHp,
+			MaxTp:            maxTp,
+			HasFacing:        hasFacing,
 			JsonMeshes:       jsonMeshes,
 			Monsters:         string(monsters),
 			DataFrames:       dataFrames,

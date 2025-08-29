@@ -171,6 +171,11 @@
             width: 100%;
             overflow: visible;
         }
+        .map-tp {
+            background-color: #5f5fa2;
+            width: 100%;
+            overflow: visible;
+        }
     </style>
     <body>
     <div class="container-fluid">
@@ -301,7 +306,8 @@
                 </div>
                 <div id="map-info-box" class="map-info">
                     <h5 id="map-equipped-weapon" class="map-equipped-weapon"></h5>
-                    <div id="map-hp" class="map-hp">test</div>
+                    <div id="map-hp" class="map-hp"></div>
+                    <div id="map-tp" class="map-tp"></div>
                     <div id="map-enemy" class="map-enemy"></div>
                 </div>
             </div>
@@ -362,6 +368,9 @@
             }
             return "State " + state;
         }
+        const maxHp = {{ .MaxHp }};
+        const maxTp = {{ .MaxTp }};
+        const hasFacing = {{ .HasFacing }};
         const weapons = {
             {{ range $id, $weapon := $game.Weapons}} "{{$id}}": "{{$weapon.Display}}",
             {{ end }}

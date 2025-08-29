@@ -132,13 +132,9 @@
                     </div>
 
                     <select id="frame-select" class="form-control" aria-label="Frame Select">
-                        <option value="THIRTEEN" selected>Thirteen</option>
-                        <option value="D_PARTS101">D-Parts ver1.01</option>
-                        <option value="CRIMSON_COAT">Crimson Coat</option>
-                        <option value="SAMURAI">Samurai Armor</option>
-                        <option value="SWEETHEART1">Sweetheart (1)</option>
-                        <option value="SWEETHEART2">Sweetheart (2)</option>
-                        <option value="SWEETHEART3">Sweetheart (3)</option>
+                        {{ range $frame := .Frames }}
+                        <option value="{{.Name}}">{{.Name}}</option>
+                        {{ end }}
                     </select>
                 </div>
             </div>
@@ -408,6 +404,9 @@
         $(document).ready(function() {
             updateTotalFrames();
         });
+        const weapons = {{ .WeaponsJson }};
+        const frames = {{ .FramesJson }};
+        const classStats = {{ .ClassStatsJson }};
         let selectedWeapon = weapons["Unarmed"];
         let selectedEnemies = [];
         const enemies = {

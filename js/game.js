@@ -9,6 +9,11 @@ var players = {};
 let visibleMonsters = {};
 const playerColors = ["red", "blue", "green", "yellow"];
 const exampleSphere = new THREE.SphereGeometry(5,8,8)
+const coneGeom = new THREE.ConeGeometry(5, 7);
+const combinedGeom = new THREE.BufferGeometry();
+
+combinedGeom.merge(exampleSphere);
+// combinedGeom.merge(coneGeom);
 const canvas = document.getElementById("map-canvas")
 let paused = true;
 let currentMap = -1;
@@ -20,12 +25,16 @@ const playbackPositionSlider = document.getElementById("playback-position");
 const playbackTimer = document.getElementById("playback-timer");
 const mapEnemy = document.getElementById("map-enemy");
 const mapHp = document.getElementById("map-hp");
+const mapTp = document.getElementById("map-tp");
 const equippedWeapon = document.getElementById("map-equipped-weapon");
 const floorName = document.getElementById("playback-floor-name")
 const darksquare = new THREE.MeshBasicMaterial( { color: "#303030" });
 let hoveredEnemy = null;
 let hoveredEnemyMesh = null;
 let storedMaterial = null;
+const showUnitxtId = true;
+const showPlayerCoordinates = true;
+const showMonsterCoordinates = true;
 const floorNames = {
     "0":"Pioneer II",
     "1":"Forest 1",
@@ -97,7 +106,7 @@ const monsterMeshes = {
     /* Migium */ "22": { "geometry": new THREE.SphereGeometry(6,8,8), "material": new THREE.MeshBasicMaterial( {color: "#a76dff", wireframe: true}), "heightOffset": 3},
     /* Hidoom */ "23": { "geometry": new THREE.SphereGeometry(6,8,8), "material": new THREE.MeshBasicMaterial( {color: "#ff996d", wireframe: true}), "heightOffset": 3},
 
-    "50": {"geometry": new THREE.SphereGeometry(5,8,8), "material": new THREE.MeshBasicMaterial( {color: "#707070", wireframe: true}), "heightOffset": 3},
+    /* Gillchic */"50": {"geometry": new THREE.ConeGeometry(5,8), "material": new THREE.MeshBasicMaterial( {color: "#707070", wireframe: true}), "heightOffset": 3},
     "24": {"geometry": new THREE.SphereGeometry(5,8,8), "material": new THREE.MeshBasicMaterial( {color: "#702a00", wireframe: true}), "heightOffset": 3},
     "28": {"geometry": new THREE.CylinderGeometry(4,4,2), "material": new THREE.MeshBasicMaterial( {color: "#6b5353"}), "heightOffset": 3},
     "29": {"geometry": new THREE.CylinderGeometry(4,4,2), "material": new THREE.MeshBasicMaterial( {color: "#b96a07"}), "heightOffset": 3},
@@ -229,9 +238,23 @@ function animate() {
         let currentDataFrame = dataFrames[frame % dataFrames.length]
         equippedWeapon.innerText = weapons[currentDataFrame.Weapon];
         mapHp.innerText = currentDataFrame.HP;
-        mapHp.style.width = ((Number(currentDataFrame.HP) * 100) / 2214) + "%";
+        mapHp.style.width = ((Number(currentDataFrame.HP) * 100) / maxHp) + "%";
+        if (maxTp > 0) {
+            mapTp.innerText = currentDataFrame.TP;
+            mapTp.style.width = ((Number(currentDataFrame.TP) * 100) / maxTp) + "%";
+        }
         if (hoveredEnemy != null) {
-            mapEnemy.innerText = monsters[hoveredEnemy].Name;
+            let monsterLocation = currentDataFrame.MonsterLocation[hoveredEnemy];
+            if (monsterLocation.HP > 0) {
+                let unitxtId = showUnitxtId ? monsters[hoveredEnemy].UnitxtId + " " : "";
+                let coordinates = showMonsterCoordinates
+                    ? `(${monsterLocation.X}, ${monsterLocation.Y}, ${monsterLocation.Z}) ${monsterLocation.Facing}`
+                    : "";
+                mapEnemy.innerText = `${monsters[hoveredEnemy].Name} ${unitxtId} ${coordinates} ${monsterLocation.HP}`;
+            } else {
+                mapEnemy.innerText = monsters[hoveredEnemy].Name;
+            }
+
         } else {
             mapEnemy.innerText = "";
         }
@@ -256,13 +279,21 @@ function animate() {
         for (let playerId in currentDataFrame.PlayerByGcLocation) {
             let player = players[playerId]
             if (!player) {
-                player = new THREE.Mesh(exampleSphere, new THREE.MeshBasicMaterial( {color: playerColors[playerIndex]}))
+                let playerGeometry = hasFacing ? coneGeom : exampleSphere;
+                player = new THREE.Mesh(playerGeometry, new THREE.MeshBasicMaterial( {color: playerColors[playerIndex]}))
                 players[playerId] = player;
                 scene.add(player);
             }
             player.position.x = currentDataFrame.PlayerByGcLocation[playerId].X;
             player.position.y = currentDataFrame.PlayerByGcLocation[playerId].Y + 5;
             player.position.z = currentDataFrame.PlayerByGcLocation[playerId].Z;
+
+            let playerYAngle = hasFacing ? ((currentDataFrame.PlayerByGcLocation[playerId].Facing * 6.28) / 0xFFFF) + 1.57 : 0;
+
+            let rotationX = 0;
+            let rotationY = playerYAngle;
+            let rotationZ = 1.57;
+            player.rotation.set(rotationX, rotationY, rotationZ);
             if (playerIndex === 0) {
                 if (cameraUnset ||
                     Math.abs(camera.position.x - player.position.x) > 1000 ||
@@ -299,6 +330,11 @@ function animate() {
             monster.position.x = currentDataFrame.MonsterLocation[monsterId].X ;
             monster.position.y = currentDataFrame.MonsterLocation[monsterId].Y + 3 ;
             monster.position.z = currentDataFrame.MonsterLocation[monsterId].Z ;
+            let monsterAngle = hasFacing ? ((currentDataFrame.MonsterLocation[monsterId].Facing * 6.28) / 0xFFFF) + 1.57 : 0;
+            // 16383 -> 3.14
+            // 0 ->
+            // 49151 -> 0
+            monster.rotation.set(0, monsterAngle, 1.57);
         }
         for (let monsterId in visibleMonsters) {
             let monster = currentDataFrame.MonsterLocation[monsterId]

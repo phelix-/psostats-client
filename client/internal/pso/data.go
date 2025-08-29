@@ -72,7 +72,7 @@ type Monster struct {
 	Frame1          bool
 	Index           int
 	LastAttackerIdx uint16
-	Location        model.Location
+	Location        model.MonsterLocation
 }
 
 type Event struct {
@@ -354,7 +354,7 @@ func (pso *PSO) consolidateFrame(monsters []Monster) {
 			Weapon:             pso.Inventory.EquippedWeapon.Id,
 			Kills:              pso.CurrentQuest.LastHits[uint16(pso.CurrentPlayerIndex)],
 			PlayerByGcLocation: make(map[string]model.Location),
-			MonsterLocation:    make(map[int]model.Location),
+			MonsterLocation:    make(map[int]model.MonsterLocation),
 		}
 		for _, monster := range monsters {
 			if monster.hp > 0 {
@@ -971,6 +971,7 @@ func (pso *PSO) GetMonsterList() ([]Monster, error) {
 		if monsterAddr != 0 {
 			monsterId := numbers.ReadU16(pso.handle, monsterAddr+0x1c)
 			monsterType, err := numbers.ReadU32(pso.handle, monsterAddr+0x378)
+			facing := numbers.ReadU16(pso.handle, monsterAddr+0x60)
 			if err != nil {
 				return nil, err
 			}
@@ -1014,10 +1015,12 @@ func (pso *PSO) GetMonsterList() ([]Monster, error) {
 						Index:           i,
 						UnitxtId:        monsterType,
 						LastAttackerIdx: lastAttackerIndex,
-						Location: model.Location{
-							X: numbers.ReadF32(pso.handle, monsterAddr+0x38),
-							Y: numbers.ReadF32(pso.handle, monsterAddr+0x3C),
-							Z: numbers.ReadF32(pso.handle, monsterAddr+0x40),
+						Location: model.MonsterLocation{
+							HP:     hp,
+							Facing: facing,
+							X:      numbers.ReadF32(pso.handle, monsterAddr+0x38),
+							Y:      numbers.ReadF32(pso.handle, monsterAddr+0x3C),
+							Z:      numbers.ReadF32(pso.handle, monsterAddr+0x40),
 						},
 					})
 					if hp > 0 {

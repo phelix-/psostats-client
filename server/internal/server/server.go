@@ -125,6 +125,7 @@ func (s *Server) Run() {
 	s.app.Get("/combo-calculator", s.ComboCalcMultiPage)
 	s.app.Get("/tech-calculator", s.TechCalcPage)
 	s.app.Get("/combo-calculator/opm", s.ComboCalcOpmPage)
+	s.app.Get("/combo-calculator/ultima", s.ComboCalcUltima)
 	s.app.Get("/players/:player", s.PlayerV2Page)
 	// API
 	s.app.Post("/api/game", s.PostGame)
@@ -202,22 +203,47 @@ func (s *Server) InfoPage(c *fiber.Ctx) error {
 }
 
 func (s *Server) ComboCalcOpmPage(c *fiber.Ctx) error {
-	return s.comboCalcPage(true, c)
+	return s.comboCalcPage(
+		true,
+		psoclasses.GetAll(),
+		enemies.GetEnemiesUltOpm(),
+		weapons.GetWeapons(),
+		weapons.GetFrames(),
+		c,
+	)
 }
 
 func (s *Server) ComboCalcMultiPage(c *fiber.Ctx) error {
-	return s.comboCalcPage(false, c)
+	return s.comboCalcPage(
+		false,
+		psoclasses.GetAll(),
+		enemies.GetEnemiesUltMulti(),
+		weapons.GetWeapons(),
+		weapons.GetFrames(),
+		c,
+	)
 }
 
-func (s *Server) comboCalcPage(opm bool, c *fiber.Ctx) error {
-	sortedEnemies := make(map[string][]enemies.Enemy)
+func (s *Server) ComboCalcUltima(c *fiber.Ctx) error {
+	return s.comboCalcPage(
+		false,
+		psoclasses.GetAllUltima(),
+		enemies.GetEnemiesUltima(),
+		weapons.GetWeaponsUltima(),
+		weapons.GetFramesUltima(),
+		c,
+	)
+}
 
-	var allEnemies []enemies.Enemy
-	if opm {
-		allEnemies = enemies.GetEnemiesUltOpm()
-	} else {
-		allEnemies = enemies.GetEnemiesUltMulti()
-	}
+func (s *Server) comboCalcPage(
+	opm bool,
+	allClasses []psoclasses.PsoClass,
+	allEnemies []enemies.Enemy,
+	allWeapons []weapons.Weapon,
+	allFrames []weapons.Frame,
+	c *fiber.Ctx,
+) error {
+	sortedEnemies := make(map[string][]enemies.Enemy)
 	for _, enemy := range allEnemies {
 		enemiesInArea := sortedEnemies[enemy.Location]
 		if enemiesInArea == nil {
@@ -226,16 +252,40 @@ func (s *Server) comboCalcPage(opm bool, c *fiber.Ctx) error {
 		enemiesInArea = append(enemiesInArea, enemy)
 		sortedEnemies[enemy.Location] = enemiesInArea
 	}
+
+	weaponsMap := make(map[string]weapons.Weapon)
+	for _, weapon := range allWeapons {
+		weaponsMap[weapon.Name] = weapon
+	}
+	psoClassMap := make(map[string]psoclasses.PsoClass)
+	for _, psoClass := range allClasses {
+		psoClassMap[psoClass.Name] = psoClass
+	}
+	frameMap := make(map[string]weapons.Frame)
+	for _, frame := range allFrames {
+		frameMap[frame.Name] = frame
+	}
+	weaponsJson, _ := json.Marshal(weaponsMap)
+	frameJson, _ := json.Marshal(frameMap)
+	psoClassJson, _ := json.Marshal(psoClassMap)
 	infoModel := struct {
-		Opm     bool
-		Classes []psoclasses.PsoClass
-		Enemies map[string][]enemies.Enemy
-		Weapons []weapons.Weapon
+		Opm            bool
+		Classes        []psoclasses.PsoClass
+		ClassStatsJson string
+		Enemies        map[string][]enemies.Enemy
+		Frames         []weapons.Frame
+		FramesJson     string
+		Weapons        []weapons.Weapon
+		WeaponsJson    string
 	}{
-		Opm:     opm,
-		Classes: psoclasses.GetAll(),
-		Enemies: sortedEnemies,
-		Weapons: weapons.GetWeapons(),
+		Opm:            opm,
+		Classes:        allClasses,
+		ClassStatsJson: string(psoClassJson),
+		Enemies:        sortedEnemies,
+		Frames:         allFrames,
+		FramesJson:     string(frameJson),
+		Weapons:        allWeapons,
+		WeaponsJson:    string(weaponsJson),
 	}
 	err := s.comboCalcTemplate.ExecuteTemplate(c.Response().BodyWriter(), "combo-calc", infoModel)
 
@@ -898,7 +948,7 @@ func (s *Server) PostMotd(c *fiber.Ctx) error {
 	if authorized && user != nil {
 		message = fmt.Sprintf("Logged in as %v, up to date", user.Id)
 	}
-	if getClientVersionInt(clientInfo) < 11101 {
+	if getClientVersionInt(clientInfo) < 11200 {
 		message = "Update available. https://psostats.com/download"
 	}
 	motd := model.MessageOfTheDay{
