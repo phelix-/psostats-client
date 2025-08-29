@@ -51,7 +51,7 @@ func GetWeapons() []Weapon {
 		{Name: "Zanba", MinAtp: 310, MaxAtp: 438, Ata: 38, Grind: 38, Special: "Berserk", Animation: "Sword", MaxHit: 100, MaxAttr: 100},
 		{Name: "Sealed J-Sword", MinAtp: 420, MaxAtp: 525, Ata: 35, Grind: 0, Special: "Hell", Animation: "Sword", MaxHit: 100, MaxAttr: 100},
 		{Name: "Laconium Axe", MinAtp: 700, MaxAtp: 750, Ata: 40, Grind: 25, Animation: "Sword", Special: "Berserk", MaxHit: 100, MaxAttr: 100},
-		{Name: "Dark Flow", MinAtp: 756, MaxAtp: 900, Ata: 50, Grind: 0, ComboPreset: Combo{Attack1: "S", Attack1Hits: 5, Attack2: "NONE", Attack3: "NONE"}, Animation: "Sword", Special: "Dark Flow", MaxHit: 100, MaxAttr: 100},
+		{Name: "Dark Flow", MinAtp: 756, MaxAtp: 900, Ata: 50, Grind: 0, ComboPreset: Combo{Attack1: "SPECIAL", Attack1Hits: 5, Attack2: "NONE", Attack3: "NONE"}, Animation: "Sword", Special: "Dark Flow", MaxHit: 100, MaxAttr: 100},
 		{Name: "Tsumikiri J-Sword", MinAtp: 700, MaxAtp: 756, Ata: 40, Grind: 50, Animation: "Sword", Special: "TJS", MaxHit: 100, MaxAttr: 100},
 		{Name: "TypeSW/J-Sword", MinAtp: 100, MaxAtp: 150, Ata: 40, Grind: 125, Animation: "Sword", Special: "Spirit", MaxHit: 100, MaxAttr: 100},
 		{Name: "ES Sword", MinAtp: 200, MaxAtp: 200, Ata: 35, Grind: 250, MaxHit: 0, MaxAttr: 0, Animation: "Sword", Special: "Berserk"},

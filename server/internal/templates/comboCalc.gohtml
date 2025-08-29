@@ -591,8 +591,8 @@
                     } else {
                         $('#special-select').val(selectedWeapon.special)
                     }
-                    const combo = selectedWeapon.combo
-                    if (!!combo && !!selectedWeapon.combo.attack1Hits) {
+                    const combo = selectedWeapon.comboPreset
+                    if (!!combo && !!combo.attack1Hits) {
                         $('#hits1').val(combo.attack1Hits)
                     } else {
                         $('#hits1').val(1)
