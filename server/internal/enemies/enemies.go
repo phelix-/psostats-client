@@ -19,6 +19,7 @@ type Enemy struct {
 	Xp          int
 	Location    string
 	CcaMiniboss bool
+	UnitxtId    int
 }
 
 func GetEnemiesUltMulti() []Enemy {
@@ -52,7 +53,7 @@ func GetEnemiesUltMulti() []Enemy {
 		{Name: "Dal Ra Lie (Shell)", Type: "A.Beast", Hp: 7000, Atp: 2500, Dfp: 776, Mst: 10, Ata: 340, Evp: 651, Lck: 0, Efr: 69, Eic: 100, Eth: 98, Edk: 1000, Elt: 90, Esp: 1000, Xp: 60, Location: "Caves"},
 		//{Name: "Dal Ra Lie (Mine)", Type: "A.Beast", Hp: 1200, Atp: 2400, Dfp: 726, Mst: 10, Ata: 345, Evp: 405, Lck: 25, Efr: 100, Eic: 85, Eth: 65, Edk: 1000, Elt: 45, Esp: 1000, Xp: 16, Location: "Caves"},
 
-		{Name: "Gillchic (Mines)", Type: "Machine", Hp: 2996, Atp: 1989, Dfp: 718, Mst: 0, Ata: 268, Evp: 651, Lck: 35, Efr: 55, Eic: 88, Eth: 100, Edk: 80, Elt: 60, Esp: 40, Xp: 321, Location: "Mines"},
+		{Name: "Gillchic (Mines)", Type: "Machine", UnitxtId: 50, Hp: 2996, Atp: 1989, Dfp: 718, Mst: 0, Ata: 268, Evp: 651, Lck: 35, Efr: 55, Eic: 88, Eth: 100, Edk: 80, Elt: 60, Esp: 40, Xp: 321, Location: "Mines"},
 		{Name: "Dubchic (Mines)", Type: "Machine", Hp: 3111, Atp: 1939, Dfp: 726, Mst: 0, Ata: 278, Evp: 651, Lck: 30, Efr: 45, Eic: 88, Eth: 100, Edk: 70, Elt: 70, Esp: 40, Xp: 59, Location: "Mines"},
 		{Name: "Duvuik (Mines)", Type: "Machine", Hp: 300, Atp: 0, Dfp: 0, Mst: 0, Ata: 0, Evp: 0, Lck: 0, Efr: 0, Eic: 0, Eth: 0, Edk: 0, Elt: 0, Esp: 0, Xp: 0, Location: "Mines", CcaMiniboss: true},
 		{Name: "Canabin", Type: "Machine", Hp: 2522, Atp: 1650, Dfp: 676, Mst: 0, Ata: 273, Evp: 645, Lck: 20, Efr: 50, Eic: 100, Eth: 85, Edk: 80, Elt: 80, Esp: 30, Xp: 320, Location: "Mines"},
