@@ -373,7 +373,7 @@ function generateAutoCombo(
     }
 }
 
-function appendMosterRow(rowEntry) {
+function appendMonsterRow(rowEntry) {
     let comboKill = rowEntry.comboDamage > rowEntry.hp;
     let damageBgColor = comboKill ? 'rgb(61,73,61)' : 'rgb(73,73,61)';
 
@@ -388,8 +388,8 @@ function appendMosterRow(rowEntry) {
         }).append($('<div>', {
             'style': 'background: rgba(255,150,150,0.1)'
         }).append($('<div>', {
-            'style': 'background: ' + damageBgColor + '; padding: 0.78571429em 0.78571429em; width: ' + rowEntry.percentDamage + '%',
-            'text': rowEntry.comboDamage.toFixed(0),
+            'style': `overflow: visible; white-space: nowrap; background: ${damageBgColor}; padding: 0.78571429em 0.78571429em; width: ${rowEntry.percentDamage}%`,
+            'text': rowEntry.comboDamage.toFixed(0) + " (" + rowEntry.percentDamage.toFixed(0) + "%)",
             'title': rowEntry.comboDamage.toFixed(0) + '/' + rowEntry.hp
         }))))
         .append($('<td/>', {
@@ -551,7 +551,7 @@ function updateDamageTable() {
     })
 
     for (let index in rows) {
-        tbody.append(appendMosterRow(rows[index]))
+        tbody.append(appendMonsterRow(rows[index]))
     }
 }
 
