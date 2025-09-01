@@ -22,6 +22,11 @@ type Combo struct {
 	Attack3Hits int    `json:"attack3Hits"`
 }
 
+type Special struct {
+	DamageMultiplier   float64 `json:"damageMultiplier"`
+	AccuracyMultiplier float64 `json:"accuracyMultiplier"`
+}
+
 func GetWeapons() []Weapon {
 	return []Weapon{
 		{Name: "Unarmed", MinAtp: 0, MaxAtp: 0, Ata: 0, Grind: 0, MaxHit: 0, MaxAttr: 0, Animation: "Fist", Special: ""},
@@ -169,5 +174,21 @@ func GetWeapons() []Weapon {
 		{Name: "Guardianna", MinAtp: 200, MaxAtp: 280, Ata: 40, Grind: 9, ComboPreset: Combo{Attack1Hits: 1, Attack2Hits: 1, Attack3Hits: 3}, MaxHit: 100, MaxAttr: 100, Special: "Spirit", Animation: "Card"},
 		{Name: "ES Cards", MinAtp: 10, MaxAtp: 10, Ata: 45, Grind: 150, MaxHit: 0, MaxAttr: 0, ComboPreset: Combo{Attack1Hits: 1, Attack2Hits: 1, Attack3Hits: 3}, Special: "Berserk", Animation: "Card"},
 	}
+}
 
+func GetSpecials() map[string]Special {
+	return map[string]Special{
+		"Arrest":         {AccuracyMultiplier: 0.5, DamageMultiplier: 0.5},
+		"Raikiri":        {AccuracyMultiplier: 0.5, DamageMultiplier: 0.875},
+		"Lavis Cannon":   {AccuracyMultiplier: 0.5, DamageMultiplier: 0.5},
+		"Lavis Blade":    {AccuracyMultiplier: 0.5, DamageMultiplier: 0.583},
+		"Dark Flow":      {AccuracyMultiplier: 0.7, DamageMultiplier: 1.7},
+		"TJS":            {AccuracyMultiplier: 0.0, DamageMultiplier: 1.7},
+		"Frozen Shooter": {AccuracyMultiplier: 0.7, DamageMultiplier: 1.7},
+		"Orotiagito":     {AccuracyMultiplier: 0.5, DamageMultiplier: 1.75},
+		"Charge":         {AccuracyMultiplier: 0.5, DamageMultiplier: 3.0},
+		"Spirit":         {AccuracyMultiplier: 0.5, DamageMultiplier: 3.0},
+		"Berserk":        {AccuracyMultiplier: 0.5, DamageMultiplier: 3.0},
+		"Vjaya":          {AccuracyMultiplier: 0.7, DamageMultiplier: 5.1},
+	}
 }

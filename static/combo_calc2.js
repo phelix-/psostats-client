@@ -127,7 +127,7 @@ function accuracyModifierForAttackType(attackType, special) {
 }
 
 function getSpecialAccuracyModifier(special) {
-    if (special === 'Vjaya' || special === "Dark Flow") {
+    if (special === 'Vjaya' || special === "Dark Flow" || special === "Frozen Shooter") {
         return 0.7;
     } else {
         return 0.5;
@@ -155,7 +155,7 @@ function getSpecialDamageModifier(special) {
         return 0.5;
     } else if (special === 'Lavis Blade') {
         return 0.583;
-    } else if (special === 'Dark Flow' || special === 'TJS') {
+    } else if (special === 'Dark Flow' || special === 'TJS' || special === "Frozen Shooter") {
         return 1.7;
     } else if (special === 'Orotiagito') {
         return 1.75;
