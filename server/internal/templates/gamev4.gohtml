@@ -1,6 +1,7 @@
 {{define "game"}}
     {{ $root := . }}
     {{ $game := .Game}}
+    <!doctype html>
     <html lang="en">
     <head>
         <meta name="viewport" content="width=device-width"/>
@@ -14,20 +15,23 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.8.2/chart.min.js" integrity="sha512-zjlf0U0eJmSo1Le4/zcZI51ks5SjuQXkU0yOdsOBubjSmio9iCUp8XPLkEAADZNBdR9crRy3cniZ65LF2w8sRA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/2.0.0/chartjs-plugin-annotation.min.js" integrity="sha512-sLZhA8NE4bIPKMnsROQpJTBKVOQf8ie2GMFVXVfcg90tJ0aNhAWxhPyN0BRjwvZ35dSQF7kSzXtCU11KvWvNwQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-        <script type="importmap">
-            {
-                "imports": {
-                    "three": "./js/three.module.js",
-                    "OrbitControls":"./js/OrbitControls.js",
-                }
-            }
-        </script>
         <script>
             const meshesByFloor = {{ .MeshesByFloor }};
-            const dataFrames = {{ .DataFrames }}
+            const dataFrames = {{ .DataFrames }};
             const monsters = {{ .Monsters }};
+            const maxHp = {{ .MaxHp }};
+            const maxTp = {{ .MaxTp }};
+            const hasFacing = {{ .HasFacing }};
+            const weapons = {
+                {{ range $id, $weapon := $game.Weapons}} "{{$id}}": "{{$weapon.Display}}",
+                {{ end }}
+            }
+            const equippedWeapons = [{{ range $index, $frame := $game.DataFrames }} "{{ $frame.Weapon }}", {{ end }}];
+            const playerState = [{{ range $index, $frame := $game.DataFrames }} "{{ $frame.State}}", {{ end }}]
+            const gcsByGem = [{{ range $index, $player := .Game.AllPlayers }}"{{$player.GuildCard}}", {{ end }}];
+            const charactersByGc = { {{ range $index, $player := .Game.AllPlayers }}"{{$player.GuildCard}}": {"name": "{{$player.Name}}", "class": "{{$player.Class}}"}, {{ end }} };
+            const viewingGc = "" + {{$game.GuildCard}};
         </script>
-        <script src="/js/draughts.js" type="application/javascript"></script>
         <script type="module" src="/js/game.js" ></script>
     </head>
     <style>
@@ -51,7 +55,7 @@
             margin-bottom: 4px;
         }
         .psostats-equipment {
-            padding: 8px 16px;
+            padding: 8px 6px;
         }
         .current-player {
             font-weight: bold;
@@ -124,20 +128,25 @@
         }
         li.psostats-weapon {
             height: 30px;
+            padding: 0;
+            display: flex;
         }
         .psostats-weapon > .usage-bar {
             height: 29px;
-            margin-top: -8px;
-            margin-bottom: -8px;
-            display: inline-block;
+            display: flex;
+            overflow: visible;
+            white-space: nowrap;
+            font-size: 12px;
+            padding: .5rem 0;
+            margin: 0;
         }
-        @supports (-moz-appearance: none) {
-            .psostats-weapon > .usage-bar { margin-top: -27px; }
-        }
+        /*@supports (-moz-appearance: none) {*/
+        /*    .psostats-weapon > .usage-bar { margin-top: -27px; }*/
+        /*}*/
 
-        .psostats-weapon > .usage-bar:first-of-type {
-            margin-left: -16px;
-        }
+        /*.psostats-weapon > .usage-bar:first-of-type {*/
+        /*    margin-left: -16px;*/
+        /*}*/
         .fullscreen-map {
             position: absolute;
             left: 0;
@@ -147,11 +156,12 @@
         }
 
         .map-info {
-            position: fixed;
+            position: absolute;
             right: 0;
             width: 200px;
             z-index: 100;
-            margin: 14px;
+            padding: 14px;
+            background-color: rgba(0, 0, 0, 30%);
         }
 
         .map-playback-controls {
@@ -234,7 +244,8 @@
                         <div class="psostats-chart">
                             {{ range .TimeByState }}
                                 <li class="list-group-item psostats-weapon">
-                                    <div class="usage-bar" style="background-color: {{.Color}}; width: {{.PercentTime}}%;"></div><div class="usage-bar" style="width: {{.PercentRest}}%;margin-right:-100%;"></div><div style="font-size:12px;display:inline-block;margin-left:8px;margin-top:-24px">{{.Display}} - {{.Time}}s</div></li>
+                                    <div class="usage-bar" style="background-color: {{.Color}}; width: {{.PercentTime}}%;">&nbsp;{{.Display}} - {{.Time}}s</div>
+                                </li>
                             {{ end }}
                         </div>
                     </div>
@@ -242,13 +253,13 @@
                         <ul class="list-group list-group-flush" style="margin-bottom: 4px">
                             {{ range .SortedWeapons }}
                                 <li class="list-group-item psostats-weapon">
-                                    <div class="usage-bar" style="background-color: rgba(255,100,100,0.3); width: {{.Attacks}}%;"></div><div class="usage-bar" style="background-color: rgba(120,120,255,0.5); width: {{.Techs}}%;"></div><div class="usage-bar" style="width: {{.Rest}}%;margin-right:-100%;"></div><div style="font-size:12px;display:inline-block;margin-left:8px;margin-top:-24px">{{.Display}}</div></li>
+                                    <div class="usage-bar" style="background-color: rgba(255,100,100,0.3); width: {{.Attacks}}%;">&nbsp;{{.Display}}</div><div class="usage-bar" style="background-color: rgba(120,120,255,0.5); width: {{.Techs}}%;"></div></li>
                             {{ end }}
                         </ul>
                         <div class="psostats-chart">
                             <div class="psostats-equipment">
                                 {{ range .Frames }} <div><img alt="Frame" src="/static/Frame_icon.png"/> {{ .Display }}</div>{{ end}}
-                                {{ range .Units }} <div><img alt="Unit" src="/static/Unit_icon.png" style="margin-left: 16px;"/> {{ .Display }}</div> {{ end}}
+                                {{ range .Units }} <div><img alt="Unit" src="/static/Unit_icon.png" style="margin-left: 12px;"/> {{ .Display }}</div> {{ end}}
                                 {{ range .Barriers }} <div><img alt="Barrier" src="/static/Shield_icon.png"/> {{ .Display }}</div> {{ end}}
                                 {{ range .Mags }} <div><img alt="Mag" src="/static/Mag_icon.png"/> {{ .Display }}</div> {{ end}}
                             </div>
@@ -368,16 +379,6 @@
             }
             return "State " + state;
         }
-        const maxHp = {{ .MaxHp }};
-        const maxTp = {{ .MaxTp }};
-        const hasFacing = {{ .HasFacing }};
-        const weapons = {
-            {{ range $id, $weapon := $game.Weapons}} "{{$id}}": "{{$weapon.Display}}",
-            {{ end }}
-        }
-        const equippedWeapons = [{{ range $index, $frame := $game.DataFrames }} "{{ $frame.Weapon }}", {{ end }}];
-        const playerState = [{{ range $index, $frame := $game.DataFrames }} "{{ $frame.State}}", {{ end }}]
-
 
         const afterTitle = (toolTipItems) => {
             return weapons[equippedWeapons[toolTipItems[0].parsed.x]] + "\n" + playerStateName(playerState[toolTipItems[0].parsed.x]);
