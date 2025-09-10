@@ -161,7 +161,7 @@ func GetWeapons() []Weapon {
 		{Name: "Arms", MinAtp: 60, MaxAtp: 140, Ata: 33, Grind: 10, MaxHit: 100, MaxAttr: 100, Special: "Charge", Animation: "Shot"},
 		{Name: "L&K38 Combat", MinAtp: 150, MaxAtp: 250, Ata: 40, Grind: 25, ComboPreset: Combo{Attack1Hits: 5, Attack2: "NONE", Attack3: "NONE"}, MaxHit: 100, MaxAttr: 100, Animation: "L&K38 Combat"},
 		{Name: "Rambling May", MinAtp: 360, MaxAtp: 450, Ata: 45, Grind: 0, MaxHit: 0, ComboPreset: Combo{Attack1Hits: 2, Attack2Hits: 2, Attack3Hits: 2}, MaxAttr: 100, Animation: "Shot"},
-		{Name: "Baranz Launcher", MinAtp: 230, MaxAtp: 240, Ata: 40, Grind: 30, MaxHit: 50, MaxAttr: 100, Animation: "Shot"},
+		{Name: "Baranz Launcher", MinAtp: 230, MaxAtp: 240, Ata: 40, Grind: 30, MaxHit: 50, MaxAttr: 100, Special: "Charge", Animation: "Shot"},
 		{Name: "Dark Meteor", MinAtp: 150, MaxAtp: 280, Ata: 45, Grind: 25, ComboPreset: Combo{Attack2: "NONE", Attack3: "NONE"}, MaxHit: 100, MaxAttr: 100, Special: "Dark Flow", Animation: "Shot"},
 		{Name: "TypeSH/Shot", MinAtp: 10, MaxAtp: 10, Ata: 40, Grind: 60, MaxHit: 100, MaxAttr: 100, Special: "Charge", Animation: "Shot"},
 		{Name: "ES Shot", MinAtp: 10, MaxAtp: 10, Ata: 40, Grind: 125, MaxHit: 0, MaxAttr: 0, Special: "Berserk", Animation: "Shot"},
