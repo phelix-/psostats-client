@@ -15,6 +15,12 @@
         <script type="text/javascript" src="/static/combo_calc2.js"></script>
     </head>
     <style>
+        :root {
+            --colors-native: #A5FFAAFF;
+            --colors-abeast: #f5ff99;
+            --colors-machine: #ff958b;
+            --colors-dark: #e1a9ff;
+        }
         .psostats-content {
             background-color: #444;
             padding: 8px;
@@ -84,6 +90,42 @@
         }
         .form-control:disabled {
             background-color: #666666;
+        }
+
+        .monster-title-Native {
+            color: var(--colors-native);
+        }
+        .monster-title-ABeast {
+            color: var(--colors-abeast);
+        }
+        .monster-title-Machine {
+            color: var(--colors-machine);
+        }
+        .monster-title-Dark {
+            color: var(--colors-dark);
+        }
+
+        .btn {
+            border-color: #aaa;
+            border-width: 1px;
+            background-color: #333;
+        }
+
+        .native-btn {
+            color: var(--colors-native);
+        }
+        .abeast-btn {
+            color: var(--colors-abeast);
+        }
+        .machine-btn {
+            color: var(--colors-machine);
+        }
+        .dark-btn {
+            color: var(--colors-dark);
+        }
+
+        .clear-btn {
+            color: #aaa;
         }
     </style>
     <body>
@@ -240,6 +282,7 @@
                     <option value="Charge">Charge</option>
                     <option value="Berserk">Berserk</option>
                     <option value="Spirit">Spirit</option>
+                    <option value="Arrest">Arrest</option>
                     <option value="Gush">Gush</option>
                     <option value="Devil's">Devil's</option>
                     <option value="Demon's">Demon&#39;s</option>
@@ -310,6 +353,11 @@
                         <option value="3">3 Hits</option>
                         <option value="4">4 Hits</option>
                         <option value="5">5 Hits</option>
+                        <option value="6">6 Hit</option>
+                        <option value="7">7 Hits</option>
+                        <option value="8">8 Hits</option>
+                        <option value="9">9 Hits</option>
+                        <option value="10">10 Hits</option>
                     </select>
                 </div>
             </div>
@@ -327,6 +375,11 @@
                         <option value="3">3 Hits</option>
                         <option value="4">4 Hits</option>
                         <option value="5">5 Hits</option>
+                        <option value="6">6 Hit</option>
+                        <option value="7">7 Hits</option>
+                        <option value="8">8 Hits</option>
+                        <option value="9">9 Hits</option>
+                        <option value="10">10 Hits</option>
                     </select>
                 </div>
             </div>
@@ -344,13 +397,18 @@
                         <option value="3">3 Hits</option>
                         <option value="4">4 Hits</option>
                         <option value="5">5 Hits</option>
+                        <option value="6">6 Hit</option>
+                        <option value="7">7 Hits</option>
+                        <option value="8">8 Hits</option>
+                        <option value="9">9 Hits</option>
+                        <option value="10">10 Hits</option>
                     </select>
                 </div>
             </div>
             <div class="col-12 mb-3" id="total-frames"></div>
         </div>
 
-        <div class="row psostats-content">
+        <div id="enemy-select-vue" class="row psostats-content">
             <div class="col-12">
                 <h3>Enemies</h3>
             </div>
@@ -367,10 +425,16 @@
                     <input class="form-check-input" type="checkbox" id="maxDamageCheckbox">
                     <label class="form-check-label" for="maxDamageCheckbox">Max Damage</label>
                 </div>
-
+            </div>
+            <div class="col-12 mb-1">
+                <button id="native-btn" type="button" class="btn native-btn" @click="addNative">Native</button>
+                <button id="abeast-btn" type="button" class="btn abeast-btn" @click="addABeast">A.Beast</button>
+                <button id="machine-btn" type="button" class="btn machine-btn" @click="addMachine">Machine</button>
+                <button id="dark-btn" type="button" class="btn dark-btn" @click="addDark">Dark</button>
+                <button id="clear-btn" type="button" class="btn clear-btn" @click="clearEnemies">Clear</button>
             </div>
             <div class="col-12 mb-3">
-                <div id="enemy-select-vue">
+                <div>
                     <multiselect
                             v-model="defaultEnemies"
                             :options="enemiesByLocation"
@@ -381,13 +445,12 @@
                             track-by="name"
                             label="name"
                             @input="enemiesSelected"
-                            selected-label=""
-                            select-label=""
-                            deselect-label=""
                             :close-on-select="false"
                             :clear-on-select="false"
                             placeholder="Select Enemies"
-                    ></multiselect>
+                            :show-labels="false"
+                    >
+                    </multiselect>
                 </div>
             </div>
         </div>
@@ -416,9 +479,16 @@
         const classStats = {{ .ClassStatsJson }};
         let selectedWeapon = weapons["Unarmed"];
         let selectedEnemies = [];
-        const enemies = {
-        {{ range $location, $enemy := .Enemies }}{{ range $enemy }}"{{.Name}}": {name: "{{.Name}}", type: "{{.Type}}", hp: {{.Hp}}, atp: {{.Atp}}, dfp: {{.Dfp}}, evp: {{.Evp}}, location: "{{.Location}}", ccaMiniboss: {{.CcaMiniboss}},},{{ end }}{{ end }}
+        const enemies = {{ .EnemiesJson }};
+        const enemiesByLocation = {};
+        for (let enemyName in enemies) {
+            let enemy = enemies[enemyName];
+            if (!enemiesByLocation[enemy.location]) {
+                enemiesByLocation[enemy.location] = [];
+            }
+            enemiesByLocation[enemy.location].push(enemy);
         }
+
         $('#class-select').change(function() {
             updateAtpInput();
             updateAtaInput();
@@ -638,25 +708,41 @@
             data: {
                 defaultEnemies: [],
                 enemiesByLocation: [
-                    { name: "Forest", enemies: [{{ range (index .Enemies "Forest") }}{ name:"{{ .Name }}"},{{ end }}]},
-                    { name: "Cave", enemies: [{{ range (index .Enemies "Caves") }}{ name:"{{ .Name }}"},{{ end }}]},
-                    { name: "Mine", enemies: [{{ range (index .Enemies "Mines") }}{ name:"{{ .Name }}"},{{ end }}]},
-                    { name: "Ruins", enemies: [{{ range (index .Enemies "Ruins") }}{ name:"{{ .Name }}"},{{ end }}]},
-                    { name: "Temple", enemies: [{{ range (index .Enemies "Temple") }}{ name:"{{ .Name }}"},{{ end }}]},
-                    { name: "Spaceship", enemies: [{{ range (index .Enemies "Spaceship") }}{ name:"{{ .Name }}"},{{ end }}]},
-                    { name: "CCA", enemies: [{{ range (index .Enemies "CCA") }}{ name:"{{ .Name }}"},{{ end }}]},
-                    { name: "Seabed", enemies: [{{ range (index .Enemies "Seabed") }}{ name:"{{ .Name }}"},{{ end }}]},
-                    { name: "Tower", enemies: [{{ range (index .Enemies "Tower") }}{ name:"{{ .Name }}"},{{ end }}]},
-                    { name: "Crater", enemies: [{{ range (index .Enemies "Crater") }}{ name:"{{ .Name }}"},{{ end }}]},
-                    { name: "Desert", enemies: [{{ range (index .Enemies "Desert") }}{ name:"{{ .Name }}"},{{ end }}]},
+                    { name: "Forest", enemies: enemiesByLocation["Forest"]},
+                    { name: "Cave", enemies: enemiesByLocation["Caves"]},
+                    { name: "Mine", enemies: enemiesByLocation["Mines"]},
+                    { name: "Ruins", enemies: enemiesByLocation["Ruins"]},
+                    { name: "Temple", enemies: enemiesByLocation["Temple"]},
+                    { name: "Spaceship", enemies: enemiesByLocation["Spaceship"]},
+                    { name: "CCA", enemies: enemiesByLocation["CCA"]},
+                    { name: "Seabed", enemies: enemiesByLocation["Seabed"]},
+                    { name: "Tower", enemies: enemiesByLocation["Tower"]},
+                    { name: "Crater", enemies: enemiesByLocation["Crater"]},
+                    { name: "Desert", enemies: enemiesByLocation["Desert"]},
                 ]
             },
             methods: {
                 enemiesSelected (selection) {
-                    selectedEnemies = [];
-                    for (let i in selection) {
-                        selectedEnemies.push(selection[i].name)
+                    selectedEnemies = this.defaultEnemies;
+                    updateDamageTable();
+                },
+                addNative() { this.addEnemiesByType("Native") },
+                addABeast() { this.addEnemiesByType("A.Beast") },
+                addMachine() { this.addEnemiesByType("Machine") },
+                addDark() { this.addEnemiesByType("Dark") },
+                addEnemiesByType (type) {
+                    for (let enemyName in enemies) {
+                        let enemy = enemies[enemyName];
+                        if (enemy.type === type && !(enemy in this.defaultEnemies)) {
+                            this.defaultEnemies.push(enemy);
+                        }
                     }
+                    selectedEnemies = this.defaultEnemies;
+                    updateDamageTable();
+                },
+                clearEnemies() {
+                    this.defaultEnemies = [];
+                    selectedEnemies = [];
                     updateDamageTable();
                 }
             }

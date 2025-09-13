@@ -1,25 +1,25 @@
 package enemies
 
 type Enemy struct {
-	Name        string
-	Type        string
-	Hp          int
-	Atp         int
-	Dfp         int
-	Mst         int
-	Ata         int
-	Evp         int
-	Lck         int
-	Efr         int
-	Eic         int
-	Eth         int
-	Edk         int
-	Elt         int
-	Esp         int
-	Xp          int
-	Location    string
-	CcaMiniboss bool
-	UnitxtId    int
+	Name        string `json:"name"`
+	Type        string `json:"type"`
+	Hp          int    `json:"hp"`
+	Atp         int    `json:"atp"`
+	Dfp         int    `json:"dfp"`
+	Mst         int    `json:"mst"`
+	Ata         int    `json:"ata"`
+	Evp         int    `json:"evp"`
+	Lck         int    `json:"lck"`
+	Efr         int    `json:"efr"`
+	Eic         int    `json:"eic"`
+	Eth         int    `json:"eth"`
+	Edk         int    `json:"edk"`
+	Elt         int    `json:"elt"`
+	Esp         int    `json:"esp"`
+	Xp          int    `json:"xp"`
+	Location    string `json:"location"`
+	CcaMiniboss bool   `json:"ccaMiniboss"`
+	UnitxtId    int    `json:"unitxtId"`
 }
 
 func GetEnemiesUltMulti() []Enemy {

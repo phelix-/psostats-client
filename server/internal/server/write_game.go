@@ -125,7 +125,7 @@ func (s *Server) PostGame(c *fiber.Ctx) error {
 				log.Printf("failed to update leaderboard for game %v - %v", questRun.Id, err)
 			}
 		}
-		s.updateAnniv2025Record(questRun, matchingGame)
+		//s.updateAnniv2025Record(questRun, matchingGame)
 		s.recordsLock.Unlock()
 
 		playerPb, err := db.GetPlayerPB(questRun.QuestName, user.Id, numPlayers, questRun.PbCategory, s.dynamoClient)
