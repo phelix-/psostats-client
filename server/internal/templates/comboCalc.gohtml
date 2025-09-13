@@ -414,15 +414,15 @@
             </div>
             <div class="col-12 mb-1">
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="checkbox" id="frozenCheckbox">
+                    <input class="form-check-input" type="checkbox" id="frozenCheckbox" v-model="frozenChecked">
                     <label class="form-check-label" for="frozenCheckbox">Frozen</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="checkbox" id="paralyzedCheckbox">
+                    <input class="form-check-input" type="checkbox" id="paralyzedCheckbox" v-model="paralyzedChecked">
                     <label class="form-check-label" for="paralyzedCheckbox">Paralyzed</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="checkbox" id="maxDamageCheckbox">
+                    <input class="form-check-input" type="checkbox" id="maxDamageCheckbox" v-model="maxDamageChecked">
                     <label class="form-check-label" for="maxDamageCheckbox">Max Damage</label>
                 </div>
             </div>
@@ -555,8 +555,6 @@
             updateDamageTable();
         });
         $('#frozenCheckbox').change(updateDamageTable);
-        $('#paralyzedCheckbox').change(updateDamageTable);
-        $('#maxDamageCheckbox').change(updateDamageTable);
 
         function updateAtpInput() {
             const selectedClass = $('#class-select').val()
@@ -719,7 +717,15 @@
                     { name: "Tower", enemies: enemiesByLocation["Tower"]},
                     { name: "Crater", enemies: enemiesByLocation["Crater"]},
                     { name: "Desert", enemies: enemiesByLocation["Desert"]},
-                ]
+                ],
+                frozenChecked: false,
+                paralyzedChecked: false,
+                maxDamageChecked: false,
+            },
+            watch: {
+                frozenChecked: updateDamageTable,
+                paralyzedChecked: updateDamageTable,
+                maxDamageChecked: updateDamageTable,
             },
             methods: {
                 enemiesSelected (selection) {
@@ -733,7 +739,7 @@
                 addEnemiesByType (type) {
                     for (let enemyName in enemies) {
                         let enemy = enemies[enemyName];
-                        if (enemy.type === type && !(enemy in this.defaultEnemies)) {
+                        if (enemy.type === type && !this.defaultEnemies.includes(enemy)) {
                             this.defaultEnemies.push(enemy);
                         }
                     }
