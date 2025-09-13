@@ -4,9 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/phelix-/psostats/v2/pkg/common"
-	"github.com/phelix-/psostats/v2/pkg/psoclasses"
 	"github.com/phelix-/psostats/v2/server/internal/db"
-	"github.com/phelix-/psostats/v2/server/internal/enemies"
 	"github.com/phelix-/psostats/v2/server/internal/userdb"
 	"github.com/phelix-/psostats/v2/server/internal/weapons"
 	"log"
@@ -198,97 +196,6 @@ func (s *Server) Index(c *fiber.Ctx) error {
 func (s *Server) InfoPage(c *fiber.Ctx) error {
 	infoModel := struct{}{}
 	err := s.infoTemplate.ExecuteTemplate(c.Response().BodyWriter(), "info", infoModel)
-	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
-	return err
-}
-
-func (s *Server) ComboCalcOpmPage(c *fiber.Ctx) error {
-	return s.comboCalcPage(
-		true,
-		psoclasses.GetAll(),
-		enemies.GetEnemiesUltOpm(),
-		weapons.GetWeapons(),
-		weapons.GetFrames(),
-		c,
-	)
-}
-
-func (s *Server) ComboCalcMultiPage(c *fiber.Ctx) error {
-	return s.comboCalcPage(
-		false,
-		psoclasses.GetAll(),
-		enemies.GetEnemiesUltMulti(),
-		weapons.GetWeapons(),
-		weapons.GetFrames(),
-		c,
-	)
-}
-
-func (s *Server) ComboCalcUltima(c *fiber.Ctx) error {
-	return s.comboCalcPage(
-		false,
-		psoclasses.GetAllUltima(),
-		enemies.GetEnemiesUltima(),
-		weapons.GetWeaponsUltima(),
-		weapons.GetFramesUltima(),
-		c,
-	)
-}
-
-func (s *Server) comboCalcPage(
-	opm bool,
-	allClasses []psoclasses.PsoClass,
-	allEnemies []enemies.Enemy,
-	allWeapons []weapons.Weapon,
-	allFrames []weapons.Frame,
-	c *fiber.Ctx,
-) error {
-	sortedEnemies := make(map[string][]enemies.Enemy)
-	for _, enemy := range allEnemies {
-		enemiesInArea := sortedEnemies[enemy.Location]
-		if enemiesInArea == nil {
-			enemiesInArea = make([]enemies.Enemy, 0)
-		}
-		enemiesInArea = append(enemiesInArea, enemy)
-		sortedEnemies[enemy.Location] = enemiesInArea
-	}
-
-	weaponsMap := make(map[string]weapons.Weapon)
-	for _, weapon := range allWeapons {
-		weaponsMap[weapon.Name] = weapon
-	}
-	psoClassMap := make(map[string]psoclasses.PsoClass)
-	for _, psoClass := range allClasses {
-		psoClassMap[psoClass.Name] = psoClass
-	}
-	frameMap := make(map[string]weapons.Frame)
-	for _, frame := range allFrames {
-		frameMap[frame.Name] = frame
-	}
-	weaponsJson, _ := json.Marshal(weaponsMap)
-	frameJson, _ := json.Marshal(frameMap)
-	psoClassJson, _ := json.Marshal(psoClassMap)
-	infoModel := struct {
-		Opm            bool
-		Classes        []psoclasses.PsoClass
-		ClassStatsJson string
-		Enemies        map[string][]enemies.Enemy
-		Frames         []weapons.Frame
-		FramesJson     string
-		Weapons        []weapons.Weapon
-		WeaponsJson    string
-	}{
-		Opm:            opm,
-		Classes:        allClasses,
-		ClassStatsJson: string(psoClassJson),
-		Enemies:        sortedEnemies,
-		Frames:         allFrames,
-		FramesJson:     string(frameJson),
-		Weapons:        allWeapons,
-		WeaponsJson:    string(weaponsJson),
-	}
-	err := s.comboCalcTemplate.ExecuteTemplate(c.Response().BodyWriter(), "combo-calc", infoModel)
-
 	c.Response().Header.Set("Content-Type", "text/html; charset=UTF-8")
 	return err
 }

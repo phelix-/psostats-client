@@ -201,6 +201,7 @@ function createMonsterRow(
     return {
         name: enemy.name,
         hp: enemy.hp,
+        type: enemy.type.replaceAll(".", ""),
         percentDamage: percentDamage,
         comboDamage: comboDamage.total,
         overallAccuracy: accuracyResult.overallAccuracy,
@@ -426,6 +427,7 @@ function appendMonsterRow(rowEntry, showAccuracyRange) {
         .append($('<th/>', {
             'colspan': 2,
             'data-label': 'monster',
+            'class': `monster-title-${rowEntry.type}`,
             'text': rowEntry.name
         }))
         .append($('<td/>', {
@@ -564,7 +566,7 @@ function updateDamageTable() {
     tbody.empty();
     let rows = [];
     for (let index in selectedEnemies) {
-        let enemy = enemies[selectedEnemies[index]];
+        let enemy = selectedEnemies[index];
         let row = createMonsterRow(
             special, autoCombo, selectedWeapon, enemy,
             evpModifier, base_ata, snGlitch, atpInput, comboInput, range
