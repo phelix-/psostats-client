@@ -5,52 +5,29 @@ import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"io/ioutil"
+	"os"
 )
 
-//func (s *Server) GetGeometry(c *fiber.Ctx) error {
-//	gameId := "26873"
-//	gem := 1
-//	if dataFrames, err := db.GetDataFrames(gameId, gem, s.dynamoClient); err == nil {
-//		floorMeshes := GetFloorMeshes(dataFrames[0].Map, dataFrames[0].MapVariation)
-//		floorMeshes.DataFrames = dataFrames
-//		jsonBytes, err := json.Marshal(floorMeshes)
-//		if err != nil {
-//			return err
-//		}
-//		c.Response().AppendBody(jsonBytes)
-//		c.Response().Header.Set("Content-Type", "application/json")
-//	}
-//	return nil
-//}
-
 func (s *Server) GetGameJs(c *fiber.Ctx) error {
-	content, err := ioutil.ReadFile("./js/game.js")
+	return s.serveJs("./js/game.js", c)
+}
+
+func (s *Server) GetGeometryJs(c *fiber.Ctx) error {
+	return s.serveJs("./js/monster_geometry.js", c)
+}
+
+func (s *Server) serveJs(fileName string, c *fiber.Ctx) error {
+	content, err := os.ReadFile(fileName)
 	if err != nil {
 		return err
 	}
-	_, err = c.Response().BodyWriter().Write(content)
 	c.Response().Header.Set("Content-Type", "application/javascript")
+	_, err = c.Response().BodyWriter().Write(content)
 	return err
 }
 
 func (s *Server) OrbitControlsJs(c *fiber.Ctx) error {
-	content, err := ioutil.ReadFile("./js/OrbitControls.js")
-	if err != nil {
-		return err
-	}
-	_, err = c.Response().BodyWriter().Write(content)
-	c.Response().Header.Set("Content-Type", "application/javascript")
-	return err
-}
-
-func (s *Server) DraughtsJs(c *fiber.Ctx) error {
-	content, err := ioutil.ReadFile("./js/draughts.js")
-	if err != nil {
-		return err
-	}
-	_, err = c.Response().BodyWriter().Write(content)
-	c.Response().Header.Set("Content-Type", "application/javascript")
-	return err
+	return s.serveJs("./js/OrbitControls.js", c)
 }
 
 func (s *Server) ThreeJs(c *fiber.Ctx) error {

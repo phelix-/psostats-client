@@ -1012,6 +1012,11 @@ func (pso *PSO) GetMonsterList() ([]Monster, error) {
 				if err != nil {
 					log.Printf("cannot read monster name for id %v %v", untxtId, err)
 				} else {
+					monsterY := numbers.ReadF32(pso.handle, monsterAddr+0x3C)
+					if untxtId == 94 || untxtId == 95 {
+						// zu and pazuzu have weird height logic
+						monsterY += numbers.ReadF32(pso.handle, monsterAddr+0x418)
+					}
 					monsters = append(monsters, Monster{
 						Name:            monsterName,
 						hp:              hp,
@@ -1026,7 +1031,7 @@ func (pso *PSO) GetMonsterList() ([]Monster, error) {
 							Paralyzed: paralyzed,
 							Confused:  confused,
 							X:         numbers.ReadF32(pso.handle, monsterAddr+0x38),
-							Y:         numbers.ReadF32(pso.handle, monsterAddr+0x3C),
+							Y:         monsterY,
 							Z:         numbers.ReadF32(pso.handle, monsterAddr+0x40),
 						},
 					})

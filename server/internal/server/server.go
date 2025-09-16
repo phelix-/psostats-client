@@ -101,7 +101,7 @@ func (s *Server) Run() {
 	s.app.Static("/favicon.ico", "./static/favicon.ico", fiber.Static{})
 	s.app.Static("/static/", "./static/", fiber.Static{})
 	s.app.Get("/js/game.js", s.GetGameJs)
-	s.app.Get("/js/draughts.js", s.DraughtsJs)
+	s.app.Get("/js/monster_geometry.js", s.GetGeometryJs)
 	s.app.Get("/js/three.module.js", s.ThreeJs)
 	s.app.Get("/js/OrbitControls.js", s.OrbitControlsJs)
 

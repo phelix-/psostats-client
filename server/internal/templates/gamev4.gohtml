@@ -32,6 +32,7 @@
             const charactersByGc = { {{ range $index, $player := .Game.AllPlayers }}"{{$player.GuildCard}}": {"name": "{{$player.Name}}", "class": "{{$player.Class}}"}, {{ end }} };
             const viewingGc = "" + {{$game.GuildCard}};
         </script>
+        <script type="module" src="/js/monster_geometry.js" ></script>
         <script type="module" src="/js/game.js" ></script>
     </head>
     <style>
