@@ -5,7 +5,7 @@ import { getGeometry } from  '/js/monster_geometry.js';
 let scene, camera, renderer, controls, floorGroup;
 let frame = 0;
 let frameFraction = 0;
-const playbackSpeed = 30;
+let playbackSpeed = 30;
 let players = {};
 let visibleMonsters = {};
 const playerColors = ["red", "blue", "green", "yellow"];
@@ -150,6 +150,7 @@ function init() {
         }
         frame = e.target.value;
         playbackTimer.innerText = Math.floor(frame / 60) + ":" + String(frame % 60).padStart(2, '0');
+        cameraUnset = true
     }
 
     scene = new THREE.Scene();
@@ -467,6 +468,17 @@ onkeydown = (event) => {
         case "Digit4":
             watchPlayer(3);
             break;
+        case "NumpadAdd":
+            if (playbackSpeed > 10) {
+                playbackSpeed -= 10;
+            }
+            break;
+        case "NumpadSubtract":
+            if (playbackSpeed < 120) {
+                playbackSpeed += 10;
+            }
+            break;
+
     }
 };
 

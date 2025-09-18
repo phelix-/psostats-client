@@ -392,18 +392,24 @@ function generateAutoCombo(
     return {
         name: enemy.name + " (" + comboName + " " + bestComboFrames + "f)",
         hp: enemy.hp,
+        type: enemy.type.replaceAll(".", ""),
         percentDamage: percentDamage,
         comboDamage: bestComboDamage.total,
         overallAccuracy: bestComboAccuracy.overallAccuracy,
+        overallMinAccuracy: bestComboAccuracy.overallMinAccuracy,
         a1Damage: bestComboDamage.a1Damage,
         a1Type: bestCombo[0],
         a1Accuracy: bestComboAccuracy.a1Accuracy,
+        a1MinAccuracy: bestComboAccuracy.a1MinAccuracy,
+
         a2Type: bestCombo[1],
         a2Damage: bestComboDamage.a2Damage,
         a2Accuracy: bestComboAccuracy.a2Accuracy,
+        a2MinAccuracy: bestComboAccuracy.a2MinAccuracy,
         a3Type: bestCombo[2],
         a3Damage: bestComboDamage.a3Damage,
         a3Accuracy: bestComboAccuracy.a3Accuracy,
+        a3MinAccuracy: bestComboAccuracy.a3MinAccuracy,
     }
 }
 

@@ -408,6 +408,8 @@ func (s *Server) GamePageV4(c *fiber.Ctx) error {
 		if err != nil {
 			return err
 		}
+		waves := getWaves(game)
+		wavesJson, _ := json.Marshal(waves)
 
 		model := struct {
 			Game               model.QuestRun
@@ -435,6 +437,7 @@ func (s *Server) GamePageV4(c *fiber.Ctx) error {
 			DataFrames         string
 			MeshesByFloor      string
 			Waves              []Wave
+			WavesJson          string
 		}{
 			Game:      *game,
 			SectionId: getSectionIdForQuest(game),
@@ -472,7 +475,8 @@ func (s *Server) GamePageV4(c *fiber.Ctx) error {
 			Monsters:         string(monsters),
 			DataFrames:       dataFrames,
 			MeshesByFloor:    jsonFloorMeshes,
-			Waves:            getWaves(game),
+			Waves:            waves,
+			WavesJson:        string(wavesJson),
 		}
 		funcMap := template.FuncMap{
 			"add": func(a, b int) int { return a + b },
@@ -496,6 +500,7 @@ type WaveMonster struct {
 type Wave struct {
 	Name              string
 	Monsters          []WaveMonster
+	QuestTime         time.Duration
 	FirstSpawn        time.Time
 	Duration          time.Duration
 	FormattedDuration string
@@ -522,8 +527,13 @@ func getWaves(game *model.QuestRun) []Wave {
 				waves = append(waves, wave)
 				wave = Wave{}
 			}
+			wave.QuestTime = wave.FirstSpawn.Sub(game.QuestStartTime)
 			wave.FirstSpawn = monster.SpawnTime
-			wave.Name = formatDurationSeconds(wave.FirstSpawn.Sub(game.QuestStartTime))
+			wave.Name = fmt.Sprintf("#%d %s", len(waves)+1, formatDurationSeconds(wave.FirstSpawn.Sub(game.QuestStartTime)))
+		}
+		timeAlive := formatDurationSecMilli(monster.KilledTime.Sub(monster.SpawnTime))
+		if monster.KilledTime.Before(monster.SpawnTime) {
+			timeAlive = "0"
 		}
 		wave.Monsters = append(wave.Monsters, WaveMonster{
 			Name:       monster.Name,
@@ -531,7 +541,7 @@ func getWaves(game *model.QuestRun) []Wave {
 			UnitxtId:   monster.UnitxtId,
 			SpawnTime:  monster.SpawnTime,
 			KilledTime: monster.KilledTime,
-			TimeAlive:  formatDurationSecMilli(monster.KilledTime.Sub(monster.SpawnTime)),
+			TimeAlive:  timeAlive,
 		})
 	}
 	wave.Duration = game.QuestEndTime.Sub(wave.FirstSpawn)

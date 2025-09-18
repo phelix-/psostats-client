@@ -449,6 +449,8 @@
                             :clear-on-select="false"
                             placeholder="Select Enemies"
                             :show-labels="false"
+                            :internal-search="false"
+                            @search-change="filterEnemies"
                     >
                     </multiselect>
                 </div>
@@ -479,15 +481,16 @@
         const classStats = {{ .ClassStatsJson }};
         let selectedWeapon = weapons["Unarmed"];
         let selectedEnemies = [];
+        const enemyNameSort = {{ .EnemyNameSort }};
         const enemies = {{ .EnemiesJson }};
-        const enemiesByLocation = {};
-        for (let enemyName in enemies) {
-            let enemy = enemies[enemyName];
-            if (!enemiesByLocation[enemy.location]) {
-                enemiesByLocation[enemy.location] = [];
+        const allEnemiesByLocation = {};
+        for (let location in enemyNameSort) {
+            allEnemiesByLocation[location] = [];
+            for (let enemyName of enemyNameSort[location]) {
+                allEnemiesByLocation[location].push(enemies[enemyName]);
             }
-            enemiesByLocation[enemy.location].push(enemy);
         }
+        const locationsInPsoOrder = ["Forest", "Caves", "Mines", "Ruins", "Temple", "Spaceship", "CCA", "Seabed", "Tower", "Crater", "Desert"];
 
         $('#class-select').change(function() {
             updateAtpInput();
@@ -706,17 +709,17 @@
             data: {
                 defaultEnemies: [],
                 enemiesByLocation: [
-                    { name: "Forest", enemies: enemiesByLocation["Forest"]},
-                    { name: "Cave", enemies: enemiesByLocation["Caves"]},
-                    { name: "Mine", enemies: enemiesByLocation["Mines"]},
-                    { name: "Ruins", enemies: enemiesByLocation["Ruins"]},
-                    { name: "Temple", enemies: enemiesByLocation["Temple"]},
-                    { name: "Spaceship", enemies: enemiesByLocation["Spaceship"]},
-                    { name: "CCA", enemies: enemiesByLocation["CCA"]},
-                    { name: "Seabed", enemies: enemiesByLocation["Seabed"]},
-                    { name: "Tower", enemies: enemiesByLocation["Tower"]},
-                    { name: "Crater", enemies: enemiesByLocation["Crater"]},
-                    { name: "Desert", enemies: enemiesByLocation["Desert"]},
+                    { name: "Forest", enemies: allEnemiesByLocation["Forest"]},
+                    { name: "Cave", enemies: allEnemiesByLocation["Caves"]},
+                    { name: "Mine", enemies: allEnemiesByLocation["Mines"]},
+                    { name: "Ruins", enemies: allEnemiesByLocation["Ruins"]},
+                    { name: "Temple", enemies: allEnemiesByLocation["Temple"]},
+                    { name: "Spaceship", enemies: allEnemiesByLocation["Spaceship"]},
+                    { name: "CCA", enemies: allEnemiesByLocation["CCA"]},
+                    { name: "Seabed", enemies: allEnemiesByLocation["Seabed"]},
+                    { name: "Tower", enemies: allEnemiesByLocation["Tower"]},
+                    { name: "Crater", enemies: allEnemiesByLocation["Crater"]},
+                    { name: "Desert", enemies: allEnemiesByLocation["Desert"]},
                 ],
                 frozenChecked: false,
                 paralyzedChecked: false,
@@ -750,7 +753,27 @@
                     this.defaultEnemies = [];
                     selectedEnemies = [];
                     updateDamageTable();
-                }
+                },
+                filterEnemies(query) {
+                    if (query) {
+                        query = query.replaceAll(".", "").toLocaleLowerCase();
+                    }
+                    this.enemiesByLocation = []
+                    for (let location of locationsInPsoOrder) {
+                        let enemiesForLocation = [];
+                        for (let enemy of allEnemiesByLocation[location]) {
+                            if (!query
+                                || enemy.name.toLocaleLowerCase().includes(query)
+                                || enemy.location.toLocaleLowerCase() === query
+                                || enemy.type.replaceAll(".", "").toLocaleLowerCase() === query
+                            ) {
+                                enemiesForLocation.push(enemy);
+                            }
+                        }
+                        console.log(query, location, enemiesForLocation.length);
+                        this.enemiesByLocation.push({"name": location, "enemies": enemiesForLocation});
+                    }
+                },
             }
         }).$mount('#enemy-select-vue')
     </script>

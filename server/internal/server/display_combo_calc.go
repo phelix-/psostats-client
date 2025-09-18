@@ -49,13 +49,13 @@ func (s *Server) comboCalcPage(
 	allFrames []weapons.Frame,
 	c *fiber.Ctx,
 ) error {
-	sortedEnemies := make(map[string][]enemies.Enemy)
+	sortedEnemies := make(map[string][]string)
 	for _, enemy := range allEnemies {
 		enemiesInArea := sortedEnemies[enemy.Location]
 		if enemiesInArea == nil {
-			enemiesInArea = make([]enemies.Enemy, 0)
+			enemiesInArea = make([]string, 0)
 		}
-		enemiesInArea = append(enemiesInArea, enemy)
+		enemiesInArea = append(enemiesInArea, enemy.Name)
 		sortedEnemies[enemy.Location] = enemiesInArea
 	}
 
@@ -63,11 +63,12 @@ func (s *Server) comboCalcPage(
 	frameJson := toJsonMap(allFrames, func(frame weapons.Frame) string { return frame.Name })
 	psoClassJson := toJsonMap(allClasses, func(class psoclasses.PsoClass) string { return class.Name })
 	enemyJson := toJsonMap(allEnemies, func(enemy enemies.Enemy) string { return enemy.Name })
+	enemyNameJson, _ := json.Marshal(sortedEnemies)
 	infoModel := struct {
 		Opm            bool
 		Classes        []psoclasses.PsoClass
 		ClassStatsJson string
-		Enemies        map[string][]enemies.Enemy
+		EnemyNameSort  string
 		EnemiesJson    string
 		Frames         []weapons.Frame
 		FramesJson     string
@@ -77,7 +78,7 @@ func (s *Server) comboCalcPage(
 		Opm:            opm,
 		Classes:        allClasses,
 		ClassStatsJson: psoClassJson,
-		Enemies:        sortedEnemies,
+		EnemyNameSort:  string(enemyNameJson),
 		EnemiesJson:    enemyJson,
 		Frames:         allFrames,
 		FramesJson:     frameJson,
