@@ -1046,7 +1046,7 @@ func GetEnemiesHardOpm() []Enemy {
 		{Name: "Merissa A", Type: "A.Beast", Hp: 923, Atp: 768, Dfp: 151, Mst: 0, Ata: 199, Evp: 156, Lck: 23, Efr: 10, Eic: 80, Eth: 25, Edk: 75, Elt: 30, Esp: 23, Xp: 131, Location: "Desert"},
 		{Name: "Merissa AA", Type: "A.Beast", Hp: 1274, Atp: 999, Dfp: 169, Mst: 0, Ata: 357, Evp: 164, Lck: 37, Efr: 85, Eic: 30, Eth: 10, Edk: 80, Elt: 30, Esp: 23, Xp: 835, Location: "Desert"},
 		{Name: "Zu (Desert)", Type: "Native", Hp: 1153, Atp: 902, Dfp: 185, Mst: 0, Ata: 299, Evp: 167, Lck: 39, Efr: 45, Eic: 25, Eth: 80, Edk: 70, Elt: 10, Esp: 33, Xp: 152, Location: "Desert"},
-		{Name: "Pazuzu (Desert)", Type: "Native 	2394", Hp: 1073, Atp:, Dfp: 198, Mst: 0, Ata: 320, Evp: 175, Lck: 41, Efr: 95, Eic: 70, Eth: 25, Edk: 55, Elt: 60, Esp: 31, Xp: 877, Location: "Desert"},
+		{Name: "Pazuzu (Desert)", Type: "Native", Hp: 2394, Atp: 1073, Dfp: 198, Mst: 0, Ata: 320, Evp: 175, Lck: 41, Efr: 95, Eic: 70, Eth: 25, Edk: 55, Elt: 60, Esp: 31, Xp: 877, Location: "Desert"},
 		{Name: "Girtablulu", Type: "Dark", Hp: 4445, Atp: 822, Dfp: 179, Mst: 0, Ata: 252, Evp: 136, Lck: 23, Efr: 40, Eic: 80, Eth: 20, Edk: 75, Elt: 10, Esp: 33, Xp: 166, Location: "Desert", CcaMiniboss: true},
 		{Name: "Saint-Milion (Phase 1)", Type: "Dark", Hp: 8820, Atp: 1800, Dfp: 270, Mst: 0, Ata: 380, Evp: 125, Lck: 25, Efr: 80, Eic: 60, Eth: 10, Edk: 0, Elt: 5, Esp: 100, Xp: 0, Location: "Desert"},
 		//{Name: "Spinner (Saint-Milion 1)", Type: "Dark", Hp: 1350, Atp: 1100, Dfp: 180, Mst: 300, Ata: 380, Evp: 125, Lck: 75, Efr: 5, Eic: 45, Eth: 45, Edk: 0, Elt: 0, Esp: 100, Xp: 0, Location: "Desert"},
