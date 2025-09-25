@@ -117,7 +117,7 @@ func GetWeapons() []Weapon {
 		{Name: "TypeSS/Swords", MinAtp: 150, MaxAtp: 150, Ata: 45, Grind: 125, MaxHit: 100, MaxAttr: 100, Animation: "Twin Sword", ComboPreset: Combo{Attack1Hits: 1, Attack2Hits: 2, Attack3Hits: 2}},
 		{Name: "ES Swords", MinAtp: 180, MaxAtp: 180, Ata: 45, Grind: 250, MaxHit: 0, MaxAttr: 0, Animation: "Twin Sword", ComboPreset: Combo{Attack1Hits: 1, Attack2Hits: 2, Attack3Hits: 2}},
 
-		{Name: "Nei's Claw", MinAtp: 756, MaxAtp: 756, Ata: 60, Grind: 0, MaxHit: 100, MaxAttr: 100, Animation: "Claw"Special: "Spirit", },
+		{Name: "Nei's Claw", MinAtp: 756, MaxAtp: 756, Ata: 60, Grind: 0, MaxHit: 100, MaxAttr: 100, Animation: "Claw", Special: "Spirit"},
 
 		{Name: "Raygun", MinAtp: 150, MaxAtp: 180, Ata: 35, Grind: 15, MaxHit: 100, MaxAttr: 100, Animation: "Handgun", Special: "Charge", HorizontalDistance: 170, HorizontalAngle: 10},
 		{Name: "Master Raven", MinAtp: 350, MaxAtp: 380, Ata: 52, Grind: 9, MaxHit: 0, MaxAttr: 100, Animation: "Master Raven", HorizontalDistance: 170, HorizontalAngle: 10, ComboPreset: Combo{Attack1Hits: 3, Attack2: "NONE", Attack3: "NONE"}},
@@ -192,6 +192,6 @@ func GetSpecials() map[string]Special {
 		"Spirit":         {AccuracyMultiplier: 0.5, DamageMultiplier: 3.0},
 		"Berserk":        {AccuracyMultiplier: 0.5, DamageMultiplier: 3.0},
 		"Vjaya":          {AccuracyMultiplier: 0.7, DamageMultiplier: 5.1},
-		"Mille Marteaux":          {AccuracyMultiplier: 0.5, DamageMultiplier: 1.7},
+		"Mille Marteaux": {AccuracyMultiplier: 0.5, DamageMultiplier: 1.7},
 	}
 }
