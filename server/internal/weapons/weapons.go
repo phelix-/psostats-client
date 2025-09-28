@@ -164,7 +164,7 @@ func GetWeapons() []Weapon {
 		{Name: "Rambling May", MinAtp: 360, MaxAtp: 450, Ata: 45, Grind: 0, MaxHit: 0, MaxAttr: 100, Animation: "Shot", HorizontalDistance: 170, HorizontalAngle: 10, ComboPreset: Combo{Attack1Hits: 2, Attack2Hits: 2, Attack3Hits: 2}},
 		{Name: "Baranz Launcher", MinAtp: 230, MaxAtp: 240, Ata: 40, Grind: 30, MaxHit: 50, MaxAttr: 100, Animation: "Shot", Special: "Charge"},
 		{Name: "Dark Meteor", MinAtp: 150, MaxAtp: 280, Ata: 45, Grind: 25, MaxHit: 100, MaxAttr: 100, Animation: "Shot", Special: "Dark Flow", ComboPreset: Combo{Attack2: "NONE", Attack3: "NONE"}},
-		{Name: "TypeSH/Shot", MinAtp: 10, MaxAtp: 10, Ata: 40, Grind: 60, MaxHit: 100, MaxAttr: 100, Animation: "Shot", Special: "Charge"},
+		{Name: "TypeSH/Shot", MinAtp: 10, MaxAtp: 10, Ata: 40, Grind: 60, MaxHit: 40, MaxAttr: 100, Animation: "Shot", Special: "Charge"},
 		{Name: "ES Shot", MinAtp: 10, MaxAtp: 10, Ata: 40, Grind: 125, MaxHit: 0, MaxAttr: 0, Animation: "Shot", Special: "Berserk"},
 		{Name: "ES Bazooka", MinAtp: 10, MaxAtp: 10, Ata: 40, Grind: 250, MaxHit: 0, MaxAttr: 0, Animation: "Shot", Special: "Berserk"},
 
