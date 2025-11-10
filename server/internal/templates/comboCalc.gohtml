@@ -88,6 +88,21 @@
         .multiselect__tag-icon:focus, .multiselect__tag-icon:hover {
             background-color: #666;
         }
+        .multiselect__option { 
+            background-color: #666;
+        }
+        .multiselect__option.native {
+        color: var(--colors-native); 
+        }
+        .multiselect__option.abeast {
+        color: var(--colors-abeast); 
+        }
+        .multiselect__option.machine {
+        color: var(--colors-machine); 
+        }
+        .multiselect__option.dark {
+        color: var(--colors-dark); 
+        }
         .form-control:disabled {
             background-color: #666666;
         }
@@ -452,6 +467,16 @@
                             :internal-search="false"
                             @search-change="filterEnemies"
                     >
+                        <template slot="option" slot-scope="props">
+                            <div v-if="props.option.enemies">
+                                <strong>{{"{{"}} props.option.name {{"}}"}}</strong>
+                                <small class="text-muted"> ({{"{{"}} props.option.enemies.length {{"}}"}})</small>
+                            </div>
+                            <div v-else :class="getEnemyType(props.option)">
+                                {{"{{"}} props.option.name {{"}}"}} <small class="text-muted">- {{"{{"}} props.option.type {{"}}"}}</small>
+                            </div>
+                            </div>
+                        </template>
                     </multiselect>
                 </div>
             </div>
@@ -731,7 +756,19 @@
                 maxDamageChecked: updateDamageTable,
             },
             methods: {
-                enemiesSelected (selection) {
+                getEnemyType(enemy) {
+                    if (enemy.type === 'Native') {
+                        return 'native';
+                    } else if (enemy.type === 'A.Beast') {
+                        return 'abeast';
+                    } else if (enemy.type === 'Machine') {
+                        return 'machine';
+                    } else if (enemy.type === 'Dark') {
+                        return 'dark';
+                    }
+                    return '';
+                },
+                enemiesSelected(selection) {
                     selectedEnemies = this.defaultEnemies;
                     updateDamageTable();
                 },
