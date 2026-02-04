@@ -239,7 +239,7 @@ func (cui *ConsoleUI) drawQuestInfo(
 			fmt.Sprintf("%40v", formatCategory(quest)),
 			fmt.Sprintf("%40v", formatQuestTime(quest)),
 		}
-		if quest.QuestName == "Endless: Episode 1" {
+		if quest.QuestName == "Endless: Episode 1" || "Endless: Episode 2" {
 			list.Rows = append(list.Rows, fmt.Sprintf("%28v:%11v", "Points", quest.Points))
 		}
 		list.Rows = append(list.Rows, fmt.Sprintf("%40v", formatMesetaCharged(quest)))
