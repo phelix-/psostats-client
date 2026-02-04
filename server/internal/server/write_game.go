@@ -325,5 +325,9 @@ type Field struct {
 }
 
 func isRankedByScore(questRun model.QuestRun) bool {
-	return questRun.QuestName == "Endless: Episode 1"
+	if questRun.QuestName == "Endless: Episode 1" || "Endless: Episode 2" {
+		return true
+	} else: {
+		return false
+	}
 }
