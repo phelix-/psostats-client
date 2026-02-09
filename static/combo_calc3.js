@@ -193,7 +193,7 @@ function createMonsterRow(
 
     let accuracyResult = getAccuracyForCombo(base_ata, comboInput, special, modified_evp, snGlitch, range);
     let comboDamage = getDamageForCombo(enemy.hp, atpInput, comboInput, special, damageToUse);
-    let percentDamage = Floor(100 * (comboDamage.total / enemy.hp));
+    let percentDamage = Math.floor(100 * (comboDamage.total / enemy.hp));
     if (percentDamage > 100) {
         percentDamage = 100;
     }
@@ -380,7 +380,7 @@ function generateAutoCombo(
         }
     }
 
-    let percentDamage = Floor(100 * (bestComboDamage.total / enemy.hp));
+    let percentDamage = Math.floor(100 * (bestComboDamage.total / enemy.hp));
     if (percentDamage > 100) {
         percentDamage = 100;
     }
