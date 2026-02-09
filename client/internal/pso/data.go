@@ -492,7 +492,7 @@ func (pso *PSO) updateCurrentSplit(questConfig quest.Quest) {
 }
 
 func (pso *PSO) addExtraQuestInfo(questConfig quest.Quest) {
-	if questConfig.Name == "Endless: Episode 1" || "Endless: Episode 2" {
+	if questConfig.Name == "Endless: Episode 1" || questConfig.Name == "Endless: Episode 2" {
 		points := quest.GetRegisterValue(pso.handle, 51, pso.GameState.questRegisterPointer)
 		if points > 0 {
 			pso.CurrentQuest.Points = points
