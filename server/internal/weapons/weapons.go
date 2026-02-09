@@ -123,7 +123,7 @@ func GetWeapons() []Weapon {
 		{Name: "Raygun", MinAtp: 150, MaxAtp: 180, Ata: 35, Grind: 15, MaxHit: 100, MaxAttr: 100, Animation: "Handgun", Special: "Charge", HorizontalDistance: 170, HorizontalAngle: 10},
 		{Name: "Master Raven", MinAtp: 350, MaxAtp: 380, Ata: 52, Grind: 9, MaxHit: 0, MaxAttr: 100, Animation: "Master Raven", HorizontalDistance: 170, HorizontalAngle: 10, ComboPreset: Combo{Attack1Hits: 3, Attack2: "NONE", Attack3: "NONE"}},
 		{Name: "Last Swan", MinAtp: 80, MaxAtp: 90, Ata: 32, Grind: 9, MaxHit: 0, MaxAttr: 100, Animation: "Last Swan", HorizontalDistance: 170, HorizontalAngle: 10, ComboPreset: Combo{Attack1Hits: 3, Attack2Hits: 3, Attack3Hits: 3}},
-		{Name: "Heaven Striker", MinAtp: 550, MaxAtp: 600, Ata: 55, Grind: 20, MaxHit: 100, MaxAttr: 100, Animation: "Handgun", Special: "Berserk"},
+		{Name: "Heaven Striker", MinAtp: 550, MaxAtp: 660, Ata: 55, Grind: 20, MaxHit: 100, MaxAttr: 100, Animation: "Handgun", Special: "Berserk"},
 
 		{Name: "Laser", MinAtp: 200, MaxAtp: 210, Ata: 50, Grind: 25, MaxHit: 100, MaxAttr: 100, Animation: "Rifle", Special: "Charge"},
 		{Name: "Spread Needle", MinAtp: 1, MaxAtp: 110, Ata: 40, Grind: 40, MaxHit: 100, MaxAttr: 100, Animation: "Rifle", Special: "Seize"},
