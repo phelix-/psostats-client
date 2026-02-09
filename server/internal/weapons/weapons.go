@@ -84,6 +84,7 @@ func GetWeapons() []Weapon {
 		{Name: "Plantain Huge Fan", MinAtp: 265, MaxAtp: 300, Ata: 38, Grind: 9, MaxHit: 100, MaxAttr: 100, Animation: "Partisan", Special: "PHF"},
 		{Name: "Asteron Belt", MinAtp: 380, MaxAtp: 400, Ata: 55, Grind: 9, MaxHit: 100, MaxAttr: 100, Animation: "Partisan", Special: "Hell*"},
 		{Name: "Yunchang", MinAtp: 300, MaxAtp: 350, Ata: 49, Grind: 25, MaxHit: 100, MaxAttr: 100, Animation: "Partisan", Special: "Berserk"},
+		{Name: "Red Partisan", MinAtp: 290, MaxAtp: 295, Ata: 43, Grind: 40, MaxHit: 100, MaxAttr: 100, Animation: "Partisan"},
 		{Name: "ES Partisan", MinAtp: 10, MaxAtp: 10, Ata: 40, Grind: 200, MaxHit: 0, MaxAttr: 0, Animation: "Partisan"},
 		{Name: "ES Scythe", MinAtp: 10, MaxAtp: 10, Ata: 40, Grind: 180, MaxHit: 0, MaxAttr: 0, Animation: "Partisan"},
 
