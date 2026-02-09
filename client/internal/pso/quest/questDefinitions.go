@@ -211,6 +211,7 @@ func GetAllQuests() []Quest {
 		{Episode: 1, Name: "Tyrell's Ego", Number: 161, Start: register(4), End: register(101)},
 		{Episode: 1, Name: "総督の贈り物", Start: floorSwitch(6, 165), End: floorSwitch(6, 33)},
 		{Episode: 1, Name: "Coetaneous Resolve", Number: 1873, Start: register(210), End: register(50)},
+		{Episode: 1, Name: "Subterranean Patrol #1", Number: 1960, Start: register(1), End: register(254)},
 		// Labyrinthine Trial
 		// Sugoroku
 		// Sim 2.0
