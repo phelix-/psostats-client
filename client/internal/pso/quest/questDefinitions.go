@@ -422,6 +422,7 @@ func GetAllQuests() []Quest {
 		{Episode: 2, Name: "Hollow Phantasm: Jungle", Number: 1672, Start: warpIn(), End: register(0)},
 		{Episode: 2, Name: "Hollow Phantasm: Seabed", Number: 1673, Start: warpIn(), End: register(0)},
 		{Episode: 2, Name: "Hollow Phantasm: Tower", Number: 1674, Start: warpIn(), End: register(0)},
+		{Episode: 2, Name: "Endless: Episode 2", Number: 1851, Start: register(50), End: register(248), ForceTerminal: true},
 		// ---- Challenge Mode ----
 		{Episode: 2, Name: "Stage1", Remap: remap("2c1")},
 		{Episode: 2, Name: "ステージ１", Remap: remap("2c1")},
