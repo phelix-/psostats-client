@@ -155,7 +155,11 @@ function getSpecialDamageModifier(special) {
         return 0.5;
     } else if (special === 'Lavis Blade') {
         return 0.583;
-    } else if (special === 'Dark Flow' || special === 'TJS' || special === "Frozen Shooter") {
+    } else if (special === 'Dark Flow'
+        || special === 'TJS'
+        || special === "Frozen Shooter"
+        || special === "Mille Marteaux"
+    ) {
         return 1.7;
     } else if (special === 'Orotiagito') {
         return 1.75;
@@ -281,29 +285,29 @@ function getDamageForCombo(enemyHp, atpInput, comboInput, special, baseDamage) {
     let hpCutModifier = special === "Devil's" ? getDevilsModifier(atpInput.playerClass) : getDemonsModifier(atpInput.playerClass);
     if (comboInput.a1Type === "SPECIAL" && ["Demon's", "Devil's"].includes(special)) {
         for (let i = 0; i < comboInput.a1Hits; i++) {
-            a1Damage = (enemyHp - total) * hpCutModifier;
+            a1Damage = Math.floor((enemyHp - total) * hpCutModifier);
             total += a1Damage;
         }
     } else {
-        a1Damage = getDamageModifierForAttackType(comboInput.a1Type, special) * baseDamage;
+        a1Damage = Math.floor(getDamageModifierForAttackType(comboInput.a1Type, special) * baseDamage);
         total += a1Damage * comboInput.a1Hits;
     }
     if (comboInput.a2Type === "SPECIAL" && ["Demon's", "Devil's"].includes(special)) {
         for (let i = 0; i < comboInput.a2Hits; i++) {
-            a2Damage = (enemyHp - total) * hpCutModifier;
+            a2Damage = Math.floor((enemyHp - total) * hpCutModifier);
             total += a2Damage;
         }
     } else {
-        a2Damage = getDamageModifierForAttackType(comboInput.a2Type, special) * baseDamage;
+        a2Damage = Math.floor(getDamageModifierForAttackType(comboInput.a2Type, special) * baseDamage);
         total += a2Damage * comboInput.a2Hits;
     }
     if (comboInput.a3Type === "SPECIAL" && ["Demon's", "Devil's"].includes(special)) {
         for (let i = 0; i < comboInput.a3Hits; i++) {
-            a3Damage = (enemyHp - total) * hpCutModifier;
+            a3Damage = Math.floor((enemyHp - total) * hpCutModifier);
             total += a3Damage;
         }
     } else {
-        a3Damage = getDamageModifierForAttackType(comboInput.a3Type, special) * baseDamage;
+        a3Damage = Math.floor(getDamageModifierForAttackType(comboInput.a3Type, special) * baseDamage);
         total += a3Damage * comboInput.a3Hits;
     }
 
