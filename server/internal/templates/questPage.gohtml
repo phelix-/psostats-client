@@ -1,6 +1,112 @@
 {{ define "quest" }}
 <html lang="en">
-<head><title>Quest - PSOStats</title></head>
-<body>{{ template "navbar" }}<p>Quest page coming soon</p></body>
+<head>
+    <meta name="viewport" content="width=device-width">
+    <title>{{ .QuestName }} - PSOStats</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+    <link href="/static/main2.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<div class="container">
+    {{ template "navbar" }}
+    <div class="row">
+        <div class="col">
+            <h1>{{ .QuestName }}</h1>
+        </div>
+    </div>
+
+    {{ if .Records }}
+    <div class="row">
+        <div class="col">
+            <h2>Records</h2>
+        </div>
+    </div>
+    {{ range $category, $game := .Records }}
+    <div class="row quest-row">
+        <div class="col-3 col-xl-2">
+            <span class="quest-category">{{ $game.NumPlayers }}P
+                {{ if $game.PbRun }}
+                    <img src="/static/twins_cropped.png" height="24px" width="24px" alt="PB" title="PB" style="margin-bottom: 4px"/><span aria-hidden="true" class="invisible-label">PB</span>
+                {{ else }}
+                    <img src="/static/shifta_cropped.png" height="24px" width="24px" alt="No-PB" title="No-PB" style="margin-bottom: 4px"/>
+                {{ end }}
+            </span>
+        </div>
+        <div class="col-3">
+            <a href="/game/{{ $game.Id }}" class="quest-time">{{ $game.Time }} 🥇</a>
+        </div>
+        <div class="col-6">
+            {{ range $index, $player := $game.Players }}
+                {{ if gt (len .Name) 0 }}
+                    <div>
+                        {{ if $player.HasPov }}
+                            <a href="/game/{{ $game.Id }}/{{ $index }}"><span style="width:85px; display: inline-block">{{ $player.Class }}</span>{{ $player.Name }}</a>
+                        {{ else }}
+                            <span style="width:85px; display: inline-block">{{ $player.Class }}</span>{{ $player.Name }}
+                        {{ end }}
+                    </div>
+                {{ end }}
+            {{ end }}
+        </div>
+    </div>
+    {{ end }}
+    {{ end }}
+
+    <div class="row" style="margin-top: 24px; margin-bottom: 8px;">
+        <div class="col-12 col-md-6">
+            <h2>Player History</h2>
+            <form method="GET" action="">
+                <div class="input-group">
+                    <input type="text" class="form-control" name="player" value="{{ .Player }}" placeholder="Player name">
+                    <button class="btn btn-primary" type="submit">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{ if .Player }}
+        {{ if .PlayerNotFound }}
+        <div class="row">
+            <div class="col">
+                <p class="text-muted">No runs found for <strong>{{ .Player }}</strong> on this quest.</p>
+            </div>
+        </div>
+        {{ else }}
+        <div class="row" style="margin-top: 8px;">
+            <div class="col">
+                <h3><a href="/players/{{ .Player }}">{{ .Player }}</a></h3>
+            </div>
+        </div>
+        {{ range .PlayerGames }}
+            {{ $game := . }}
+            <div class="row quest-row">
+                <div class="col-8 col-md-3">
+                    <h6 class="text-muted" title="{{ .Date }}">{{ .RelativeDate }}</h6>
+                </div>
+                <div class="col-4 col-md-1">
+                    <span class="quest-category">{{ .NumPlayers }}P</span>
+                </div>
+                <div class="col-4 col-md-2">
+                    <span class="quest-time">{{ .Time }}<small>{{ if $game.Record }} 🥇 {{ else if $game.Pb }} PB {{ end }}</small></span>
+                </div>
+                <div class="col-8 col-md-6">
+                    {{ range $index, $player := .Players }}
+                        {{ if gt (len .Name) 0 }}
+                            <div>
+                                {{ if $player.HasPov }}
+                                    <a href="/game/{{ $game.Id }}/{{ $index }}"><span style="width:85px; display: inline-block">{{ $player.Class }}</span>{{ $player.Name }}</a>
+                                {{ else }}
+                                    <span style="width:85px; display: inline-block">{{ $player.Class }}</span>{{ $player.Name }}
+                                {{ end }}
+                            </div>
+                        {{ end }}
+                    {{ end }}
+                </div>
+            </div>
+        {{ end }}
+        {{ end }}
+    {{ end }}
+</div>
+</body>
 </html>
 {{ end }}
