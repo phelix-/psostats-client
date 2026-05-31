@@ -7,6 +7,7 @@ import (
 	"github.com/phelix-/psostats/v2/pkg/model"
 	"github.com/phelix-/psostats/v2/server/internal/db"
 	"log"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -40,6 +41,47 @@ func TestGetQuestRecordsForQuest(t *testing.T) {
 		if r.Quest != quest {
 			t.Errorf("expected quest %q, got %q", quest, r.Quest)
 		}
+	}
+}
+
+func TestGetAllGamesForPlayerQuest(t *testing.T) {
+	sess, err := session.NewSession(&aws.Config{
+		Region:   aws.String("us-west-2"),
+		Endpoint: aws.String("http://localhost:8000"),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	dynamoClient := dynamodb.New(sess)
+	if err = CreateAllTables(dynamoClient); err != nil {
+		t.Fatal(err)
+	}
+
+	const player = "testplayer"
+	const targetQuest = "Sweep-up Operation #1"
+
+	older := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC)
+	newer := time.Date(2022, time.January, 1, 0, 0, 0, 0, time.UTC)
+
+	writeTestPlayerGame(t, dynamoClient, player, targetQuest, "pg-1", 1, older)
+	writeTestPlayerGame(t, dynamoClient, player, targetQuest, "pg-2", 2, newer)
+	writeTestPlayerGame(t, dynamoClient, player, "Lost WORKS Machine", "pg-3", 3, older)
+
+	games, err := db.GetAllGamesForPlayerQuest(player, targetQuest, dynamoClient)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(games) != 2 {
+		t.Fatalf("expected 2 games for player+quest, got %d", len(games))
+	}
+	for _, g := range games {
+		if g.Quest != targetQuest {
+			t.Errorf("expected quest %q, got %q", targetQuest, g.Quest)
+		}
+	}
+	if !games[0].Timestamp.After(games[1].Timestamp) {
+		t.Errorf("expected games sorted descending by Timestamp: games[0]=%v games[1]=%v",
+			games[0].Timestamp, games[1].Timestamp)
 	}
 }
 
@@ -149,6 +191,11 @@ func CreateAllTables(dynamoClient *dynamodb.DynamoDB) error {
 			return err
 		}
 	}
+	if _, exists := tables[db.RecentGamesByPlayerTable]; !exists {
+		if err = CreateRecentGamesByPlayerTable(dynamoClient); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -246,6 +293,44 @@ func CreateQuestRecordsTable(dynamoClient *dynamodb.DynamoDB) error {
 		},
 	})
 	return err
+}
+
+func CreateRecentGamesByPlayerTable(dynamoClient *dynamodb.DynamoDB) error {
+	_, err := dynamoClient.CreateTable(&dynamodb.CreateTableInput{
+		TableName: aws.String(db.RecentGamesByPlayerTable),
+		AttributeDefinitions: []*dynamodb.AttributeDefinition{
+			{AttributeName: aws.String("Player"), AttributeType: aws.String("S")},
+			{AttributeName: aws.String("IdInt"), AttributeType: aws.String("N")},
+		},
+		KeySchema: []*dynamodb.KeySchemaElement{
+			{AttributeName: aws.String("Player"), KeyType: aws.String(dynamodb.KeyTypeHash)},
+			{AttributeName: aws.String("IdInt"), KeyType: aws.String(dynamodb.KeyTypeRange)},
+		},
+		ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
+			ReadCapacityUnits:  aws.Int64(1),
+			WriteCapacityUnits: aws.Int64(1),
+		},
+	})
+	return err
+}
+
+func writeTestPlayerGame(t *testing.T, dynamoClient *dynamodb.DynamoDB, player, questName, gameId string, idInt int, ts time.Time) {
+	t.Helper()
+	_, err := dynamoClient.PutItem(&dynamodb.PutItemInput{
+		TableName: aws.String(db.RecentGamesByPlayerTable),
+		Item: map[string]*dynamodb.AttributeValue{
+			"Player":    {S: aws.String(player)},
+			"IdInt":     {N: aws.String(strconv.Itoa(idInt))},
+			"Id":        {S: aws.String(gameId)},
+			"Quest":     {S: aws.String(questName)},
+			"Category":  {S: aws.String("2n")},
+			"Episode":   {N: aws.String("1")},
+			"Timestamp": {S: aws.String(ts.Format(time.RFC3339))},
+		},
+	})
+	if err != nil {
+		t.Fatalf("failed to write test player game: %v", err)
+	}
 }
 
 func writeTestQuestRecord(t *testing.T, dynamoClient *dynamodb.DynamoDB, questName, category, gameId string) {

@@ -446,6 +446,55 @@ func GetQuestRecordsForQuest(quest string, dynamoClient *dynamodb.DynamoDB) ([]m
 	return games, err
 }
 
+func GetAllGamesForPlayerQuest(player, quest string, dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
+	expr, err := expression.NewBuilder().
+		WithKeyCondition(expression.KeyEqual(expression.Key("Player"), expression.Value(player))).
+		WithFilter(expression.Equal(expression.Name("Quest"), expression.Value(quest))).
+		Build()
+	if err != nil {
+		return nil, err
+	}
+
+	games := make([]model.Game, 0)
+	var lastKey map[string]*dynamodb.AttributeValue
+
+	for {
+		input := &dynamodb.QueryInput{
+			ExpressionAttributeNames:  expr.Names(),
+			ExpressionAttributeValues: expr.Values(),
+			KeyConditionExpression:    expr.KeyCondition(),
+			FilterExpression:          expr.Filter(),
+			ScanIndexForward:          aws.Bool(false),
+			TableName:                 aws.String(RecentGamesByPlayerTable),
+		}
+		if lastKey != nil {
+			input.ExclusiveStartKey = lastKey
+		}
+
+		result, err := dynamoClient.Query(input)
+		if err != nil {
+			return nil, err
+		}
+
+		page := make([]model.Game, 0)
+		if err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &page); err != nil {
+			return nil, err
+		}
+		games = append(games, page...)
+
+		lastKey = result.LastEvaluatedKey
+		if lastKey == nil {
+			break
+		}
+	}
+
+	sort.Slice(games, func(i, j int) bool {
+		return games[i].Timestamp.After(games[j].Timestamp)
+	})
+
+	return games, nil
+}
+
 func GetQuestRecords(tableName string, dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
 	scanInput := dynamodb.ScanInput{
 		AttributesToGet: aws.StringSlice([]string{"Id", "Category", "Episode", "Quest",
