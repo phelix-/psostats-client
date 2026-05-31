@@ -11,6 +11,38 @@ import (
 	"time"
 )
 
+func TestGetQuestRecordsForQuest(t *testing.T) {
+	sess, err := session.NewSession(&aws.Config{
+		Region:   aws.String("us-west-2"),
+		Endpoint: aws.String("http://localhost:8000"),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	dynamoClient := dynamodb.New(sess)
+	if err = CreateAllTables(dynamoClient); err != nil {
+		t.Fatal(err)
+	}
+
+	const quest = "Sweep-up Operation #1"
+	writeTestQuestRecord(t, dynamoClient, quest, "1n", "game-1")
+	writeTestQuestRecord(t, dynamoClient, quest, "2n", "game-2")
+	writeTestQuestRecord(t, dynamoClient, "Some Other Quest", "1n", "game-3")
+
+	records, err := db.GetQuestRecordsForQuest(quest, dynamoClient)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(records) != 2 {
+		t.Fatalf("expected 2 records for quest, got %d", len(records))
+	}
+	for _, r := range records {
+		if r.Quest != quest {
+			t.Errorf("expected quest %q, got %q", quest, r.Quest)
+		}
+	}
+}
+
 func TestGetPlayerRecentGames(t *testing.T) {
 
 	sess, err := session.NewSession(&aws.Config{
@@ -35,11 +67,11 @@ func TestGetPlayerRecentGames(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	returned, err := db.GetGame(id, dynamoClient)
+	returned, err := db.GetGame(id, 0, dynamoClient)
 	if err != nil {
 		t.Error(err)
 	}
-	if returned.QuestName != questRun.QuestName {
+	if returned == nil || returned.QuestName != questRun.QuestName {
 		t.Fatalf("Quest names didn't match")
 	}
 }
@@ -66,7 +98,6 @@ func createMockGame() *model.QuestRun {
 		DeathCount:          2,
 		HP:                  nil,
 		TP:                  nil,
-		Meseta:              nil,
 		MesetaCharged:       nil,
 		Room:                nil,
 		IllegalShifta:       false,
@@ -110,6 +141,11 @@ func CreateAllTables(dynamoClient *dynamodb.DynamoDB) error {
 	}
 	if _, exists := tables[db.RecentGamesByMonth]; !exists {
 		if err = CreateRecentGamesByMonth(dynamoClient); err != nil {
+			return err
+		}
+	}
+	if _, exists := tables[db.QuestRecordsTable]; !exists {
+		if err = CreateQuestRecordsTable(dynamoClient); err != nil {
 			return err
 		}
 	}
@@ -191,4 +227,38 @@ func CreateRecentGamesByMonth(dynamoClient *dynamodb.DynamoDB) error {
 	}
 	_, err := dynamoClient.CreateTable(&createTableInput)
 	return err
+}
+
+func CreateQuestRecordsTable(dynamoClient *dynamodb.DynamoDB) error {
+	_, err := dynamoClient.CreateTable(&dynamodb.CreateTableInput{
+		TableName: aws.String(db.QuestRecordsTable),
+		AttributeDefinitions: []*dynamodb.AttributeDefinition{
+			{AttributeName: aws.String("Quest"), AttributeType: aws.String("S")},
+			{AttributeName: aws.String("Category"), AttributeType: aws.String("S")},
+		},
+		KeySchema: []*dynamodb.KeySchemaElement{
+			{AttributeName: aws.String("Quest"), KeyType: aws.String(dynamodb.KeyTypeHash)},
+			{AttributeName: aws.String("Category"), KeyType: aws.String(dynamodb.KeyTypeRange)},
+		},
+		ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
+			ReadCapacityUnits:  aws.Int64(1),
+			WriteCapacityUnits: aws.Int64(1),
+		},
+	})
+	return err
+}
+
+func writeTestQuestRecord(t *testing.T, dynamoClient *dynamodb.DynamoDB, questName, category, gameId string) {
+	t.Helper()
+	_, err := dynamoClient.PutItem(&dynamodb.PutItemInput{
+		TableName: aws.String(db.QuestRecordsTable),
+		Item: map[string]*dynamodb.AttributeValue{
+			"Quest":    {S: aws.String(questName)},
+			"Category": {S: aws.String(category)},
+			"Id":       {S: aws.String(gameId)},
+		},
+	})
+	if err != nil {
+		t.Fatalf("failed to write test quest record: %v", err)
+	}
 }

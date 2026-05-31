@@ -425,6 +425,27 @@ func GetAnniv2025Record(quest string, numPlayers int, pbCategory bool, dynamoCli
 	return getRecord(Anniv2025RecordsTable, quest, numPlayers, pbCategory, dynamoClient)
 }
 
+func GetQuestRecordsForQuest(quest string, dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
+	expr, err := expression.NewBuilder().
+		WithKeyCondition(expression.KeyEqual(expression.Key("Quest"), expression.Value(quest))).
+		Build()
+	if err != nil {
+		return nil, err
+	}
+	result, err := dynamoClient.Query(&dynamodb.QueryInput{
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		KeyConditionExpression:    expr.KeyCondition(),
+		TableName:                 aws.String(QuestRecordsTable),
+	})
+	if err != nil {
+		return nil, err
+	}
+	games := make([]model.Game, 0)
+	err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &games)
+	return games, err
+}
+
 func GetQuestRecords(tableName string, dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
 	scanInput := dynamodb.ScanInput{
 		AttributesToGet: aws.StringSlice([]string{"Id", "Category", "Episode", "Quest",
