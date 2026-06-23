@@ -42,7 +42,7 @@
 
             <div class="row quest-row">
                 <div class="col-12 col-md-4">
-                    <h5>{{ $quest }}</h5>
+                    <h5><a href="/quest/{{ urlPathEscape $quest }}">{{ $quest }}</a></h5>
                 </div>
                 <div class="col-12 col-md-8">
                     {{ range $category, $game := $val }}

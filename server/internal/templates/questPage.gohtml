@@ -1,0 +1,258 @@
+{{ define "quest" }}
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width">
+    <title>{{ .QuestName }} - PSOStats</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+    <link href="/static/main2.css?v=3" rel="stylesheet" type="text/css">
+    <style>
+        :root {
+            --t-bg:           #333;
+            --t-bg-mid:       #444;
+            --t-bg-mid-hover: #555;
+            --t-bg-dark:      #222;
+            --t-bg-deeper:    #282828;
+            --t-bg-hover:     #2a2a2a;
+            --t-border:       #555;
+            --t-border-cat:   #777;
+            --t-border-input: #aaa;
+            --t-accent:       #888;
+        }
+        body { background-color: var(--t-bg); }
+        .nav-tabs { border-bottom: 1px solid var(--t-border); }
+        .nav-tabs .nav-link {
+            color: #aaa;
+            background-color: var(--t-bg);
+            border: 1px solid var(--t-border);
+            border-bottom: none;
+            border-radius: 6px 6px 0 0;
+            margin-right: 4px;
+        }
+        .nav-tabs .nav-link:hover { color: #ddd; background-color: var(--t-bg-hover); }
+        .nav-tabs .nav-link.active {
+            color: #eee;
+            background-color: var(--t-bg-dark);
+            border-color: var(--t-border) var(--t-border) var(--t-bg-dark);
+        }
+        .quest-time small { font-size: .65em; color: #ff6b6b; }
+        #playerTabContent:not(.show-pb) .quest-row[data-pbrun="true"] { display: none !important; }
+        #playerTabContent.show-pb .quest-row[data-pbrun="false"] { display: none !important; }
+        .pbrun-check label { color: #ccc; font-size: 13px; cursor: pointer; user-select: none; }
+        .pbrun-check input { cursor: pointer; }
+        .class-hidden { display: none !important; }
+        #playerTabContent:not(.show-pb) .rec-row[data-pbrun="true"]  { display: none !important; }
+        #playerTabContent.show-pb      .rec-row[data-pbrun="false"] { display: none !important; }
+        .player-slot-text { display: flex; flex-direction: column; }
+    </style>
+</head>
+<body>
+<div class="container">
+    {{ template "navbar" }}
+    <div class="row">
+        <div class="col">
+            <h1>{{ .QuestName }}</h1>
+        </div>
+    </div>
+
+    <div class="row" style="margin-top: 12px;">
+        <div class="col">
+            <h2>Player History</h2>
+            <form method="GET">
+                <div style="display:flex; align-items:center; flex-wrap:wrap; margin-bottom:10px;">
+                    <div class="input-group" style="width:auto;">
+                        <span class="input-group-text">Player</span>
+                        <input type="text" class="form-control" name="player" value="{{ if .Player }}{{ .Player }}{{ else }}{{ .DefaultPlayer }}{{ end }}" placeholder="Player name">
+                        <button class="btn btn-secondary" type="submit">Search</button>
+                    </div>
+                    <div style="width:10px; flex-shrink:0;"></div>
+                    <select id="classFilter" aria-label="Filter by class" class="form-control" style="width:auto; cursor:pointer; padding:2px 4px 2px 6px; height:auto;">
+                        <option value="">Class</option>
+                        <optgroup label="Hunter" style="color:#cc5520;">
+                            <option value="HUmar">HUmar</option>
+                            <option value="HUnewearl">HUnewearl</option>
+                            <option value="HUcast">HUcast</option>
+                            <option value="HUcaseal">HUcaseal</option>
+                        </optgroup>
+                        <optgroup label="Ranger" style="color:#4a9a4a;">
+                            <option value="RAmar">RAmar</option>
+                            <option value="RAmarl">RAmarl</option>
+                            <option value="RAcast">RAcast</option>
+                            <option value="RAcaseal">RAcaseal</option>
+                        </optgroup>
+                        <optgroup label="Force" style="color:#5577cc;">
+                            <option value="FOmar">FOmar</option>
+                            <option value="FOmarl">FOmarl</option>
+                            <option value="FOnewm">FOnewm</option>
+                            <option value="FOnewearl">FOnewearl</option>
+                        </optgroup>
+                    </select>
+                    <div style="width:10px; flex-shrink:0;"></div>
+                    <div class="form-check pbrun-check d-flex align-items-center" style="gap:6px; margin:0;">
+                        <input class="form-check-input" type="checkbox" id="pbRunToggle" style="margin-top:0;">
+                        <label class="form-check-label" for="pbRunToggle">PB Runs</label>
+                    </div>
+                </div>
+            </form>
+
+            {{ if .Player }}
+                {{ if .PlayerNotFound }}
+                <p class="text-muted">No runs found for <strong>{{ .Player }}</strong> on this quest.</p>
+                {{ else }}
+                <div style="margin-top: 8px;">
+                    <h3><a href="/players/{{ urlPathEscape .Player }}">{{ .Player }}</a></h3>
+                    {{ if .ResultsCapped }}<p class="text-muted" style="font-size:12px">Showing first 500 runs.</p>{{ end }}
+                </div>
+
+                <ul class="nav nav-tabs mb-0" id="playerTabs" role="tablist">
+                    {{ range $i, $np := .PlayerCounts }}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link{{ if eq $i 0 }} active{{ end }}"
+                            id="tab-{{ $np }}p-btn"
+                            data-bs-toggle="tab"
+                            data-bs-target="#tab-{{ $np }}p"
+                            type="button"
+                            role="tab">
+                            {{ $np }}P <span class="text-muted" style="font-size:11px">({{ len (index $.PlayerGamesByCount $np) }})</span>
+                        </button>
+                    </li>
+                    {{ end }}
+                </ul>
+
+                <div class="tab-content" id="playerTabContent">
+                    {{ range $i, $np := .PlayerCounts }}
+                    {{ $games := index $.PlayerGamesByCount $np }}
+                    <div class="tab-pane fade{{ if eq $i 0 }} show active{{ end }}" id="tab-{{ $np }}p" role="tabpanel">
+
+                        <!-- Records for this player count, pinned above runs (one per PbRun state, PB toggle controls which shows) -->
+                        {{ range $.Records }}{{ $rec := . }}{{ if eq $rec.NumPlayers $np }}
+                        <div class="rec-row" data-pbrun="{{ $rec.PbRun }}" style="display:flex; align-items:flex-start; padding:8px 0; border-bottom:1px solid var(--t-border-cat); background:var(--t-bg-dark);">
+                            <span style="color:var(--t-accent); min-width:110px; flex-shrink:0; font-size:0.85em; padding-left:12px; opacity:0.55; display:flex; flex-direction:column; gap:1px;">
+                                <span>Record</span>
+                                <span style="font-size:0.85em;">{{ $rec.RelativeDate }}</span>
+                            </span>
+                            <span class="quest-category" style="min-width:32px; flex-shrink:0; opacity:0.55;">
+                                {{ if $rec.PbRun }}
+                                    <img src="/static/twins_cropped.png" height="18px" width="18px" alt="PB" title="PB" style="margin-bottom: 2px"/>
+                                {{ else }}
+                                    <img src="/static/shifta_cropped.png" height="18px" width="18px" alt="No-PB" title="No-PB" style="margin-bottom: 2px"/>
+                                {{ end }}
+                            </span>
+                            <span style="width:160px; flex-shrink:0; display:inline-flex; align-items:baseline; gap:4px; opacity:0.55;">
+                                <span class="quest-time" style="font-variant-numeric:tabular-nums;">{{ $rec.Time }}</span>
+                                <small>🥇</small>
+                            </span>
+                            <span style="display:flex; flex-direction:column; flex:1; min-width:0; gap:0;">
+                                {{ range $ridx, $rplayer := $rec.Players }}{{ if gt (len $rplayer.Name) 0 }}
+                                <span class="player-slot">
+                                    <span class="player-slot-text" style="padding:3px 0 3px 4px; gap:2px;">
+                                        {{ if $rplayer.HasPov }}<a href="/game/{{ $rec.Id }}/{{ $ridx }}" style="font-size:0.9em; color:#ccc; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $rplayer.Name }}</a>{{ else }}<span style="font-size:0.9em; color:#ccc; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $rplayer.Name }}</span>{{ end }}
+                                        <span style="font-size:0.75em; color:var(--t-accent);">{{ $rplayer.Class }}</span>
+                                    </span>
+                                </span>
+                                {{ end }}{{ end }}
+                            </span>
+                        </div>
+                        {{ end }}{{ end }}
+
+                        <!-- Player run history -->
+                        {{ range $index, $game := $games }}
+                        {{- $playerClass := "" -}}
+                        {{- range $game.Players -}}{{- if eq .Name $.Player -}}{{- $playerClass = .Class -}}{{- end -}}{{- end -}}
+                        <div class="quest-row{{ if ge $index 20 }} lazy-row d-none{{ end }}" data-pbrun="{{ $game.PbRun }}" data-class="{{ $playerClass }}" style="display:flex; align-items:flex-start; padding:8px 0; border-bottom:1px solid var(--t-border-cat);">
+                            <span style="color:var(--t-accent); min-width:110px; flex-shrink:0; font-size:0.85em; padding-left:12px; opacity:0.55;" title="{{ $game.Date }}">{{ $game.RelativeDate }}</span>
+                            <span class="quest-category" style="min-width:32px; flex-shrink:0; opacity:0.55;">
+                                {{ if $game.PbRun }}
+                                    <img src="/static/twins_cropped.png" height="18px" width="18px" alt="PB" title="PB" style="margin-bottom: 2px"/>
+                                {{ else }}
+                                    <img src="/static/shifta_cropped.png" height="18px" width="18px" alt="No-PB" title="No-PB" style="margin-bottom: 2px"/>
+                                {{ end }}
+                            </span>
+                            <span style="width:160px; flex-shrink:0; display:inline-flex; align-items:baseline; gap:4px; opacity:0.55;">
+                                <span class="quest-time" style="font-variant-numeric:tabular-nums;">{{ $game.Time }}</span>
+                                <small>{{ if $game.Record }}🥇{{ else if $game.Pb }}PB{{ end }}</small>
+                            </span>
+                            <span style="display:flex; flex-direction:column; flex:1; min-width:0; gap:0;">
+                                {{ range $pidx, $player := $game.Players }}
+                                    {{ if gt (len $player.Name) 0 }}
+                                        <span class="player-slot">
+                                            <span class="player-slot-text" style="padding:3px 0 3px 4px; gap:2px;">
+                                                {{ if $player.HasPov }}<a href="/game/{{ $game.Id }}/{{ $pidx }}" style="font-size:0.9em; color:#ccc; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $player.Name }}</a>{{ else }}<span style="font-size:0.9em; color:#ccc; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $player.Name }}</span>{{ end }}
+                                                <span style="font-size:0.75em; color:var(--t-accent);">{{ $player.Class }}</span>
+                                            </span>
+                                        </span>
+                                    {{ end }}
+                                {{ end }}
+                            </span>
+                        </div>
+                        {{ end }}
+                        {{ if gt (len $games) 20 }}
+                        <div class="lazy-sentinel text-center text-muted" style="padding: 8px; font-size: 12px;">Loading more...</div>
+                        {{ end }}
+                    </div>
+                    {{ end }}
+                </div>
+                {{ end }}
+            {{ end }}
+        </div>
+    </div>
+</div>
+<div style="height: 60px;"></div>
+<script>
+    // PB run toggle: checked = PB runs only, unchecked = No-PB runs only
+    var pbToggle = document.getElementById('pbRunToggle');
+    if (pbToggle) {
+        pbToggle.addEventListener('change', function() {
+            document.getElementById('playerTabContent').classList.toggle('show-pb', pbToggle.checked);
+        });
+    }
+
+    // Class filter
+    var classFilter = document.getElementById('classFilter');
+    if (classFilter) {
+        classFilter.addEventListener('change', function() {
+            var selected = classFilter.value;
+            document.querySelectorAll('#playerTabContent .quest-row').forEach(function(row) {
+                if (selected === '' || row.dataset.class === selected) {
+                    row.classList.remove('class-hidden');
+                } else {
+                    row.classList.add('class-hidden');
+                }
+            });
+        });
+    }
+
+    // Tab switching
+    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('[data-bs-toggle="tab"]').forEach(function(b) { b.classList.remove('active'); });
+            document.querySelectorAll('.tab-pane').forEach(function(p) { p.classList.remove('show', 'active'); });
+            btn.classList.add('active');
+            var target = document.querySelector(btn.getAttribute('data-bs-target'));
+            if (target) { target.classList.add('show', 'active'); }
+        });
+    });
+
+    // Infinite scroll per tab
+    document.querySelectorAll('.tab-pane').forEach(function(pane) {
+        var sentinel = pane.querySelector('.lazy-sentinel');
+        if (!sentinel) return;
+        var observer = new IntersectionObserver(function(entries) {
+            if (!entries[0].isIntersecting) return;
+            var hidden = pane.querySelectorAll('.lazy-row.d-none');
+            if (hidden.length === 0) { sentinel.style.display = 'none'; return; }
+            var toReveal = Array.from(hidden).slice(0, 20);
+            toReveal.forEach(function(r) { r.classList.remove('d-none'); });
+            var sel = classFilter ? classFilter.value : '';
+            if (sel !== '') {
+                toReveal.forEach(function(r) {
+                    if (r.dataset.class !== sel) { r.classList.add('class-hidden'); }
+                });
+            }
+            if (hidden.length <= 20) sentinel.style.display = 'none';
+        }, { threshold: 0 });
+        observer.observe(sentinel);
+    });
+</script>
+</body>
+</html>
+{{ end }}
