@@ -1,5 +1,17 @@
+:root {
+    --t-bg:           #14262c;
+    --t-bg-mid:       #175f6a;
+    --t-bg-mid-hover: #1e6e7a;
+    --t-bg-dark:      #0a3840;
+    --t-bg-deeper:    #0d1a1a;
+    --t-bg-hover:     #0d1a1a;
+    --t-border:       #2a7a82;
+    --t-border-cat:   #2a7a82;
+    --t-border-input: #2a7a82;
+    --t-accent:       #6bbbc8;
+}
 body {
-    background-color: #333;
+    background-color: var(--t-bg);
     color: #ccc;
 }
 .nav-link:focus, .nav-link:hover {
@@ -9,11 +21,11 @@ body {
     color: #ccc;
 }
 .list-group-item {
-    background-color: #444;
+    background-color: var(--t-bg-mid);
     color: #cccccc;
 }
 .list-group-item:hover {
-    background-color: #555;
+    background-color: var(--t-bg-mid-hover);
 }
 .text-muted {
     color: #929ea8 !important;
@@ -27,11 +39,11 @@ a:hover {
 }
 .table-dark {
     color: #ccc;
-    --bs-table-bg: #333;
+    --bs-table-bg: var(--t-bg);
 }
 
 .category-row {
-    border-bottom: 1px #777 solid;
+    border-bottom: 1px var(--t-border-cat) solid;
 }
 .category-row:last-child {
     border-bottom: none;
@@ -46,12 +58,38 @@ a:hover {
     margin-left: -24px;
 }
 .quest-row {
-    background-color: #444;
-    border-top: 1px #777 solid;
+    background-color: var(--t-bg-mid);
+    border-top: 1px var(--t-border-cat) solid;
 }
 .quest-category {
     font-size: 1.5rem;
 }
 .quest-time {
     font-size: 1.5rem;
+}
+.form-control {
+    color: #ddd;
+    background-color: var(--t-bg);
+    border-color: var(--t-border-input);
+}
+.form-control:focus {
+    background-color: var(--t-bg-mid);
+    color: #ddd;
+    border-color: var(--t-border-input);
+    box-shadow: none;
+}
+.input-group-text {
+    color: #ddd;
+    background-color: var(--t-bg-deeper);
+    border-color: var(--t-border-input);
+}
+.btn-secondary {
+    color: #ddd;
+    background-color: var(--t-bg-mid);
+    border-color: var(--t-border-input);
+}
+.btn-secondary:hover, .btn-secondary:focus, .btn-secondary:active {
+    color: #fff;
+    background-color: var(--t-bg-mid-hover);
+    border-color: var(--t-border-input);
 }

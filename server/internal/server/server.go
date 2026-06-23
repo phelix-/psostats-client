@@ -46,6 +46,7 @@ type Server struct {
 	anniversaryTemplate     *template.Template
 	anniversary2022Template *template.Template
 	comboCalcTemplate       *template.Template
+	questTemplate           *template.Template
 	anniversaryQuests       map[string]struct{}
 	anniversaryNamesInOrder []string
 }
@@ -125,6 +126,7 @@ func (s *Server) Run() {
 	s.app.Get("/combo-calculator/opm", s.ComboCalcOpmPage)
 	s.app.Get("/combo-calculator/ultima", s.ComboCalcUltima)
 	s.app.Get("/players/:player", s.PlayerV2Page)
+	s.app.Get("/quest/:quest", s.QuestPage)
 	// API
 	s.app.Post("/api/game", s.PostGame)
 	s.app.Get("/api/game/:gameId/:gem?", s.GetGame)
@@ -146,6 +148,7 @@ func (s *Server) Run() {
 	s.anniversaryTemplate = ensureParsed("./server/internal/templates/anniv2021.gohtml")
 	s.anniversary2022Template = ensureParsed("./server/internal/templates/anniv2022.gohtml")
 	s.comboCalcTemplate = ensureParsed("./server/internal/templates/comboCalc.gohtml")
+	s.questTemplate = ensureParsed("./server/internal/templates/questPage.gohtml")
 
 	if certLocation, found := os.LookupEnv("CERT"); found {
 		keyLocation := os.Getenv("KEY")
@@ -160,8 +163,13 @@ func (s *Server) Run() {
 	}
 }
 
+var templateFuncs = template.FuncMap{
+	"urlPathEscape": url.PathEscape,
+}
+
 func ensureParsed(templatePath string) *template.Template {
-	t, err := template.ParseFiles("./server/internal/templates/navbar.gohtml", templatePath)
+	t, err := template.New("base").Funcs(templateFuncs).ParseFiles(
+		"./server/internal/templates/navbar.gohtml", templatePath)
 	if err != nil {
 		log.Fatal(err)
 	}

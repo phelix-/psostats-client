@@ -10,3 +10,8 @@ db_tests/data
 
 .run
 config.yaml
+.DS_Store
+
+# Local dev notes — specs, plans, visual companion brainstorms
+docs/superpowers/
+.superpowers/
