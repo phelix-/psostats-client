@@ -126,7 +126,7 @@ func (s *Server) sortRecordHistory(games []model.Game) map[string][]RecordHistor
 		gamesByQuest[game.Quest] = gamesForQuest
 	}
 	for quest, gamesForQuest := range gamesByQuest {
-		nextGame := RecordHistoryPoint{Time: time.Date(2025, time.September, 12, 0, 0, 0, 0, time.UTC)}
+		nextGame := RecordHistoryPoint{Time: time.Date(2026, time.September, 12, 0, 0, 0, 0, time.UTC)}
 		if len(gamesForQuest) > 0 {
 			lastGame := gamesForQuest[len(gamesForQuest)-1]
 			nextGame.P1 = lastGame.P1
@@ -166,6 +166,8 @@ func (s *Server) getCounters(year int) (QuestCounters, map[string]QuestCounters)
 		tableName = db.Anniv2023Stats
 	} else if year == 2025 {
 		tableName = db.Anniv2025Stats
+	} else if year == 2026 {
+		tableName = db.Anniv2026Stats
 	}
 
 	if counters, err := db.GetAnniversaryCounters(tableName, s.dynamoClient); err == nil {
