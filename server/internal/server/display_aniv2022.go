@@ -14,7 +14,7 @@ import (
 )
 
 func (s *Server) Anniv2022RecordsPage(c *fiber.Ctx) error {
-	overallCounters, questCounters := s.getCounters(2022)
+	overallCounters, questCounters := s.getCounters(2022, s.anniversaryNamesInOrder)
 	records, err := db.GetQuestRecords(db.Anniv2021RecordsTable, s.dynamoClient)
 	if err != nil {
 		log.Printf("get recent games %v", err)
@@ -22,7 +22,7 @@ func (s *Server) Anniv2022RecordsPage(c *fiber.Ctx) error {
 		return err
 	}
 	recordHistory, err := db.GetQuestRecords(db.AnnivRecordHistory, s.dynamoClient)
-	sortedRecordHistory := s.sortRecordHistory(recordHistory)
+	sortedRecordHistory := s.sortRecordHistory(recordHistory, s.anniversaryNamesInOrder)
 	//for class, meseta := range overallCounters.ClassMesetaCharged {
 	//	fmt.Printf("%s - %02f\n", class, float64(meseta)/float64(overallCounters.ClassUse[class]))
 	//}
@@ -54,7 +54,7 @@ func (s *Server) Anniv2022RecordsPage(c *fiber.Ctx) error {
 			"Tower",
 			"Crater",
 			"Desert"},
-		TopLaps:        s.getTopLaps("a2022"),
+		TopLaps:        s.getTopLaps("a2022", s.anniversaryNamesInOrder),
 		OverallCounter: overallCounters,
 		QuestCounters:  questCounters,
 		Records:        sortedRecs,
@@ -94,12 +94,12 @@ func sortAnnivGames(games []model.Game) map[string]map[string]model.FormattedGam
 	return recordModel
 }
 
-func (s *Server) sortRecordHistory(games []model.Game) map[string][]RecordHistoryPoint {
+func (s *Server) sortRecordHistory(games []model.Game, questNames []string) map[string][]RecordHistoryPoint {
 	sort.Slice(games, func(i, j int) bool {
 		return games[i].Timestamp.Before(games[j].Timestamp)
 	})
 	gamesByQuest := make(map[string][]RecordHistoryPoint)
-	for _, quest := range s.anniversaryNamesInOrder {
+	for _, quest := range questNames {
 		gamesByQuest[quest] = make([]RecordHistoryPoint, 0)
 	}
 	for i, game := range games {
@@ -140,7 +140,7 @@ func (s *Server) sortRecordHistory(games []model.Game) map[string][]RecordHistor
 	return gamesByQuest
 }
 
-func (s *Server) getCounters(year int) (QuestCounters, map[string]QuestCounters) {
+func (s *Server) getCounters(year int, questNames []string) (QuestCounters, map[string]QuestCounters) {
 	questCounters := make(map[string]QuestCounters)
 
 	overallCounter := QuestCounters{
@@ -151,7 +151,7 @@ func (s *Server) getCounters(year int) (QuestCounters, map[string]QuestCounters)
 		Shifta:             make(map[int]int64),
 		RunsByDay:          make(map[time.Time]int64),
 	}
-	for _, questName := range s.anniversaryNamesInOrder {
+	for _, questName := range questNames {
 		questCounters[questName] = QuestCounters{
 			ClassMesetaCharged: make(map[string]int64),
 			ClassUse:           make(map[string]int64),
@@ -230,7 +230,7 @@ func (s *Server) getCounters(year int) (QuestCounters, map[string]QuestCounters)
 	return overallCounter, questCounters
 }
 
-func (s *Server) getTopLaps(questSeries string) []AnniversaryTimes {
+func (s *Server) getTopLaps(questSeries string, questNames []string) []AnniversaryTimes {
 	anniversaryTimes := make([]AnniversaryTimes, 0)
 	timesByPlayer := make(map[string]map[string]db.QuestSeriesPb)
 	if pbs, err := db.GetQuestSeriesPbs(questSeries, s.dynamoClient); err == nil {
@@ -244,13 +244,14 @@ func (s *Server) getTopLaps(questSeries string) []AnniversaryTimes {
 		}
 	}
 
+	questCount := len(questNames)
 	for user, times := range timesByPlayer {
-		durations := make([]time.Duration, 11)
-		formattedDurations := make([]string, 11)
-		gameIds := make([]string, 11)
+		durations := make([]time.Duration, questCount)
+		formattedDurations := make([]string, questCount)
+		gameIds := make([]string, questCount)
 		totalTime := time.Duration(0)
 		validTotalTime := true
-		for i, questName := range s.anniversaryNamesInOrder {
+		for i, questName := range questNames {
 			formattedTime := "N/A"
 			pb, found := times[fmt.Sprintf("%s", questName)]
 			if found {
@@ -276,7 +277,7 @@ func (s *Server) getTopLaps(questSeries string) []AnniversaryTimes {
 			Times:           formattedDurations,
 			individualTimes: durations,
 			GameIds:         gameIds,
-			Colors:          make([]string, 11),
+			Colors:          make([]string, questCount),
 		})
 	}
 
@@ -289,7 +290,7 @@ func (s *Server) getTopLaps(questSeries string) []AnniversaryTimes {
 	questBest := make(map[string]time.Duration)
 	questWorst := make(map[string]time.Duration)
 	for _, times := range anniversaryTimes {
-		for i, questName := range s.anniversaryNamesInOrder {
+		for i, questName := range questNames {
 			timeForQuest := times.individualTimes[i]
 			if bestTime, found := questBest[questName]; !found || timeForQuest < bestTime {
 				questBest[questName] = timeForQuest
@@ -300,7 +301,7 @@ func (s *Server) getTopLaps(questSeries string) []AnniversaryTimes {
 		}
 	}
 	for _, times := range anniversaryTimes {
-		for i, questName := range s.anniversaryNamesInOrder {
+		for i, questName := range questNames {
 			worstTimeForQuest := questWorst[questName]
 			bestTimeForQuest := questBest[questName]
 			questTime := times.individualTimes[i]
