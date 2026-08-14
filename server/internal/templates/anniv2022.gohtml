@@ -66,17 +66,7 @@
                 <table class="table table-dark">
                     <thead>
                     <tr><th scope="col">Overall</th><th scope="col">Player</th>
-                        <th scope="col">Forest</th>
-                        <th scope="col">Cave</th>
-                        <th scope="col">Mine</th>
-                        <th scope="col">Ruins</th>
-                        <th scope="col">Temple</th>
-                        <th scope="col">Space</th>
-                        <th scope="col">CCA</th>
-                        <th scope="col">Seabed</th>
-                        <th scope="col">Tower</th>
-                        <th scope="col">Crater</th>
-                        <th scope="col">Desert</th></tr>
+                        {{ range $root.QuestShortNames }}<th scope="col">{{ . }}</th>{{ end }}</tr>
                     </thead>
                     {{ range .TopLaps }}
                         <tr>
@@ -155,6 +145,8 @@
                 case "Maximum Attack E: Tower": return "#012a4a";
                 case "Maximum Attack E: Crater": return "#f8961e";
                 case "Maximum Attack E: Desert": return "#f94144";
+                case "August Atrocity #1": return "#9d4edd";
+                case "August Atrocity #2": return "#ff006e";
             }
         }
         const dailyQuestContext = document.getElementById("daily-quest-counts");

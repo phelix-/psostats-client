@@ -9,7 +9,7 @@ import (
 )
 
 func (s *Server) Anniv2023RecordsPage(c *fiber.Ctx) error {
-	overallCounters, questCounters := s.getCounters(2023)
+	overallCounters, questCounters := s.getCounters(2023, s.anniversaryNamesInOrder)
 	records, err := db.GetQuestRecords(db.Anniv2023RecordsTable, s.dynamoClient)
 	if err != nil {
 		log.Printf("get recent games %v", err)
@@ -17,7 +17,7 @@ func (s *Server) Anniv2023RecordsPage(c *fiber.Ctx) error {
 		return err
 	}
 	recordHistory, err := db.GetQuestRecords(db.Anniv2023RecordHistory, s.dynamoClient)
-	sortedRecordHistory := s.sortRecordHistory(recordHistory)
+	sortedRecordHistory := s.sortRecordHistory(recordHistory, s.anniversaryNamesInOrder)
 	sortedRecs := sortAnnivGames(records)
 	recordModel := struct {
 		Year            int
@@ -46,7 +46,7 @@ func (s *Server) Anniv2023RecordsPage(c *fiber.Ctx) error {
 			"Tower",
 			"Crater",
 			"Desert"},
-		TopLaps:        s.getTopLaps("a2023"),
+		TopLaps:        s.getTopLaps("a2023", s.anniversaryNamesInOrder),
 		OverallCounter: overallCounters,
 		QuestCounters:  questCounters,
 		Records:        sortedRecs,
@@ -73,7 +73,7 @@ func (s *Server) Anniv2023RecordsPage(c *fiber.Ctx) error {
 
 func (s *Server) Anniv2025RecordsPage(c *fiber.Ctx) error {
 	const year = 2025
-	overallCounters, questCounters := s.getCounters(year)
+	overallCounters, questCounters := s.getCounters(year, s.anniversaryNamesInOrder)
 	records, err := db.GetQuestRecords(db.Anniv2025RecordsTable, s.dynamoClient)
 	if err != nil {
 		log.Printf("get recent games %v", err)
@@ -81,7 +81,7 @@ func (s *Server) Anniv2025RecordsPage(c *fiber.Ctx) error {
 		return err
 	}
 	recordHistory, err := db.GetQuestRecords(db.Anniv2025RecordHistory, s.dynamoClient)
-	sortedRecordHistory := s.sortRecordHistory(recordHistory)
+	sortedRecordHistory := s.sortRecordHistory(recordHistory, s.anniversaryNamesInOrder)
 	sortedRecs := sortAnnivGames(records)
 	recordModel := struct {
 		Year            int
@@ -110,7 +110,7 @@ func (s *Server) Anniv2025RecordsPage(c *fiber.Ctx) error {
 			"Tower",
 			"Crater",
 			"Desert"},
-		TopLaps:        s.getTopLaps("a2025"),
+		TopLaps:        s.getTopLaps("a2025", s.anniversaryNamesInOrder),
 		OverallCounter: overallCounters,
 		QuestCounters:  questCounters,
 		Records:        sortedRecs,
@@ -137,7 +137,7 @@ func (s *Server) Anniv2025RecordsPage(c *fiber.Ctx) error {
 
 func (s *Server) Anniv2026RecordsPage(c *fiber.Ctx) error {
 	const year = 2026
-	overallCounters, questCounters := s.getCounters(year)
+	overallCounters, questCounters := s.getCounters(year, s.anniversaryNamesInOrder2026)
 	records, err := db.GetQuestRecords(db.Anniv2026RecordsTable, s.dynamoClient)
 	if err != nil {
 		log.Printf("get recent games %v", err)
@@ -145,7 +145,7 @@ func (s *Server) Anniv2026RecordsPage(c *fiber.Ctx) error {
 		return err
 	}
 	recordHistory, err := db.GetQuestRecords(db.Anniv2026RecordHistory, s.dynamoClient)
-	sortedRecordHistory := s.sortRecordHistory(recordHistory)
+	sortedRecordHistory := s.sortRecordHistory(recordHistory, s.anniversaryNamesInOrder2026)
 	sortedRecs := sortAnnivGames(records)
 	recordModel := struct {
 		Year            int
@@ -162,7 +162,7 @@ func (s *Server) Anniv2026RecordsPage(c *fiber.Ctx) error {
 	}{
 		Year:        year,
 		AnnivNumber: 11,
-		QuestNames:  s.anniversaryNamesInOrder,
+		QuestNames:  s.anniversaryNamesInOrder2026,
 		QuestShortNames: []string{"Forest",
 			"Caves",
 			"Mines",
@@ -173,8 +173,10 @@ func (s *Server) Anniv2026RecordsPage(c *fiber.Ctx) error {
 			"Seabed",
 			"Tower",
 			"Crater",
-			"Desert"},
-		TopLaps:        s.getTopLaps("a2026"),
+			"Desert",
+			"AA1",
+			"AA2"},
+		TopLaps:        s.getTopLaps("a2026", s.anniversaryNamesInOrder2026),
 		OverallCounter: overallCounters,
 		QuestCounters:  questCounters,
 		Records:        sortedRecs,

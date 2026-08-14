@@ -46,8 +46,9 @@ type Server struct {
 	anniversaryTemplate     *template.Template
 	anniversary2022Template *template.Template
 	comboCalcTemplate       *template.Template
-	anniversaryQuests       map[string]struct{}
-	anniversaryNamesInOrder []string
+	anniversaryQuests           map[string]struct{}
+	anniversaryNamesInOrder     []string
+	anniversaryNamesInOrder2026 []string
 }
 
 func New(dynamo *dynamodb.DynamoDB) *Server {
@@ -93,6 +94,21 @@ func New(dynamo *dynamodb.DynamoDB) *Server {
 			"Maximum Attack E: Tower",
 			"Maximum Attack E: Crater",
 			"Maximum Attack E: Desert",
+		},
+		anniversaryNamesInOrder2026: []string{
+			"Maximum Attack E: Forest",
+			"Maximum Attack E: Caves",
+			"Maximum Attack E: Mines",
+			"Maximum Attack E: Ruins",
+			"Maximum Attack E: Temple",
+			"Maximum Attack E: Space",
+			"Maximum Attack E: CCA",
+			"Maximum Attack E: Seabed",
+			"Maximum Attack E: Tower",
+			"Maximum Attack E: Crater",
+			"Maximum Attack E: Desert",
+			"August Atrocity #1",
+			"August Atrocity #2",
 		},
 	}
 }
