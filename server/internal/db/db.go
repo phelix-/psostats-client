@@ -31,6 +31,9 @@ const (
 	Anniv2025Stats           = "anniv_stats_2025"
 	Anniv2025RecordHistory   = "anniv_record_history_2025"
 	Anniv2025RecordsTable    = "anniv_records_2025"
+	Anniv2026Stats           = "anniv_stats_2026"
+	Anniv2026RecordHistory   = "anniv_record_history_2026"
+	Anniv2026RecordsTable    = "anniv_records_2026"
 	RecentGamesByPlayerTable = "recent_games_by_player_2"
 	RecentGamesByMonth       = "recent_games_by_month_2"
 	GameCountTable           = "games_counter"
@@ -374,9 +377,9 @@ func WriteGameByQuestRecord(questRun *model.QuestRun, dynamoClient *dynamodb.Dyn
 	return err
 }
 
-func WriteAnniv2025Record(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) error {
-	summary, err := writeRecord(Anniv2025RecordsTable, questRun, dynamoClient)
-	writeRecordHistory(Anniv2025RecordHistory, summary, dynamoClient)
+func WriteAnniv2026Record(questRun *model.QuestRun, dynamoClient *dynamodb.DynamoDB) error {
+	summary, err := writeRecord(Anniv2026RecordsTable, questRun, dynamoClient)
+	writeRecordHistory(Anniv2026RecordHistory, summary, dynamoClient)
 	return err
 }
 
@@ -423,6 +426,10 @@ func GetAnniv2023Record(quest string, numPlayers int, pbCategory bool, dynamoCli
 
 func GetAnniv2025Record(quest string, numPlayers int, pbCategory bool, dynamoClient *dynamodb.DynamoDB) (*model.Game, error) {
 	return getRecord(Anniv2025RecordsTable, quest, numPlayers, pbCategory, dynamoClient)
+}
+
+func GetAnniv2026Record(quest string, numPlayers int, pbCategory bool, dynamoClient *dynamodb.DynamoDB) (*model.Game, error) {
+	return getRecord(Anniv2026RecordsTable, quest, numPlayers, pbCategory, dynamoClient)
 }
 
 func GetQuestRecords(tableName string, dynamoClient *dynamodb.DynamoDB) ([]model.Game, error) {
@@ -649,7 +656,7 @@ func addAnniversaryCounter(questName, counterName string, value int64, db *dynam
 	questNameAttr := dynamodb.AttributeValue{S: aws.String(questName)}
 
 	updateItemInput := dynamodb.UpdateItemInput{
-		TableName:        aws.String(Anniv2025Stats),
+		TableName:        aws.String(Anniv2026Stats),
 		Key:              map[string]*dynamodb.AttributeValue{"Key": &questNameAttr, "Counter": &counterAttr},
 		AttributeUpdates: map[string]*dynamodb.AttributeValueUpdate{"count": &update},
 	}

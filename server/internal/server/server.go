@@ -118,6 +118,7 @@ func (s *Server) Run() {
 	s.app.Get("/anniv2022", s.Anniv2022RecordsPage)
 	s.app.Get("/anniv2023", s.Anniv2023RecordsPage)
 	s.app.Get("/anniv2025", s.Anniv2025RecordsPage)
+	s.app.Get("/anniv2026", s.Anniv2026RecordsPage)
 	//s.app.Get("/threejs", s.ThreejsPage)
 	//s.app.Get("/geometry", s.GetGeometry)
 	s.app.Get("/combo-calculator", s.ComboCalcMultiPage)
